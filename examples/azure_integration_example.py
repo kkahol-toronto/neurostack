@@ -87,16 +87,12 @@ async def main():
     """Main example function."""
     print("🚀 Starting NeuroStack Azure Integration Example")
     
-    # Azure configuration (you would load this from environment variables)
+    # Azure configuration for APIM setup (you would load this from environment variables)
     azure_config = {
         "openai": {
-            "endpoint": "https://your-resource.openai.azure.com/",
-            "key": "your-azure-openai-key",
-            "deployment_name": "gpt-4"
-        },
-        "cognitive_services": {
-            "endpoint": "https://your-resource.cognitiveservices.azure.com/",
-            "key": "your-cognitive-services-key"
+            "endpoint": "https://your-apim-gateway.azure-api.net/",  # Your APIM endpoint
+            "key": "your-apim-subscription-key",  # Your APIM subscription key
+            "deployment_name": "gpt-4"  # Your model deployment name
         },
         "functions": {
             "function_url": "https://your-function-app.azurewebsites.net/api/",
