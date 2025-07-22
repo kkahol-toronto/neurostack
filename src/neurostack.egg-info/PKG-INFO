@@ -1,0 +1,223 @@
+Metadata-Version: 2.4
+Name: neurostack
+Version: 0.1.0
+Summary: Enterprise-grade agentic AI platform with advanced reasoning, memory, and orchestration
+Author: NeuroStack Team
+Project-URL: Homepage, https://github.com/neurostack/neurostack
+Project-URL: Repository, https://github.com/neurostack/neurostack
+Project-URL: Documentation, https://neurostack.readthedocs.io
+Project-URL: Bug Tracker, https://github.com/neurostack/neurostack/issues
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: asyncio-mqtt>=0.16.0
+Requires-Dist: redis>=4.0.0
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: httpx>=0.24.0
+Requires-Dist: openai>=1.0.0
+Requires-Dist: anthropic>=0.7.0
+Requires-Dist: google-cloud-aiplatform>=1.35.0
+Requires-Dist: google-cloud-firestore>=2.11.0
+Requires-Dist: google-cloud-storage>=2.10.0
+Requires-Dist: sentence-transformers>=2.2.0
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: structlog>=23.0.0
+Requires-Dist: prometheus-client>=0.17.0
+Requires-Dist: fastapi>=0.100.0
+Requires-Dist: uvicorn>=0.23.0
+Requires-Dist: python-multipart>=0.0.6
+Requires-Dist: python-jose[cryptography]>=3.3.0
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+Requires-Dist: pre-commit>=3.0.0; extra == "dev"
+Provides-Extra: langgraph
+Requires-Dist: langgraph>=0.0.20; extra == "langgraph"
+Requires-Dist: langchain>=0.1.0; extra == "langgraph"
+Requires-Dist: langchain-core>=0.1.0; extra == "langgraph"
+Provides-Extra: gcp
+Requires-Dist: google-cloud-pubsub>=2.18.0; extra == "gcp"
+Requires-Dist: google-cloud-functions>=1.8.0; extra == "gcp"
+Requires-Dist: google-cloud-run>=0.10.0; extra == "gcp"
+Requires-Dist: google-cloud-monitoring>=2.15.0; extra == "gcp"
+Requires-Dist: google-cloud-logging>=3.8.0; extra == "gcp"
+Provides-Extra: azure
+Requires-Dist: azure-identity>=1.12.0; extra == "azure"
+Requires-Dist: azure-cosmos>=4.4.0; extra == "azure"
+Requires-Dist: azure-functions>=1.15.0; extra == "azure"
+Requires-Dist: azure-servicebus>=7.10.0; extra == "azure"
+
+# NeuroStack - Agentic AI Architecture Library
+
+## Overview
+
+NeuroStack is a general-purpose agentic AI platform enabling enterprises to build multi-agent systems with advanced reasoning, memory, and orchestration at scale. This implementation focuses on building a flexible, modular library that can work with both LangGraph and custom orchestration systems.
+
+## Architecture Decision: LangGraph vs Custom System
+
+Based on the PDF requirements, I recommend **building our own orchestration system** rather than using CrewAI, with **LangGraph as an optional integration layer**. Here's why:
+
+### Why Custom Orchestration + LangGraph Integration:
+
+1. **Flexibility**: Custom orchestration allows us to implement the exact 8-layer architecture described in the PDF
+2. **Enterprise Control**: Better governance, monitoring, and compliance features
+3. **LangGraph Integration**: We can expose LangGraph-compatible interfaces for users who prefer that ecosystem
+4. **Protocol Standards**: Better support for MCP and A2A protocols as specified in the PDF
+5. **Multi-Cloud**: Not tied to specific cloud providers
+
+## Proposed Library Structure
+
+```
+neurostack/
+├── core/                    # Core orchestration engine
+│   ├── agents/             # Agent base classes and implementations
+│   ├── memory/             # Memory management (short/long-term)
+│   ├── reasoning/          # Cognition and reasoning engines
+│   ├── tools/              # Tool management and execution
+│   └── protocols/          # MCP, A2A, and custom protocols
+├── layers/                 # Implementation of the 8-layer architecture
+│   ├── infrastructure/     # Layer 1: Foundation services
+│   ├── agent_internet/     # Layer 2: Communication & coordination
+│   ├── protocol/           # Layer 3: Standards & interoperability
+│   ├── tooling/            # Layer 4: External tools & data access
+│   ├── cognition/          # Layer 5: Agent brain and decision making
+│   ├── memory/             # Layer 6: Memory & personalization
+│   ├── application/        # Layer 7: User interfaces & applications
+│   └── governance/         # Layer 8: Operations & governance
+├── integrations/           # External system integrations
+│   ├── langgraph/          # LangGraph compatibility layer
+│   ├── gcp/                # Google Cloud Platform services
+│   ├── azure/              # Azure services
+│   └── on_prem/            # On-premises deployments
+├── examples/               # Example implementations
+└── tests/                  # Test suite
+```
+
+## Core Components
+
+### 1. Agent Orchestrator
+- **Custom State Machine**: Built-in state management for complex workflows
+- **LangGraph Adapter**: Optional LangGraph compatibility layer
+- **Protocol Support**: Native MCP and A2A protocol support
+- **Multi-Agent Coordination**: Built-in support for agent societies
+
+### 2. Memory System
+- **Vector Memory**: Semantic search and retrieval
+- **Working Memory**: Short-term context management
+- **Long-term Storage**: Persistent knowledge and user profiles
+- **Multi-tenant Support**: Isolated memory per tenant
+
+### 3. Reasoning Engine
+- **Model Abstraction**: Support for multiple LLM providers
+- **Planning Algorithms**: Chain-of-thought, tree-of-thought, reflection
+- **Continuous Learning**: RLHF and feedback integration
+- **Error Handling**: Robust error recovery and compensation
+
+### 4. Tool Management
+- **Dynamic Tool Loading**: Runtime tool registration and discovery
+- **Security Wrapper**: Secure tool execution with access controls
+- **MCP Integration**: Native Model Context Protocol support
+- **API Abstraction**: Unified interface for external services
+
+## Implementation Plan
+
+### Phase 1: Core Foundation
+1. **Agent Base Classes**: Define core agent interfaces and base implementations
+2. **State Management**: Build custom state machine for workflow orchestration
+3. **Memory Interfaces**: Define memory abstraction layers
+4. **Basic Tool System**: Simple tool registration and execution
+
+### Phase 2: Advanced Features
+1. **Protocol Layer**: Implement MCP and A2A protocols
+2. **Reasoning Engine**: Advanced planning and decision-making
+3. **Vector Memory**: Semantic search and retrieval capabilities
+4. **LangGraph Integration**: Compatibility layer for LangGraph users
+
+### Phase 3: Enterprise Features
+1. **Governance Layer**: Monitoring, logging, and compliance
+2. **Multi-tenant Support**: Tenant isolation and management
+3. **Cloud Integrations**: GCP, Azure, and on-premises support
+4. **Security Features**: Authentication, authorization, and audit trails
+
+### Phase 4: Production Ready
+1. **Performance Optimization**: Caching, load balancing, and scaling
+2. **Advanced Monitoring**: Comprehensive observability
+3. **Documentation**: Complete API documentation and examples
+4. **Testing**: Comprehensive test suite and CI/CD
+
+## Key Advantages of This Approach
+
+### 1. **Architecture Fidelity**
+- Implements the exact 8-layer architecture from the PDF
+- Maintains enterprise-grade features and controls
+- Supports all specified protocols and standards
+
+### 2. **Flexibility**
+- Can run on any cloud provider or on-premises
+- Supports multiple orchestration patterns
+- LangGraph compatibility for ecosystem integration
+
+### 3. **Enterprise Ready**
+- Built-in governance and compliance features
+- Multi-tenant support from day one
+- Comprehensive monitoring and observability
+
+### 4. **Future Proof**
+- Protocol-first design for interoperability
+- Modular architecture for easy extension
+- Support for emerging standards (MCP, A2A, OAP)
+
+## Getting Started
+
+```python
+from neurostack import AgentOrchestrator, Agent, Tool
+from neurostack.memory import VectorMemory
+from neurostack.reasoning import ReasoningEngine
+
+# Create an agent
+class MyAgent(Agent):
+    def __init__(self):
+        super().__init__()
+        self.memory = VectorMemory()
+        self.reasoning = ReasoningEngine()
+    
+    async def execute(self, task):
+        # Agent logic here
+        pass
+
+# Create orchestrator
+orchestrator = AgentOrchestrator()
+
+# Register agent
+orchestrator.register_agent("my_agent", MyAgent())
+
+# Run workflow
+result = await orchestrator.run_workflow([
+    {"agent": "my_agent", "task": "analyze_data"}
+])
+```
+
+## Next Steps
+
+1. **Set up project structure** with proper Python packaging
+2. **Implement core agent interfaces** and base classes
+3. **Build state management system** for workflow orchestration
+4. **Create memory abstraction layers** for different storage backends
+5. **Develop tool management system** with security controls
+
+This approach gives us the best of both worlds: a custom, enterprise-grade orchestration system that can also integrate with LangGraph when needed, while maintaining full control over the architecture and features specified in the PDF. 

@@ -1,0 +1,134 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neurostack"
+version = "0.1.0"
+description = "Enterprise-grade agentic AI platform with advanced reasoning, memory, and orchestration"
+authors = [{name = "NeuroStack Team"}]
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "pydantic>=2.0.0",
+    "asyncio-mqtt>=0.16.0",
+    "redis>=4.0.0",
+    "aiohttp>=3.8.0",
+    "httpx>=0.24.0",
+    "openai>=1.0.0",
+    "anthropic>=0.7.0",
+    "google-cloud-aiplatform>=1.35.0",
+    "google-cloud-firestore>=2.11.0",
+    "google-cloud-storage>=2.10.0",
+    "sentence-transformers>=2.2.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "structlog>=23.0.0",
+    "prometheus-client>=0.17.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "python-multipart>=0.0.6",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+langgraph = [
+    "langgraph>=0.0.20",
+    "langchain>=0.1.0",
+    "langchain-core>=0.1.0",
+]
+gcp = [
+    "google-cloud-pubsub>=2.18.0",
+    "google-cloud-functions>=1.8.0",
+    "google-cloud-run>=0.10.0",
+    "google-cloud-monitoring>=2.15.0",
+    "google-cloud-logging>=3.8.0",
+]
+azure = [
+    "azure-identity>=1.12.0",
+    "azure-cosmos>=4.4.0",
+    "azure-functions>=1.15.0",
+    "azure-servicebus>=7.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/neurostack/neurostack"
+Repository = "https://github.com/neurostack/neurostack"
+Documentation = "https://neurostack.readthedocs.io"
+"Bug Tracker" = "https://github.com/neurostack/neurostack/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=neurostack",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
+asyncio_mode = "auto" 
