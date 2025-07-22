@@ -52,7 +52,7 @@ NeuroStack implements an 8-layer architecture for agentic AI systems:
    pip install -e .
    ```
 
-### Running the Example
+### Running the Examples
 
 1. **Make sure your virtual environment is activated:**
    ```bash
@@ -61,9 +61,27 @@ NeuroStack implements an 8-layer architecture for agentic AI systems:
    venv\Scripts\activate     # Windows
    ```
 
-2. **Run the simple example:**
+2. **Run the basic example:**
    ```bash
    python examples/simple_agent_example.py
+   ```
+
+3. **Run the Azure integration example:**
+   ```bash
+   # Install Azure dependencies
+   pip install -e .[azure]
+   
+   # Run the example
+   python examples/azure_integration_example.py
+   ```
+
+4. **Run the GCP integration example:**
+   ```bash
+   # Install GCP dependencies
+   pip install -e .[gcp]
+   
+   # Run the example
+   python examples/gcp_integration_example.py
    ```
 
 You should see output similar to:
@@ -202,6 +220,16 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 # GCP Configuration (for cloud integrations)
 GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
 GCP_PROJECT_ID=your_project_id
+
+# Azure Configuration (for cloud integrations)
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_KEY=your_azure_openai_key
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
+AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+AZURE_COGNITIVE_SERVICES_KEY=your_cognitive_services_key
+AZURE_SUBSCRIPTION_ID=your_subscription_id
+AZURE_RESOURCE_GROUP=your_resource_group
+AZURE_LOCATION=eastus
 
 # Database Configuration
 DATABASE_URL=postgresql://user:password@localhost/neurostack

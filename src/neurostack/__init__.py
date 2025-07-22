@@ -11,6 +11,7 @@ from .core.memory import MemoryManager, VectorMemory, WorkingMemory
 from .core.reasoning import ReasoningEngine
 from .core.tools import Tool, ToolRegistry
 from .core.protocols import MCPProtocol, A2AProtocol
+from .integrations import AzureIntegration, GCPIntegration
 
 __version__ = "0.1.0"
 __all__ = [
@@ -27,4 +28,6 @@ __all__ = [
     "ToolRegistry",
     "MCPProtocol",
     "A2AProtocol",
+    "AzureIntegration",
+    "GCPIntegration",
 ] 
