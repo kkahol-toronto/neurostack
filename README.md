@@ -61,9 +61,36 @@ NeuroStack implements an 8-layer architecture for agentic AI systems:
    venv\Scripts\activate     # Windows
    ```
 
-2. **Run the simple example:**
+2. **Run the basic example:**
    ```bash
    python examples/simple_agent_example.py
+   ```
+
+3. **Run the Azure integration example:**
+   ```bash
+   # Install Azure dependencies
+   pip install -e .[azure]
+   
+   # Run the example
+   python examples/azure_integration_example.py
+   ```
+
+4. **Run the GCP integration example:**
+   ```bash
+   # Install GCP dependencies
+   pip install -e .[gcp]
+   
+   # Run the example
+   python examples/gcp_integration_example.py
+   ```
+
+5. **Test your cloud setup:**
+   ```bash
+   # Test Azure APIM setup
+   python examples/test_apim_setup.py
+   
+   # Test GCP setup
+   python examples/test_gcp_setup.py
    ```
 
 You should see output similar to:
