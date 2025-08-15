@@ -21,8 +21,27 @@ NeuroStack implements an 8-layer architecture for agentic AI systems:
 
 - Python 3.8 or higher
 - pip (Python package installer)
+- Azure CLI (for Azure integration)
+- Docker (optional, for local services)
 
 ### Installation
+
+#### Option 1: Automated Setup (Recommended)
+
+Use our automated setup script for a complete development environment:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd neurostack
+
+# Run the setup script
+./setup_neurostack.sh
+
+# Follow the prompts and edit your .env file
+```
+
+#### Option 2: Manual Setup
 
 1. **Clone the repository:**
    ```bash
@@ -51,6 +70,22 @@ NeuroStack implements an 8-layer architecture for agentic AI systems:
    ```bash
    pip install -e .
    ```
+
+### Configuration
+
+1. **Copy the environment template:**
+   ```bash
+   cp env.template .env
+   ```
+
+2. **Edit the .env file with your Azure credentials and settings**
+
+3. **Run the setup verification:**
+   ```bash
+   python check_neurostack_setup.py
+   ```
+
+For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
 
 ### Running the Examples
 
@@ -269,6 +304,23 @@ pytest tests/
 
 # Run with coverage
 pytest --cov=neurostack tests/
+```
+
+## 📚 Setup Documentation
+
+### Quick Setup
+
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Comprehensive setup guide for Azure resources and local services
+- **[AZURE_CLI_REFERENCE.md](AZURE_CLI_REFERENCE.md)** - Quick reference for Azure CLI commands
+- **[check_neurostack_setup.py](check_neurostack_setup.py)** - Automated setup verification script
+- **[setup_neurostack.sh](setup_neurostack.sh)** - Automated setup script for development environment
+
+### Setup Verification
+
+Run the setup check to verify your configuration:
+
+```bash
+python check_neurostack_setup.py
 ```
 
 ## 📦 Development
