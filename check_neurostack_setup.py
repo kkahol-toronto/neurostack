@@ -22,7 +22,11 @@ def check_neurostack_setup():
     azure_openai_key = os.getenv("AZURE_OPENAI_KEY")
     azure_openai_version = os.getenv("AZURE_OPENAI_API_VERSION")
     
+    # Determine connection type
+    connection_type = "Direct" if azure_openai_endpoint and "openai.azure.com" in azure_openai_endpoint else "APIM" if azure_openai_endpoint and "azure-api.net" in azure_openai_endpoint else "Unknown"
+    
     print(f"   Endpoint: {'✅' if azure_openai_endpoint else '❌'} {azure_openai_endpoint or 'Not set'}")
+    print(f"   Connection Type: {'✅' if connection_type != 'Unknown' else '❌'} {connection_type}")
     print(f"   API Key: {'✅' if azure_openai_key else '❌'} {'Set' if azure_openai_key else 'Not set'}")
     print(f"   API Version: {'✅' if azure_openai_version else '❌'} {azure_openai_version or 'Not set'}")
     

@@ -14,7 +14,7 @@ This guide will walk you through setting up NeuroStack for development, includin
 
 ## Prerequisites
 
-- **Python 3.8+** installed on your system
+- **Python 3.11+** installed on your system
 - **Git** for version control
 - **Azure CLI** installed and authenticated
 - **Docker** (optional, for local services)
@@ -45,11 +45,51 @@ pip install python-dotenv
 
 ## Azure Resources Setup
 
-### 1. Azure API Management (APIM) - Required
+### 1. Azure OpenAI Service - Required
 
-**Purpose**: Acts as a gateway for Azure OpenAI and Cognitive Services
+**Purpose**: Provides LLM capabilities (GPT models)
 
-#### Setup Steps:
+#### Option A: Direct Connection (Recommended for Development)
+
+1. **Create Azure OpenAI Resource**:
+   ```bash
+   az cognitiveservices account create \
+     --name "your-openai-name" \
+     --resource-group "your-resource-group" \
+     --kind "OpenAI" \
+     --sku "S0" \
+     --location "eastus"
+   ```
+
+2. **Get OpenAI Endpoint**:
+   ```bash
+   az cognitiveservices account show --name "your-openai-name" --resource-group "your-resource-group" --query "properties.endpoint" -o tsv
+   ```
+   - **Result**: `https://your-openai-name.openai.azure.com/`
+   - **Use as**: `AZURE_OPENAI_ENDPOINT`
+
+3. **Get OpenAI Key**:
+   ```bash
+   az cognitiveservices account keys list --name "your-openai-name" --resource-group "your-resource-group" --query "key1" -o tsv
+   ```
+   - **Use as**: `AZURE_OPENAI_KEY`
+
+4. **Deploy GPT Model**:
+   - Go to Azure Portal → Your OpenAI Resource → Model deployments
+   - Deploy `gpt-4` or `gpt-35-turbo`
+   - Note the deployment name (e.g., `gpt-4`)
+
+#### Option B: Azure API Management (APIM) - Enterprise Only
+
+**Purpose**: Acts as a gateway for load balancing, rate limiting, and monitoring
+
+**When to use APIM**:
+- Multiple Azure OpenAI instances
+- Enterprise rate limiting requirements
+- Centralized API management
+- Advanced monitoring and analytics
+
+**Setup Steps**:
 
 1. **Create APIM Instance**:
    ```bash
@@ -66,45 +106,24 @@ pip install python-dotenv
    az apim show --name "your-apim-name" --resource-group "your-resource-group" --query "gatewayUrl" -o tsv
    ```
    - **Result**: `https://your-apim-name.azure-api.net`
-   - **Use as**: `AZURE_OPENAI_ENDPOINT` and `AZURE_COGNITIVE_SERVICES_ENDPOINT`
+   - **Use as**: `AZURE_OPENAI_ENDPOINT`
 
 3. **Get APIM Key**:
    ```bash
    az apim list-keys --name "your-apim-name" --resource-group "your-resource-group" --query "primaryKey" -o tsv
    ```
-   - **Use as**: `AZURE_OPENAI_KEY` and `AZURE_COGNITIVE_SERVICES_KEY`
+   - **Use as**: `AZURE_OPENAI_KEY`
 
-### 2. Azure OpenAI Service - Required
-
-**Purpose**: Provides LLM capabilities (GPT models)
-
-#### Setup Steps:
-
-1. **Create Azure OpenAI Resource**:
-   ```bash
-   az cognitiveservices account create \
-     --name "your-openai-name" \
-     --resource-group "your-resource-group" \
-     --kind "OpenAI" \
-     --sku "S0" \
-     --location "eastus"
-   ```
-
-2. **Deploy GPT Model**:
-   - Go to Azure Portal → Your OpenAI Resource → Model deployments
-   - Deploy `gpt-4` or `gpt-35-turbo`
-   - Note the deployment name (e.g., `gpt-4`)
-
-3. **Configure APIM to Route to OpenAI**:
+4. **Configure APIM to Route to OpenAI**:
    - In APIM, create an API that routes to your OpenAI endpoint
    - Base URL: `https://your-openai-name.openai.azure.com/`
    - Add `/openai/deployments/{deployment-name}/chat/completions` operation
 
-### 3. Azure Cognitive Services - Optional
+### 2. Azure Cognitive Services - Optional
 
 **Purpose**: Provides embeddings and other AI services
 
-#### Setup Steps:
+#### Option A: Direct Connection (Recommended for Development)
 
 1. **Create Cognitive Services Resource**:
    ```bash
@@ -124,6 +143,12 @@ pip install python-dotenv
    # Get key
    az cognitiveservices account keys list --name "your-cognitive-name" --resource-group "your-resource-group" --query "key1" -o tsv
    ```
+
+#### Option B: Through APIM (Enterprise Only)
+
+If you're using APIM, configure it to route to your Cognitive Services endpoint.
+
+
 
 ### 4. Azure Functions - Optional
 
@@ -320,14 +345,20 @@ DEBUG=true
 RAG_MAX_CONTEXT_TOKENS=4000
 SYSTEM_PROMPT="You are a helpful AI assistant powered by NeuroStack."
 
-# Azure OpenAI (Required)
-AZURE_OPENAI_ENDPOINT=https://your-apim-name.azure-api.net/ai/
-AZURE_OPENAI_KEY=your_apim_key_here
+# Azure OpenAI (Required) - Direct Connection
+AZURE_OPENAI_ENDPOINT=https://your-openai-name.openai.azure.com/
+AZURE_OPENAI_KEY=your_openai_key_here
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
-# Azure Cognitive Services (Optional)
-AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-apim-name.azure-api.net/cognitive/
-AZURE_COGNITIVE_SERVICES_KEY=your_apim_key_here
+# Azure Cognitive Services (Optional) - Direct Connection
+AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-cognitive-name.cognitiveservices.azure.com/
+AZURE_COGNITIVE_SERVICES_KEY=your_cognitive_key_here
+
+# Alternative: If using APIM (Enterprise)
+# AZURE_OPENAI_ENDPOINT=https://your-apim-name.azure-api.net/ai/
+# AZURE_OPENAI_KEY=your_apim_key_here
+# AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-apim-name.azure-api.net/cognitive/
+# AZURE_COGNITIVE_SERVICES_KEY=your_apim_key_here
 
 # Azure Functions (Optional)
 AZURE_FUNCTIONS_URL=https://neurostack-function.azurewebsites.net
@@ -386,12 +417,16 @@ Expected output:
 #### 1. Azure OpenAI Connection Issues
 
 **Error**: `401 Unauthorized`
-- **Solution**: Check your APIM key and endpoint URL
-- **Verify**: Ensure APIM is properly routing to your OpenAI resource
+- **Direct Connection**: Check your Azure OpenAI key and endpoint URL
+- **APIM Connection**: Check your APIM key and ensure APIM is properly routing to your OpenAI resource
 
 **Error**: `404 Not Found`
 - **Solution**: Verify the model deployment name in your OpenAI resource
 - **Check**: Ensure the deployment is active and accessible
+
+**Error**: `Invalid endpoint`
+- **Direct Connection**: Use format: `https://your-openai-name.openai.azure.com/`
+- **APIM Connection**: Use format: `https://your-apim-name.azure-api.net/ai/`
 
 #### 2. Redis Connection Issues
 
