@@ -229,9 +229,12 @@ run_verification() {
     source venv/bin/activate
     
     # Check if setup check script exists
-    if file_exists "check_neurostack_setup.py"; then
+    if file_exists "debug/check_neurostack_setup.py"; then
         print_status "Running setup check..."
-        python check_neurostack_setup.py
+        python debug/check_neurostack_setup.py
+    elif file_exists "../debug/check_neurostack_setup.py"; then
+        print_status "Running setup check..."
+        python ../debug/check_neurostack_setup.py
     else
         print_warning "Setup check script not found"
     fi
@@ -253,9 +256,9 @@ show_next_steps() {
     echo
     echo "Next steps:"
     echo "1. Edit your .env file with your Azure credentials"
-    echo "2. Run: python check_neurostack_setup.py"
+    echo "2. Run: python debug/check_neurostack_setup.py"
     echo "3. Test with: python examples/simple_agent_example.py"
-    echo "4. Read SETUP_GUIDE.md for detailed instructions"
+    echo "4. Read docs/SETUP_GUIDE.md for detailed instructions"
     echo
     echo "Local services (if using Docker):"
     echo "- Redis: localhost:6379"

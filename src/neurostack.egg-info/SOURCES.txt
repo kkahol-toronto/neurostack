@@ -22,3 +22,6 @@ src/neurostack/core/reasoning/__init__.py
 src/neurostack/core/reasoning/engine.py
 src/neurostack/core/tools/__init__.py
 src/neurostack/core/tools/base.py
+src/neurostack/integrations/__init__.py
+src/neurostack/integrations/azure.py
+src/neurostack/integrations/gcp.py

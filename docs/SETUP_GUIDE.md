@@ -428,7 +428,7 @@ DATABASE_URL=postgresql://neurostack:your_password@localhost:5432/neurostack
 ### 1. Run Setup Check
 
 ```bash
-python check_neurostack_setup.py
+python debug/check_neurostack_setup.py
 ```
 
 Expected output:
@@ -501,7 +501,7 @@ Expected output:
 ### Getting Help
 
 1. **Check Logs**: Set `LOG_LEVEL=DEBUG` for detailed logging
-2. **Verify Environment**: Run `python check_neurostack_setup.py`
+2. **Verify Environment**: Run `python debug/check_neurostack_setup.py`
 3. **Test Individual Services**: Use the test scripts in the `examples/` folder
 4. **Azure Portal**: Check resource health and metrics in Azure Portal
 

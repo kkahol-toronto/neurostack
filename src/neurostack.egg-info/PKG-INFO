@@ -61,163 +61,423 @@ Requires-Dist: azure-identity>=1.12.0; extra == "azure"
 Requires-Dist: azure-cosmos>=4.4.0; extra == "azure"
 Requires-Dist: azure-functions>=1.15.0; extra == "azure"
 Requires-Dist: azure-servicebus>=7.10.0; extra == "azure"
+Requires-Dist: azure-cognitiveservices-vision-computervision>=0.9.0; extra == "azure"
+Requires-Dist: azure-mgmt-containerinstance>=10.1.0; extra == "azure"
+Requires-Dist: openai>=1.0.0; extra == "azure"
+Requires-Dist: aiohttp>=3.8.0; extra == "azure"
 
-# NeuroStack - Agentic AI Architecture Library
+# NeuroStack
 
-## Overview
+A Python library implementing the NeuroStack 8-layer agentic AI architecture, designed for building sophisticated multi-agent systems with advanced reasoning, memory, and orchestration capabilities.
 
-NeuroStack is a general-purpose agentic AI platform enabling enterprises to build multi-agent systems with advanced reasoning, memory, and orchestration at scale. This implementation focuses on building a flexible, modular library that can work with both LangGraph and custom orchestration systems.
+## 🏗️ Architecture Overview
 
-## Architecture Decision: LangGraph vs Custom System
+NeuroStack implements an 8-layer architecture for agentic AI systems:
 
-Based on the PDF requirements, I recommend **building our own orchestration system** rather than using CrewAI, with **LangGraph as an optional integration layer**. Here's why:
+1. **Infrastructure Layer** - Cloud services and infrastructure management
+2. **Agent Internet Layer** - Network connectivity and communication protocols
+3. **Protocol Layer** - Standardized communication (MCP, A2A)
+4. **Tooling & Enrichment Layer** - External tool integration and data enrichment
+5. **Cognition & Reasoning Layer** - LLM integration and decision-making
+6. **Memory & Personalization Layer** - Short-term, long-term, and vector memory
+7. **Application Layer** - Business logic and use case implementations
+8. **Operations & Governance Layer** - Monitoring, logging, and governance
 
-### Why Custom Orchestration + LangGraph Integration:
+## 🚀 Quick Start
 
-1. **Flexibility**: Custom orchestration allows us to implement the exact 8-layer architecture described in the PDF
-2. **Enterprise Control**: Better governance, monitoring, and compliance features
-3. **LangGraph Integration**: We can expose LangGraph-compatible interfaces for users who prefer that ecosystem
-4. **Protocol Standards**: Better support for MCP and A2A protocols as specified in the PDF
-5. **Multi-Cloud**: Not tied to specific cloud providers
+### Prerequisites
 
-## Proposed Library Structure
+- Python 3.8 or higher
+- pip (Python package installer)
+- Azure CLI (for Azure integration)
+- Docker (optional, for local services)
+
+### Installation
+
+#### Option 1: Automated Setup (Recommended)
+
+Use our automated setup script for a complete development environment:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd neurostack
+
+# Run the setup script
+./setup_neurostack.sh
+
+# Follow the prompts and edit your .env file
+```
+
+#### Option 2: Manual Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd neurostack
+   ```
+
+2. **Create a virtual environment:**
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate the virtual environment:**
+   
+   **On macOS/Linux:**
+   ```bash
+   source venv/bin/activate
+   ```
+   
+   **On Windows:**
+   ```bash
+   venv\Scripts\activate
+   ```
+
+4. **Install the package in development mode:**
+   ```bash
+   pip install -e .
+   ```
+
+### Configuration
+
+1. **Copy the environment template:**
+   ```bash
+   cp env.template .env
+   ```
+
+2. **Edit the .env file with your Azure credentials and settings**
+
+3. **Run the setup verification:**
+   ```bash
+   python check_neurostack_setup.py
+   ```
+
+For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
+
+### Running the Examples
+
+1. **Make sure your virtual environment is activated:**
+   ```bash
+   source venv/bin/activate  # macOS/Linux
+   # or
+   venv\Scripts\activate     # Windows
+   ```
+
+2. **Run the basic example:**
+   ```bash
+   python examples/simple_agent_example.py
+   ```
+
+3. **Run the Azure integration example:**
+   ```bash
+   # Install Azure dependencies
+   pip install -e .[azure]
+   
+   # Run the example
+   python examples/azure_integration_example.py
+   ```
+
+4. **Run the GCP integration example:**
+   ```bash
+   # Install GCP dependencies
+   pip install -e .[gcp]
+   
+   # Run the example
+   python examples/gcp_integration_example.py
+   ```
+
+You should see output similar to:
+```
+🚀 Starting NeuroStack Simple Example
+📊 Registered agents: ['data_analyst', 'report_generator']
+
+🔄 Running simple workflow...
+
+✅ Workflow completed with state: completed
+
+📋 Results:
+  analyze_data: Analysis completed for: Analyze sales data for Q4 2023
+  generate_report: Report generated: Generate quarterly sales report based on Analysis completed for: Analyze sales data for Q4 2023
+
+📊 System Status:
+  Agents: 2
+  Workflows: 1
+
+🎉 Example completed successfully!
+```
+
+## 📚 Usage Examples
+
+### Basic Agent Creation
+
+```python
+from neurostack import AgentConfig, SimpleAgent, AgentOrchestrator
+
+# Create an agent configuration
+config = AgentConfig(
+    name="my_agent",
+    description="A custom agent for specific tasks",
+    model="gpt-4",
+    memory_enabled=True,
+    reasoning_enabled=True
+)
+
+# Create the agent
+agent = SimpleAgent(config)
+
+# Create an orchestrator
+orchestrator = AgentOrchestrator()
+
+# Register the agent
+orchestrator.register_agent("my_agent", agent)
+```
+
+### Running a Simple Workflow
+
+```python
+import asyncio
+from neurostack import AgentOrchestrator, AgentContext
+
+async def run_workflow():
+    orchestrator = AgentOrchestrator()
+    
+    # Define workflow steps
+    workflow_steps = [
+        {
+            "id": "step1",
+            "agent": "agent1",
+            "task": "Process data"
+        },
+        {
+            "id": "step2", 
+            "agent": "agent2",
+            "task": "Generate report based on {step.step1}",
+            "dependencies": ["step1"]
+        }
+    ]
+    
+    # Create context
+    context = AgentContext(
+        user_id="user123",
+        tenant_id="tenant456"
+    )
+    
+    # Run the workflow
+    result = await orchestrator.run_simple_workflow(workflow_steps, context)
+    
+    print(f"Workflow completed: {result.state}")
+    print(f"Results: {result.results}")
+
+# Run the workflow
+asyncio.run(run_workflow())
+```
+
+## 🏛️ Core Components
+
+### Agents
+- **Agent**: Abstract base class for all agents
+- **SimpleAgent**: Basic agent implementation
+- **AgentConfig**: Configuration for agent behavior
+- **AgentContext**: Execution context and metadata
+
+### Orchestration
+- **AgentOrchestrator**: Manages multi-agent workflows
+- **WorkflowDefinition**: Defines workflow structure
+- **WorkflowStep**: Individual steps in a workflow
+
+### Memory
+- **MemoryManager**: Unified memory interface
+- **WorkingMemory**: Short-term, fast-access memory
+- **VectorMemory**: Semantic search capabilities
+- **LongTermMemory**: Persistent storage
+
+### Reasoning
+- **ReasoningEngine**: LLM integration and decision-making
+- **LLMClient**: Abstract interface for language models
+- **OpenAIClient**: OpenAI GPT integration
+- **AnthropicClient**: Anthropic Claude integration
+
+### Tools
+- **Tool**: Abstract base class for tools
+- **ToolRegistry**: Tool management and discovery
+- **SimpleTool**: Basic tool implementations
+
+### Protocols
+- **MCPProtocol**: Model Context Protocol implementation
+- **A2AProtocol**: Agent-to-Agent communication
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Anthropic Configuration  
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# GCP Configuration (for cloud integrations)
+GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
+GCP_PROJECT_ID=your_project_id
+
+# Azure Configuration (for cloud integrations)
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_KEY=your_azure_openai_key
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
+AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+AZURE_COGNITIVE_SERVICES_KEY=your_cognitive_services_key
+AZURE_SUBSCRIPTION_ID=your_subscription_id
+AZURE_RESOURCE_GROUP=your_resource_group
+AZURE_LOCATION=eastus
+
+# Database Configuration
+DATABASE_URL=postgresql://user:password@localhost/neurostack
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379
+```
+
+### Agent Configuration
+
+```python
+from neurostack import AgentConfig
+
+config = AgentConfig(
+    name="custom_agent",
+    description="A custom agent for specific tasks",
+    model="gpt-4",                    # LLM model to use
+    temperature=0.7,                  # Creativity level (0.0-1.0)
+    max_tokens=1000,                  # Maximum response length
+    memory_enabled=True,              # Enable memory features
+    reasoning_enabled=True,           # Enable reasoning engine
+    tenant_id="tenant123",           # Multi-tenant support
+    tools=["calculator", "web_search"] # Available tools
+)
+```
+
+## 🧪 Testing
+
+Run the test suite:
+
+```bash
+# Install test dependencies
+pip install pytest pytest-asyncio
+
+# Run tests
+pytest tests/
+
+# Run with coverage
+pytest --cov=neurostack tests/
+```
+
+## 📚 Setup Documentation
+
+### Quick Setup
+
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Comprehensive setup guide for Azure resources and local services
+- **[AZURE_CLI_REFERENCE.md](AZURE_CLI_REFERENCE.md)** - Quick reference for Azure CLI commands
+- **[check_neurostack_setup.py](check_neurostack_setup.py)** - Automated setup verification script
+- **[setup_neurostack.sh](setup_neurostack.sh)** - Automated setup script for development environment
+
+### Setup Verification
+
+Run the setup check to verify your configuration:
+
+```bash
+python check_neurostack_setup.py
+```
+
+## 📦 Development
+
+### Project Structure
 
 ```
 neurostack/
-├── core/                    # Core orchestration engine
-│   ├── agents/             # Agent base classes and implementations
-│   ├── memory/             # Memory management (short/long-term)
-│   ├── reasoning/          # Cognition and reasoning engines
-│   ├── tools/              # Tool management and execution
-│   └── protocols/          # MCP, A2A, and custom protocols
-├── layers/                 # Implementation of the 8-layer architecture
-│   ├── infrastructure/     # Layer 1: Foundation services
-│   ├── agent_internet/     # Layer 2: Communication & coordination
-│   ├── protocol/           # Layer 3: Standards & interoperability
-│   ├── tooling/            # Layer 4: External tools & data access
-│   ├── cognition/          # Layer 5: Agent brain and decision making
-│   ├── memory/             # Layer 6: Memory & personalization
-│   ├── application/        # Layer 7: User interfaces & applications
-│   └── governance/         # Layer 8: Operations & governance
-├── integrations/           # External system integrations
-│   ├── langgraph/          # LangGraph compatibility layer
-│   ├── gcp/                # Google Cloud Platform services
-│   ├── azure/              # Azure services
-│   └── on_prem/            # On-premises deployments
-├── examples/               # Example implementations
-└── tests/                  # Test suite
+├── src/neurostack/           # Main package source
+│   ├── core/                # Core components
+│   │   ├── agents/          # Agent implementations
+│   │   ├── memory/          # Memory management
+│   │   ├── reasoning/       # Reasoning engine
+│   │   ├── tools/           # Tool system
+│   │   └── protocols/       # Communication protocols
+│   ├── layers/              # 8-layer architecture
+│   ├── integrations/        # Cloud integrations
+│   └── utils/               # Utilities
+├── examples/                # Usage examples
+├── tests/                   # Test suite
+├── docs/                    # Documentation
+├── pyproject.toml          # Project configuration
+└── README.md               # This file
 ```
 
-## Core Components
+### Adding New Components
 
-### 1. Agent Orchestrator
-- **Custom State Machine**: Built-in state management for complex workflows
-- **LangGraph Adapter**: Optional LangGraph compatibility layer
-- **Protocol Support**: Native MCP and A2A protocol support
-- **Multi-Agent Coordination**: Built-in support for agent societies
+1. **Create a new agent:**
+   ```python
+   from neurostack import Agent, AgentConfig
+   
+   class CustomAgent(Agent):
+       async def execute(self, task, context=None):
+           # Your custom logic here
+           return result
+   ```
 
-### 2. Memory System
-- **Vector Memory**: Semantic search and retrieval
-- **Working Memory**: Short-term context management
-- **Long-term Storage**: Persistent knowledge and user profiles
-- **Multi-tenant Support**: Isolated memory per tenant
+2. **Add new tools:**
+   ```python
+   from neurostack import Tool
+   
+   class CustomTool(Tool):
+       def __init__(self):
+           super().__init__("custom_tool", "Description")
+       
+       async def execute(self, *args, **kwargs):
+           # Tool implementation
+           return result
+   ```
 
-### 3. Reasoning Engine
-- **Model Abstraction**: Support for multiple LLM providers
-- **Planning Algorithms**: Chain-of-thought, tree-of-thought, reflection
-- **Continuous Learning**: RLHF and feedback integration
-- **Error Handling**: Robust error recovery and compensation
+3. **Extend memory:**
+   ```python
+   from neurostack import MemoryManager
+   
+   class CustomMemory(MemoryManager):
+       async def store_knowledge(self, content, metadata):
+           # Custom storage logic
+           pass
+   ```
 
-### 4. Tool Management
-- **Dynamic Tool Loading**: Runtime tool registration and discovery
-- **Security Wrapper**: Secure tool execution with access controls
-- **MCP Integration**: Native Model Context Protocol support
-- **API Abstraction**: Unified interface for external services
+## 🤝 Contributing
 
-## Implementation Plan
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-### Phase 1: Core Foundation
-1. **Agent Base Classes**: Define core agent interfaces and base implementations
-2. **State Management**: Build custom state machine for workflow orchestration
-3. **Memory Interfaces**: Define memory abstraction layers
-4. **Basic Tool System**: Simple tool registration and execution
+## 📄 License
 
-### Phase 2: Advanced Features
-1. **Protocol Layer**: Implement MCP and A2A protocols
-2. **Reasoning Engine**: Advanced planning and decision-making
-3. **Vector Memory**: Semantic search and retrieval capabilities
-4. **LangGraph Integration**: Compatibility layer for LangGraph users
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Phase 3: Enterprise Features
-1. **Governance Layer**: Monitoring, logging, and compliance
-2. **Multi-tenant Support**: Tenant isolation and management
-3. **Cloud Integrations**: GCP, Azure, and on-premises support
-4. **Security Features**: Authentication, authorization, and audit trails
+## 🆘 Support
 
-### Phase 4: Production Ready
-1. **Performance Optimization**: Caching, load balancing, and scaling
-2. **Advanced Monitoring**: Comprehensive observability
-3. **Documentation**: Complete API documentation and examples
-4. **Testing**: Comprehensive test suite and CI/CD
+- **Documentation**: Check the `docs/` directory
+- **Issues**: Report bugs and feature requests on GitHub
+- **Discussions**: Join community discussions for questions and ideas
 
-## Key Advantages of This Approach
+## 🗺️ Roadmap
 
-### 1. **Architecture Fidelity**
-- Implements the exact 8-layer architecture from the PDF
-- Maintains enterprise-grade features and controls
-- Supports all specified protocols and standards
+- [ ] Complete 8-layer architecture implementation
+- [ ] GCP integration (Vertex AI, Cloud Run, etc.)
+- [ ] LangGraph compatibility layer
+- [ ] Advanced memory systems (vector databases)
+- [ ] Real-time agent communication
+- [ ] Web UI for workflow management
+- [ ] Performance monitoring and analytics
+- [ ] Enterprise features (RBAC, audit logs)
 
-### 2. **Flexibility**
-- Can run on any cloud provider or on-premises
-- Supports multiple orchestration patterns
-- LangGraph compatibility for ecosystem integration
+---
 
-### 3. **Enterprise Ready**
-- Built-in governance and compliance features
-- Multi-tenant support from day one
-- Comprehensive monitoring and observability
-
-### 4. **Future Proof**
-- Protocol-first design for interoperability
-- Modular architecture for easy extension
-- Support for emerging standards (MCP, A2A, OAP)
-
-## Getting Started
-
-```python
-from neurostack import AgentOrchestrator, Agent, Tool
-from neurostack.memory import VectorMemory
-from neurostack.reasoning import ReasoningEngine
-
-# Create an agent
-class MyAgent(Agent):
-    def __init__(self):
-        super().__init__()
-        self.memory = VectorMemory()
-        self.reasoning = ReasoningEngine()
-    
-    async def execute(self, task):
-        # Agent logic here
-        pass
-
-# Create orchestrator
-orchestrator = AgentOrchestrator()
-
-# Register agent
-orchestrator.register_agent("my_agent", MyAgent())
-
-# Run workflow
-result = await orchestrator.run_workflow([
-    {"agent": "my_agent", "task": "analyze_data"}
-])
-```
-
-## Next Steps
-
-1. **Set up project structure** with proper Python packaging
-2. **Implement core agent interfaces** and base classes
-3. **Build state management system** for workflow orchestration
-4. **Create memory abstraction layers** for different storage backends
-5. **Develop tool management system** with security controls
-
-This approach gives us the best of both worlds: a custom, enterprise-grade orchestration system that can also integrate with LangGraph when needed, while maintaining full control over the architecture and features specified in the PDF. 
+**NeuroStack** - Building the future of agentic AI systems 🚀 

@@ -36,7 +36,7 @@ git clone <repository-url>
 cd neurostack
 
 # Run the setup script
-./setup_neurostack.sh
+./scripts/setup_neurostack.sh
 
 # Follow the prompts and edit your .env file
 ```
@@ -82,10 +82,10 @@ cd neurostack
 
 3. **Run the setup verification:**
    ```bash
-   python check_neurostack_setup.py
+   python debug/check_neurostack_setup.py
    ```
 
-For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
+For detailed setup instructions, see [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
 
 ### Running the Examples
 
@@ -310,17 +310,17 @@ pytest --cov=neurostack tests/
 
 ### Quick Setup
 
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Comprehensive setup guide for Azure resources and local services
-- **[AZURE_CLI_REFERENCE.md](AZURE_CLI_REFERENCE.md)** - Quick reference for Azure CLI commands
-- **[check_neurostack_setup.py](check_neurostack_setup.py)** - Automated setup verification script
-- **[setup_neurostack.sh](setup_neurostack.sh)** - Automated setup script for development environment
+- **[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** - Comprehensive setup guide for Azure resources and local services
+- **[docs/AZURE_CLI_REFERENCE.md](docs/AZURE_CLI_REFERENCE.md)** - Quick reference for Azure CLI commands
+- **[debug/check_neurostack_setup.py](debug/check_neurostack_setup.py)** - Automated setup verification script
+- **[scripts/setup_neurostack.sh](scripts/setup_neurostack.sh)** - Automated setup script for development environment
 
 ### Setup Verification
 
 Run the setup check to verify your configuration:
 
 ```bash
-python check_neurostack_setup.py
+python debug/check_neurostack_setup.py
 ```
 
 ## 📦 Development
