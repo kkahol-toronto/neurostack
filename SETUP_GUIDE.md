@@ -45,6 +45,15 @@ pip install python-dotenv
 
 ## Azure Resources Setup
 
+### 🎯 **Minimum Required Setup**
+
+For basic NeuroStack development, you only need:
+
+1. **Azure OpenAI Service** - For LLM capabilities
+2. **Basic Environment Settings** - LOG_LEVEL, etc.
+
+Everything else is optional and can be added as needed.
+
 ### 1. Azure OpenAI Service - Required
 
 **Purpose**: Provides LLM capabilities (GPT models)
@@ -76,8 +85,8 @@ pip install python-dotenv
 
 4. **Deploy GPT Model**:
    - Go to Azure Portal → Your OpenAI Resource → Model deployments
-   - Deploy `gpt-4` or `gpt-35-turbo`
-   - Note the deployment name (e.g., `gpt-4`)
+   - Deploy `gpt-4.1` or `gpt-5.0`
+   - Note the deployment name (e.g., `gpt-4.1`)
 
 #### Option B: Azure API Management (APIM) - Enterprise Only
 
@@ -150,9 +159,14 @@ If you're using APIM, configure it to route to your Cognitive Services endpoint.
 
 
 
-### 4. Azure Functions - Optional
+### 4. Azure Functions - Optional (Advanced)
 
 **Purpose**: Serverless computing for agent workflows
+
+**When you need it**:
+- Deploying agents as serverless functions
+- Scaling agent workloads automatically
+- Event-driven agent execution
 
 #### Setup Steps:
 
@@ -181,9 +195,14 @@ If you're using APIM, configure it to route to your Cognitive Services endpoint.
    ```
    - **Use as**: `AZURE_FUNCTIONS_KEY`
 
-### 5. Azure Storage - Optional
+### 5. Azure Storage - Optional (File Operations)
 
 **Purpose**: File storage for agents and data
+
+**When you need it**:
+- Storing and retrieving files (documents, images, etc.)
+- Agent file processing workflows
+- Data persistence for large files
 
 #### Setup Steps:
 
@@ -208,9 +227,14 @@ If you're using APIM, configure it to route to your Cognitive Services endpoint.
    ```
    - **Use as**: `AZURE_STORAGE_CONTAINER=neurostack-data`
 
-### 6. Azure Service Bus - Optional
+### 6. Azure Service Bus - Optional (Advanced Messaging)
 
 **Purpose**: Messaging between agents
+
+**When you need it**:
+- Multi-agent communication systems
+- Event-driven architectures
+- Distributed agent workflows
 
 #### Setup Steps:
 
@@ -236,9 +260,14 @@ If you're using APIM, configure it to route to your Cognitive Services endpoint.
 
 ## Local Services Setup
 
-### 1. Redis - Optional but Recommended
+### 1. Redis - Optional (Performance Enhancement)
 
 **Purpose**: Caching and session management
+
+**When you need it**:
+- High-performance caching for agent responses
+- Session management for web applications
+- Performance optimization for frequent operations
 
 #### Option A: Docker (Recommended)
 
@@ -277,9 +306,14 @@ redis-cli ping
 # Should return: PONG
 ```
 
-### 2. PostgreSQL - Optional but Recommended
+### 2. PostgreSQL - Optional (Data Persistence)
 
 **Purpose**: Persistent data storage
+
+**When you need it**:
+- Storing agent conversation history
+- Persistent memory across sessions
+- Multi-user data isolation
 
 #### Option A: Docker (Recommended)
 
@@ -336,19 +370,31 @@ Copy the template and configure your values:
 cp env.template .env
 ```
 
-### 2. Configure Required Variables
+### 2. Configure Environment Variables
+
+#### Minimum Required Configuration
+
+For basic NeuroStack development, you only need these:
 
 ```bash
-# Core Configuration
+# Core Configuration (Required)
 LOG_LEVEL=INFO
 DEBUG=true
-RAG_MAX_CONTEXT_TOKENS=4000
-SYSTEM_PROMPT="You are a helpful AI assistant powered by NeuroStack."
 
 # Azure OpenAI (Required) - Direct Connection
 AZURE_OPENAI_ENDPOINT=https://your-openai-name.openai.azure.com/
 AZURE_OPENAI_KEY=your_openai_key_here
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
+```
+
+#### Optional Enhanced Configuration
+
+Add these as needed for advanced features:
+
+```bash
+# RAG Configuration (Optional)
+RAG_MAX_CONTEXT_TOKENS=4000
+SYSTEM_PROMPT="You are a helpful AI assistant powered by NeuroStack."
 
 # Azure Cognitive Services (Optional) - Direct Connection
 AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-cognitive-name.cognitiveservices.azure.com/
@@ -360,19 +406,19 @@ AZURE_COGNITIVE_SERVICES_KEY=your_cognitive_key_here
 # AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-apim-name.azure-api.net/cognitive/
 # AZURE_COGNITIVE_SERVICES_KEY=your_apim_key_here
 
-# Azure Functions (Optional)
+# Azure Functions (Optional) - Serverless computing
 AZURE_FUNCTIONS_URL=https://neurostack-function.azurewebsites.net
 AZURE_FUNCTIONS_KEY=your_function_key_here
 
-# Azure Storage (Optional)
+# Azure Storage (Optional) - File storage
 AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=neurostackstorage;AccountKey=your_key;EndpointSuffix=core.windows.net
 AZURE_STORAGE_CONTAINER=neurostack-data
 
-# Azure Service Bus (Optional)
+# Azure Service Bus (Optional) - Messaging
 AZURE_SERVICE_BUS_CONNECTION_STRING=Endpoint=sb://neurostack-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your_key
 AZURE_SERVICE_BUS_NAMESPACE=neurostack-bus
 
-# Local Services (Optional)
+# Local Services (Optional) - Performance & Persistence
 REDIS_URL=redis://localhost:6379
 DATABASE_URL=postgresql://neurostack:your_password@localhost:5432/neurostack
 ```
