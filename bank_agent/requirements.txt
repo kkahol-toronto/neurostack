@@ -1,0 +1,23 @@
+# Bank Agent Data Generation Requirements
+
+# Database connectivity
+mysql-connector-python>=8.0.0
+
+# Data generation and faking
+Faker>=18.0.0
+names>=0.3.0
+
+# Data manipulation
+pandas>=2.0.0
+numpy>=1.24.0
+
+# JSON handling
+jsonschema>=4.0.0
+
+# Date/time handling
+python-dateutil>=2.8.0
+
+# Optional: For enhanced data generation
+# scikit-learn>=1.0.0  # For more sophisticated data patterns
+# matplotlib>=3.5.0    # For data visualization
+# seaborn>=0.11.0      # For statistical visualization
