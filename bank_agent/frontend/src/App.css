@@ -1,0 +1,121 @@
+/* Base styles - theme-specific styles are handled by the theme system */
+body {
+  margin: 0;
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+.App {
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.8;
+}
+
+/* Matrix theme specific styles */
+body[data-theme="matrix"] {
+  background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #001a00 100%);
+}
+
+body[data-theme="matrix"] .App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, transparent 98%, rgba(0, 255, 0, 0.1) 100%),
+    linear-gradient(180deg, transparent 98%, rgba(0, 255, 0, 0.1) 100%);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: -1;
+  animation: matrix-rain 20s linear infinite;
+}
+
+@keyframes matrix-rain {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Vibrant theme specific styles */
+body[data-theme="vibrant"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+body[data-theme="vibrant"] .App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Sunset theme specific styles */
+body[data-theme="sunset"] {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+  min-height: 100vh;
+}
+
+body[data-theme="sunset"] .App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 30% 70%, rgba(255, 154, 158, 0.2) 0%, transparent 50%),
+              radial-gradient(circle at 70% 30%, rgba(254, 207, 239, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Ocean theme specific styles */
+body[data-theme="ocean"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+body[data-theme="ocean"] .App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.2) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Corporate theme specific styles */
+body[data-theme="corporate"] {
+  background: #f5f5f5;
+}
+
+/* Readable theme specific styles */
+body[data-theme="readable"] {
+  background: #ffffff;
+}

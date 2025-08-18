@@ -1,415 +1,219 @@
-# NeuroStack
+# Credit Limit Agent Frontend
 
-A Python library implementing the NeuroStack 8-layer agentic AI architecture, designed for building sophisticated multi-agent systems with advanced reasoning, memory, and orchestration capabilities.
+A React-based UI for the NeuroStack Credit Limit Agent that demonstrates data layer management and natural language query capabilities.
 
-## 🏗️ Architecture Overview
+## 🚀 Features
 
-NeuroStack implements an 8-layer architecture for agentic AI systems:
+- **Data Source Management**: Visual interface for selecting and configuring data sources
+- **Natural Language Queries**: Convert natural language to SQL using Azure OpenAI
+- **Interactive Cards**: Click to toggle, double-click to query data sources
+- **Real-time Feedback**: Visual indicators for enabled/disabled data sources
+- **Category Organization**: Data sources organized by banking categories
+- **Query Results**: Display SQL queries and results in a user-friendly format
 
-1. **Infrastructure Layer** - Cloud services and infrastructure management
-2. **Agent Internet Layer** - Network connectivity and communication protocols
-3. **Protocol Layer** - Standardized communication (MCP, A2A)
-4. **Tooling & Enrichment Layer** - External tool integration and data enrichment
-5. **Cognition & Reasoning Layer** - LLM integration and decision-making
-6. **Memory & Personalization Layer** - Short-term, long-term, and vector memory
-7. **Application Layer** - Business logic and use case implementations
-8. **Operations & Governance Layer** - Monitoring, logging, and governance
+## 🛠️ Prerequisites
 
-## 🚀 Quick Start
+- Node.js 16+ and npm
+- MySQL database with bank agent data (see `../data/README.md`)
+- Azure OpenAI service configured
 
-### Prerequisites
+## 📦 Installation
 
-- Python 3.8 or higher
-- pip (Python package installer)
-- Azure CLI (for Azure integration)
-- Docker (optional, for local services)
-
-### Installation
-
-#### Option 1: Automated Setup (Recommended)
-
-Use our automated setup script for a complete development environment:
-
+### 1. Install Frontend Dependencies
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd neurostack
-
-# Run the setup script
-./scripts/setup_neurostack.sh
-
-# Follow the prompts and edit your .env file
+cd frontend
+npm install
 ```
 
-#### Option 2: Manual Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd neurostack
-   ```
-
-2. **Create a virtual environment:**
-   ```bash
-   python -m venv venv
-   ```
-
-3. **Activate the virtual environment:**
-   
-   **On macOS/Linux:**
-   ```bash
-   source venv/bin/activate
-   ```
-   
-   **On Windows:**
-   ```bash
-   venv\Scripts\activate
-   ```
-
-4. **Install the package in development mode:**
-   ```bash
-   pip install -e .
-   ```
-
-### Configuration
-
-1. **Copy the environment template:**
-   ```bash
-   cp env.template .env
-   ```
-
-2. **Edit the .env file with your Azure credentials and settings**
-
-3. **Run the setup verification:**
-   ```bash
-   python debug/check_neurostack_setup.py
-   ```
-
-For detailed setup instructions, see [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
-
-### Running the Examples
-
-1. **Make sure your virtual environment is activated:**
-   ```bash
-   source venv/bin/activate  # macOS/Linux
-   # or
-   venv\Scripts\activate     # Windows
-   ```
-
-2. **Run the basic example:**
-   ```bash
-   python examples/simple_agent_example.py
-   ```
-
-3. **Run the Azure integration example:**
-   ```bash
-   # Install Azure dependencies
-   pip install -e .[azure]
-   
-   # Run the example
-   python examples/azure_integration_example.py
-   ```
-
-4. **Run the GCP integration example:**
-   ```bash
-   # Install GCP dependencies
-   pip install -e .[gcp]
-   
-   # Run the example
-   python examples/gcp_integration_example.py
-   ```
-
-You should see output similar to:
-```
-🚀 Starting NeuroStack Simple Example
-📊 Registered agents: ['data_analyst', 'report_generator']
-
-🔄 Running simple workflow...
-
-✅ Workflow completed with state: completed
-
-📋 Results:
-  analyze_data: Analysis completed for: Analyze sales data for Q4 2023
-  generate_report: Report generated: Generate quarterly sales report based on Analysis completed for: Analyze sales data for Q4 2023
-
-📊 System Status:
-  Agents: 2
-  Workflows: 1
-
-🎉 Example completed successfully!
+### 2. Install Backend Dependencies
+```bash
+npm install express mysql2 cors dotenv
+npm install -D nodemon
 ```
 
-## 📚 Usage Examples
+### 3. Environment Configuration
+Create a `.env` file in the frontend directory:
+```bash
+# Azure OpenAI Configuration
+REACT_APP_AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+REACT_APP_AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment-name
+REACT_APP_AZURE_OPENAI_API_VERSION=2024-02-15-preview
+REACT_APP_AZURE_OPENAI_KEY=your-api-key
 
-### Basic Agent Creation
-
-```python
-from neurostack import AgentConfig, SimpleAgent, AgentOrchestrator
-
-# Create an agent configuration
-config = AgentConfig(
-    name="my_agent",
-    description="A custom agent for specific tasks",
-    model="gpt-4",
-    memory_enabled=True,
-    reasoning_enabled=True
-)
-
-# Create the agent
-agent = SimpleAgent(config)
-
-# Create an orchestrator
-orchestrator = AgentOrchestrator()
-
-# Register the agent
-orchestrator.register_agent("my_agent", agent)
+# Backend API Configuration
+REACT_APP_API_BASE_URL=http://localhost:3001
 ```
 
-### Running a Simple Workflow
-
-```python
-import asyncio
-from neurostack import AgentOrchestrator, AgentContext
-
-async def run_workflow():
-    orchestrator = AgentOrchestrator()
-    
-    # Define workflow steps
-    workflow_steps = [
-        {
-            "id": "step1",
-            "agent": "agent1",
-            "task": "Process data"
-        },
-        {
-            "id": "step2", 
-            "agent": "agent2",
-            "task": "Generate report based on {step.step1}",
-            "dependencies": ["step1"]
-        }
-    ]
-    
-    # Create context
-    context = AgentContext(
-        user_id="user123",
-        tenant_id="tenant456"
-    )
-    
-    # Run the workflow
-    result = await orchestrator.run_simple_workflow(workflow_steps, context)
-    
-    print(f"Workflow completed: {result.state}")
-    print(f"Results: {result.results}")
-
-# Run the workflow
-asyncio.run(run_workflow())
+Create a `.env` file in the root directory for the backend:
+```bash
+# Database Configuration
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=bank_agent_db
 ```
 
-## 🏛️ Core Components
+## 🚀 Running the Application
 
-### Agents
-- **Agent**: Abstract base class for all agents
-- **SimpleAgent**: Basic agent implementation
-- **AgentConfig**: Configuration for agent behavior
-- **AgentContext**: Execution context and metadata
+### 1. Start the Backend Server
+```bash
+node server.js
+```
+The server will start on http://localhost:3001
 
-### Orchestration
-- **AgentOrchestrator**: Manages multi-agent workflows
-- **WorkflowDefinition**: Defines workflow structure
-- **WorkflowStep**: Individual steps in a workflow
+### 2. Start the Frontend Development Server
+```bash
+cd frontend
+npm start
+```
+The React app will start on http://localhost:3000
 
-### Memory
-- **MemoryManager**: Unified memory interface
-- **WorkingMemory**: Short-term, fast-access memory
-- **VectorMemory**: Semantic search capabilities
-- **LongTermMemory**: Persistent storage
+## 🎯 How to Use
 
-### Reasoning
-- **ReasoningEngine**: LLM integration and decision-making
-- **LLMClient**: Abstract interface for language models
-- **OpenAIClient**: OpenAI GPT integration
-- **AnthropicClient**: Anthropic Claude integration
+### Data Source Management
+1. **View Data Sources**: The main interface shows all available data sources as cards
+2. **Toggle Sources**: Click on any data source card to enable/disable it for credit decisions
+3. **Visual Feedback**: Enabled sources have green borders and checkmarks
+4. **Category Overview**: See counts of enabled/disabled sources by category
 
-### Tools
-- **Tool**: Abstract base class for tools
-- **ToolRegistry**: Tool management and discovery
-- **SimpleTool**: Basic tool implementations
+### Natural Language Queries
+1. **Double-click** any data source card to open the query interface
+2. **Enter Query**: Type a natural language query (e.g., "Show me customers with income above $100,000")
+3. **Execute**: Click "Execute Query" to convert to SQL and run against the database
+4. **View Results**: See the generated SQL and query results
 
-### Protocols
-- **MCPProtocol**: Model Context Protocol implementation
-- **A2AProtocol**: Agent-to-Agent communication
+### Data Source Categories
+- **👥 Demographics**: Customer basic information
+- **🏦 Banking**: Internal banking relationship data
+- **📊 Credit Bureau**: External credit information
+- **💰 Income**: Income verification and debt ratios
+- **🔗 Open Banking**: Transaction and alternative data
+- **⚠️ Fraud**: Risk assessment and compliance
+- **📈 Economic**: Regional economic indicators
+
+## 🏗️ Architecture
+
+### Frontend Components
+- `App.tsx`: Main application component with theme and layout
+- `DataLayer.tsx`: Container for all data source management
+- `DataSource.tsx`: Individual data source card with interactions
+- `api.ts`: Service for Azure OpenAI and database API calls
+
+### Backend API
+- `server.js`: Express server with MySQL integration
+- Database query execution
+- CORS support for frontend communication
+- Health check endpoints
+
+### Data Flow
+1. User interacts with data source cards
+2. Frontend sends natural language queries to Azure OpenAI
+3. Azure OpenAI converts queries to SQL
+4. Backend executes SQL against MySQL database
+5. Results displayed in the UI
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Azure OpenAI Setup
+1. Create an Azure OpenAI resource
+2. Deploy a model (GPT-4 recommended)
+3. Get your endpoint, deployment name, and API key
+4. Update the `.env` file with your credentials
 
-Create a `.env` file in the project root:
-
-```env
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Anthropic Configuration  
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-
-# GCP Configuration (for cloud integrations)
-GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
-GCP_PROJECT_ID=your_project_id
-
-# Azure Configuration (for cloud integrations)
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_KEY=your_azure_openai_key
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
-AZURE_COGNITIVE_SERVICES_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
-AZURE_COGNITIVE_SERVICES_KEY=your_cognitive_services_key
-AZURE_SUBSCRIPTION_ID=your_subscription_id
-AZURE_RESOURCE_GROUP=your_resource_group
-AZURE_LOCATION=eastus
-
-# Database Configuration
-DATABASE_URL=postgresql://user:password@localhost/neurostack
-
-# Redis Configuration
-REDIS_URL=redis://localhost:6379
-```
-
-### Agent Configuration
-
-```python
-from neurostack import AgentConfig
-
-config = AgentConfig(
-    name="custom_agent",
-    description="A custom agent for specific tasks",
-    model="gpt-4",                    # LLM model to use
-    temperature=0.7,                  # Creativity level (0.0-1.0)
-    max_tokens=1000,                  # Maximum response length
-    memory_enabled=True,              # Enable memory features
-    reasoning_enabled=True,           # Enable reasoning engine
-    tenant_id="tenant123",           # Multi-tenant support
-    tools=["calculator", "web_search"] # Available tools
-)
+### Database Connection
+Ensure your MySQL database is running and contains the bank agent data:
+```bash
+# Check database connection
+mysql -u root -p bank_agent_db
 ```
 
 ## 🧪 Testing
 
-Run the test suite:
-
+### Health Check
 ```bash
-# Install test dependencies
-pip install pytest pytest-asyncio
-
-# Run tests
-pytest tests/
-
-# Run with coverage
-pytest --cov=neurostack tests/
+curl http://localhost:3001/api/health
 ```
 
-## 📚 Setup Documentation
-
-### Quick Setup
-
-- **[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** - Comprehensive setup guide for Azure resources and local services
-- **[docs/AZURE_CLI_REFERENCE.md](docs/AZURE_CLI_REFERENCE.md)** - Quick reference for Azure CLI commands
-- **[debug/check_neurostack_setup.py](debug/check_neurostack_setup.py)** - Automated setup verification script
-- **[scripts/setup_neurostack.sh](scripts/setup_neurostack.sh)** - Automated setup script for development environment
-
-### Setup Verification
-
-Run the setup check to verify your configuration:
-
+### Sample Query
 ```bash
-python debug/check_neurostack_setup.py
+curl -X POST http://localhost:3001/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"sql": "SELECT COUNT(*) FROM customer_demographics"}'
 ```
 
-## 📦 Development
+## 🎨 UI Features
 
-### Project Structure
+### Interactive Elements
+- **Hover Effects**: Cards scale and show tooltips on hover
+- **Click Actions**: Toggle data source enablement
+- **Double-click**: Open query interface
+- **Visual States**: Clear indication of enabled/disabled states
 
+### Responsive Design
+- Material-UI components for consistent styling
+- Responsive grid layout
+- Mobile-friendly interface
+
+### Color Coding
+- Each data source category has a unique color
+- Enabled/disabled states clearly indicated
+- Success/error states for query results
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+**Frontend won't start**
+```bash
+# Check Node.js version
+node --version
+
+# Clear npm cache
+npm cache clean --force
+
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
 ```
-neurostack/
-├── src/neurostack/           # Main package source
-│   ├── core/                # Core components
-│   │   ├── agents/          # Agent implementations
-│   │   ├── memory/          # Memory management
-│   │   ├── reasoning/       # Reasoning engine
-│   │   ├── tools/           # Tool system
-│   │   └── protocols/       # Communication protocols
-│   ├── layers/              # 8-layer architecture
-│   ├── integrations/        # Cloud integrations
-│   └── utils/               # Utilities
-├── examples/                # Usage examples
-├── tests/                   # Test suite
-├── docs/                    # Documentation
-├── pyproject.toml          # Project configuration
-└── README.md               # This file
+
+**Backend connection failed**
+```bash
+# Check MySQL is running
+brew services list | grep mysql
+
+# Verify database exists
+mysql -u root -e "SHOW DATABASES;"
 ```
 
-### Adding New Components
+**Azure OpenAI errors**
+- Verify your endpoint URL is correct
+- Check your API key is valid
+- Ensure your deployment name matches exactly
+- Verify the API version is supported
 
-1. **Create a new agent:**
-   ```python
-   from neurostack import Agent, AgentConfig
-   
-   class CustomAgent(Agent):
-       async def execute(self, task, context=None):
-           # Your custom logic here
-           return result
-   ```
+**Query execution fails**
+- Check the generated SQL syntax
+- Verify table and column names exist
+- Check database permissions
 
-2. **Add new tools:**
-   ```python
-   from neurostack import Tool
-   
-   class CustomTool(Tool):
-       def __init__(self):
-           super().__init__("custom_tool", "Description")
-       
-       async def execute(self, *args, **kwargs):
-           # Tool implementation
-           return result
-   ```
+## 📈 Next Steps
 
-3. **Extend memory:**
-   ```python
-   from neurostack import MemoryManager
-   
-   class CustomMemory(MemoryManager):
-       async def store_knowledge(self, content, metadata):
-           # Custom storage logic
-           pass
-   ```
+This UI demonstrates the data layer of the NeuroStack architecture. Future enhancements could include:
+
+1. **Processing Layer**: Add drag-and-drop tools for data processing
+2. **Decision Engine**: Visual credit decision workflow builder
+3. **Real-time Analytics**: Live dashboard with decision metrics
+4. **Model Training**: Interface for training and deploying ML models
+5. **Audit Trail**: Track all decisions and their reasoning
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- **Documentation**: Check the `docs/` directory
-- **Issues**: Report bugs and feature requests on GitHub
-- **Discussions**: Join community discussions for questions and ideas
-
-## 🗺️ Roadmap
-
-- [ ] Complete 8-layer architecture implementation
-- [ ] GCP integration (Vertex AI, Cloud Run, etc.)
-- [ ] LangGraph compatibility layer
-- [ ] Advanced memory systems (vector databases)
-- [ ] Real-time agent communication
-- [ ] Web UI for workflow management
-- [ ] Performance monitoring and analytics
-- [ ] Enterprise features (RBAC, audit logs)
-
----
-
-**NeuroStack** - Building the future of agentic AI systems 🚀 
+MIT License - see LICENSE file for details 
