@@ -1,12 +1,23 @@
+export interface TableInfo {
+  tableName: string;
+  fields: string[];
+  sampleData?: any[];
+}
+
 export interface DataSource {
   id: string;
   name: string;
   description: string;
   category: 'demographics' | 'banking' | 'credit_bureau' | 'income' | 'open_banking' | 'fraud' | 'economic';
-  isEnabled: boolean;
-  tableName: string;
+  is_enabled: boolean;
+  table_name: string;
   fields: string[];
-  sampleQuery?: string;
+  sample_query?: string;
+}
+
+export interface MultiTableQueryRequest {
+  naturalLanguageQuery: string;
+  tables: TableInfo[];
 }
 
 export interface QueryResult {

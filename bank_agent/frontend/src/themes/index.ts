@@ -13,6 +13,8 @@ export interface Theme {
     error: string;
     warning: string;
     info: string;
+    primaryDark: string;
+    hover: string;
   };
   fonts: {
     primary: string;
@@ -40,7 +42,9 @@ export const themes: { [key: string]: Theme } = {
       success: "#00ff00",
       error: "#ff4444",
       warning: "#ffaa00",
-      info: "#00ff00"
+      info: "#00ff00",
+      primaryDark: "#00cc00",
+      hover: "rgba(0, 255, 0, 0.1)"
     },
     fonts: {
       primary: "Courier New, monospace",
@@ -66,7 +70,9 @@ export const themes: { [key: string]: Theme } = {
       success: "#27ae60",
       error: "#e74c3c",
       warning: "#f39c12",
-      info: "#3498db"
+      info: "#3498db",
+      primaryDark: "#e74c3c",
+      hover: "rgba(255, 107, 107, 0.1)"
     },
     fonts: {
       primary: "Poppins, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -92,7 +98,9 @@ export const themes: { [key: string]: Theme } = {
       success: "#4caf50",
       error: "#f44336",
       warning: "#ff9800",
-      info: "#2196f3"
+      info: "#2196f3",
+      primaryDark: "#e64a19",
+      hover: "rgba(255, 138, 101, 0.1)"
     },
     fonts: {
       primary: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -118,7 +126,9 @@ export const themes: { [key: string]: Theme } = {
       success: "#4caf50",
       error: "#f44336",
       warning: "#ff9800",
-      info: "#2196f3"
+      info: "#2196f3",
+      primaryDark: "#0097a7",
+      hover: "rgba(0, 188, 212, 0.1)"
     },
     fonts: {
       primary: "Nunito, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -144,7 +154,9 @@ export const themes: { [key: string]: Theme } = {
       success: "#2e7d32",
       error: "#d32f2f",
       warning: "#ed6c02",
-      info: "#0288d1"
+      info: "#0288d1",
+      primaryDark: "#1565c0",
+      hover: "rgba(25, 118, 210, 0.1)"
     },
     fonts: {
       primary: "Roboto, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -170,7 +182,9 @@ export const themes: { [key: string]: Theme } = {
       success: "#006600",
       error: "#cc0000",
       warning: "#cc6600",
-      info: "#0066cc"
+      info: "#0066cc",
+      primaryDark: "#000000",
+      hover: "rgba(0, 0, 0, 0.1)"
     },
     fonts: {
       primary: "Arial, Helvetica, sans-serif",

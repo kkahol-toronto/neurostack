@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { QueryResult } from '../types';
+import { QueryResult, TableInfo } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
@@ -53,6 +53,45 @@ export class ApiService {
 
     } catch (error) {
       console.error('Error converting text to SQL:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  async convertTextToSQLMultiTable(naturalLanguageQuery: string, tables: TableInfo[]): Promise<QueryResult> {
+    try {
+      const startTime = Date.now();
+      
+      // Call the backend API with multiple tables
+      const response = await axios.post(`${API_BASE_URL}/api/text-to-sql`, {
+        natural_language_query: naturalLanguageQuery,
+        tables: tables.map(table => ({
+          table_name: table.tableName,
+          fields: table.fields,
+          sample_data: table.sampleData
+        }))
+      });
+
+      const executionTime = Date.now() - startTime;
+      
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data || [],
+          sql: response.data.sql,
+          executionTime: response.data.execution_time || executionTime
+        };
+      } else {
+        return {
+          success: false,
+          error: response.data.error || 'Unknown error occurred'
+        };
+      }
+
+    } catch (error) {
+      console.error('Error converting text to SQL with multiple tables:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'

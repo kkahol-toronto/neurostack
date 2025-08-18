@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Select,
@@ -14,7 +14,7 @@ import { themes } from '../themes';
 
 const ThemeSwitcher: React.FC = () => {
   const { currentTheme, setTheme, availableThemes } = useTheme();
-  const [open, setOpen] = useState(false);
+
 
   const handleThemeChange = (event: any) => {
     setTheme(event.target.value);

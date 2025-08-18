@@ -17,11 +17,9 @@ import {
   CircularProgress
 } from '@mui/material';
 import {
-  Storage as StorageIcon,
   QueryStats as QueryIcon,
   CheckCircle as EnabledIcon,
-  Cancel as DisabledIcon,
-  Info as InfoIcon
+  Cancel as DisabledIcon
 } from '@mui/icons-material';
 import { DataSource as DataSourceType, QueryResult } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
@@ -47,7 +45,9 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
   };
 
   const handleDoubleClick = () => {
-    setQuery(dataSource.sampleQuery || '');
+    // Set a default query that will return results
+    const defaultQuery = dataSource.sample_query || 'Show me customers with income above $70,000';
+    setQuery(defaultQuery);
     setShowQueryDialog(true);
     setGeneratedSQL('');
     setQueryResult(null);
@@ -64,7 +64,7 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
       // Convert natural language to SQL
       const sqlResult = await apiService.convertTextToSQL(
         query,
-        dataSource.tableName,
+        dataSource.table_name,
         dataSource.fields
       );
       
@@ -94,17 +94,23 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
 
     try {
       // Execute the generated SQL against the database
-      const executeResult = await apiService.executeSQL(generatedSQL, dataSource.tableName);
+      const executeResult = await apiService.executeSQL(generatedSQL, dataSource.table_name);
+      
+      console.log('Execute result:', executeResult); // Debug log
       
       // Set the results
-      setQueryResult({
+      const result = {
         success: executeResult.success,
         sql: generatedSQL,
         data: executeResult.data,
         executionTime: executeResult.executionTime,
         error: executeResult.error
-      });
+      };
+      
+      console.log('Setting queryResult:', result); // Debug log
+      setQueryResult(result);
     } catch (error) {
+      console.error('Execute error:', error); // Debug log
       setQueryResult({
         success: false,
         error: 'Failed to execute query'
@@ -114,19 +120,7 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    // Use theme colors instead of hardcoded colors
-    const colors: { [key: string]: string } = {
-      demographics: theme.colors.primary,
-      banking: theme.colors.primary,
-      credit_bureau: theme.colors.primary,
-      income: theme.colors.primary,
-      open_banking: theme.colors.primary,
-      fraud: theme.colors.primary,
-      economic: theme.colors.primary
-    };
-    return colors[category] || theme.colors.primary;
-  };
+
 
   const getCategoryIcon = (category: string) => {
     const icons: { [key: string]: string } = {
@@ -151,7 +145,7 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
           transition: 'all 0.3s ease',
           transform: isHovered ? 'scale(1.02)' : 'scale(1)',
           boxShadow: isHovered ? theme.effects.hoverGlow : theme.effects.shadow,
-          border: dataSource.isEnabled ? `2px solid ${theme.colors.primary}` : `2px solid ${theme.colors.border}`,
+          border: dataSource.is_enabled ? `2px solid ${theme.colors.primary}` : `2px solid ${theme.colors.border}`,
           position: 'relative',
           overflow: 'hidden',
           background: theme.colors.surface,
@@ -188,7 +182,7 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
                 {dataSource.name}
               </Typography>
             </Box>
-            {dataSource.isEnabled ? (
+            {dataSource.is_enabled ? (
               <EnabledIcon sx={{ color: theme.colors.success, flexShrink: 0 }} />
             ) : (
               <DisabledIcon sx={{ color: theme.colors.textSecondary, flexShrink: 0 }} />
@@ -304,7 +298,8 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
             border: `2px solid ${theme.colors.primary}`,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
             backdropFilter: 'blur(10px)',
-            fontFamily: theme.fonts.primary
+            fontFamily: theme.fonts.primary,
+            maxHeight: '90vh'
           }
         }}
       >
@@ -326,7 +321,7 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
               label="Natural Language Query"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., Show me customers with income above $100,000"
+              placeholder="e.g., Show me customers with income above $70,000"
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -403,14 +398,22 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
                   <Alert severity="success" sx={{ mb: 2 }}>
                     Query executed successfully in {queryResult.executionTime}ms
                   </Alert>
-                  {queryResult.data && queryResult.data.length > 0 && (
+                  
+                  {/* Debug info */}
+                  <Box sx={{ mb: 2, p: 1, backgroundColor: '#f0f0f0', borderRadius: 1, fontSize: '0.8rem' }}>
+                    Debug: data exists: {queryResult.data ? 'Yes' : 'No'}, 
+                    data length: {queryResult.data ? queryResult.data.length : 'N/A'},
+                    data type: {typeof queryResult.data}
+                  </Box>
+                  
+                  {queryResult.data && Array.isArray(queryResult.data) && queryResult.data.length > 0 ? (
                     <>
                       <Typography variant="h6" gutterBottom sx={{ color: theme.colors.text, fontFamily: theme.fonts.primary, fontWeight: 600 }}>
                         Results ({queryResult.data.length} rows):
                       </Typography>
                       <Box
                         sx={{
-                          maxHeight: 200,
+                          maxHeight: 300,
                           overflow: 'auto',
                           border: `1px solid ${theme.colors.primary}`,
                           borderRadius: 1,
@@ -429,6 +432,12 @@ const DataSource: React.FC<DataSourceProps> = ({ dataSource, onToggle }) => {
                         </pre>
                       </Box>
                     </>
+                  ) : (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      {queryResult.data && Array.isArray(queryResult.data) && queryResult.data.length === 0 
+                        ? 'Query returned no data (0 rows)' 
+                        : 'No data available to display'}
+                    </Alert>
                   )}
                 </>
               ) : (

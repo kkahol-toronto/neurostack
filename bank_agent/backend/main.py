@@ -38,11 +38,16 @@ app.add_middleware(
 )
 
 # Pydantic models
-class TextToSQLRequest(BaseModel):
-    natural_language_query: str
+class TableInfo(BaseModel):
     table_name: str
     fields: List[str]
     sample_data: Optional[List[Dict[str, Any]]] = None
+
+class TextToSQLRequest(BaseModel):
+    natural_language_query: str
+    tables: Optional[List[TableInfo]] = None
+    table_name: Optional[str] = None  # For backward compatibility
+    fields: Optional[List[str]] = None  # For backward compatibility
 
 class SQLQueryRequest(BaseModel):
     sql: str
@@ -115,9 +120,9 @@ MOCK_DATABASES = {
         {"customer_id": 3, "current_credit_limit": 10000, "current_balance": 3000, "utilization_rate": 0.30},
     ],
     "credit_bureau_data": [
-        {"customer_id": 1, "fico_score_8": 720, "fico_score_9": 725, "total_accounts_bureau": 8},
-        {"customer_id": 2, "fico_score_8": 680, "fico_score_9": 685, "total_accounts_bureau": 12},
-        {"customer_id": 3, "fico_score_8": 750, "fico_score_9": 755, "total_accounts_bureau": 5},
+        {"customer_id": 1, "fico_score_8": 720, "fico_score_9": 725, "total_accounts_bureau": 8, "delinquencies_30_plus_12m": 0},
+        {"customer_id": 2, "fico_score_8": 680, "fico_score_9": 685, "total_accounts_bureau": 12, "delinquencies_30_plus_12m": 2},
+        {"customer_id": 3, "fico_score_8": 750, "fico_score_9": 755, "total_accounts_bureau": 5, "delinquencies_30_plus_12m": 0},
     ],
     "fraud_kyc_compliance": [
         {"customer_id": 1, "overall_fraud_risk_score": 3.2, "risk_level": "low", "kyc_score": 85, "identity_verification_status": "verified"},
@@ -125,6 +130,21 @@ MOCK_DATABASES = {
         {"customer_id": 3, "overall_fraud_risk_score": 1.8, "risk_level": "low", "kyc_score": 92, "identity_verification_status": "verified"},
         {"customer_id": 4, "overall_fraud_risk_score": 9.2, "risk_level": "high", "kyc_score": 30, "identity_verification_status": "failed"},
         {"customer_id": 5, "overall_fraud_risk_score": 7.8, "risk_level": "high", "kyc_score": 55, "identity_verification_status": "pending"},
+    ],
+    "income_ability_to_pay": [
+        {"customer_id": 1, "verified_annual_income": 75000, "debt_to_income_ratio": 0.25, "total_monthly_debt_payments": 1500, "income_stability_score": 85},
+        {"customer_id": 2, "verified_annual_income": 95000, "debt_to_income_ratio": 0.45, "total_monthly_debt_payments": 3500, "income_stability_score": 70},
+        {"customer_id": 3, "verified_annual_income": 65000, "debt_to_income_ratio": 0.35, "total_monthly_debt_payments": 1900, "income_stability_score": 80},
+    ],
+    "open_banking_data": [
+        {"customer_id": 1, "open_banking_consent": True, "avg_monthly_income": 6250, "cash_flow_stability_score": 75, "expense_obligations_rent": 2000},
+        {"customer_id": 2, "open_banking_consent": False, "avg_monthly_income": 7917, "cash_flow_stability_score": 60, "expense_obligations_rent": 3000},
+        {"customer_id": 3, "open_banking_consent": True, "avg_monthly_income": 5417, "cash_flow_stability_score": 85, "expense_obligations_rent": 1500},
+    ],
+    "state_economic_indicators": [
+        {"state_code": "CA", "unemployment_rate": 4.2, "macro_risk_score": 65, "risk_level": "medium", "gdp_growth_rate": 2.8},
+        {"state_code": "NY", "unemployment_rate": 3.8, "macro_risk_score": 55, "risk_level": "low", "gdp_growth_rate": 3.2},
+        {"state_code": "TX", "unemployment_rate": 3.5, "macro_risk_score": 45, "risk_level": "low", "gdp_growth_rate": 3.5},
     ]
 }
 
@@ -138,7 +158,7 @@ SAMPLE_DATA_SOURCES = [
         "is_enabled": True,
         "table_name": "customer_demographics",
         "fields": ["customer_id", "first_name", "last_name", "date_of_birth", "annual_income", "employment_status", "customer_segment", "state"],
-        "sample_query": "Show me customers with income above $100,000"
+        "sample_query": "Show me customers with income above $70,000"
     },
     {
         "id": "internal_banking_data",
@@ -169,11 +189,41 @@ SAMPLE_DATA_SOURCES = [
         "table_name": "fraud_kyc_compliance",
         "fields": ["customer_id", "overall_fraud_risk_score", "risk_level", "kyc_score", "identity_verification_status"],
         "sample_query": "Identify high-risk customers with fraud score above 7"
+    },
+    {
+        "id": "income_ability_to_pay",
+        "name": "Income & Ability-to-Pay",
+        "description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "is_enabled": True,
+        "table_name": "income_ability_to_pay",
+        "fields": ["customer_id", "verified_annual_income", "debt_to_income_ratio", "total_monthly_debt_payments", "income_stability_score"],
+        "sample_query": "Show customers with debt-to-income ratio above 40%"
+    },
+    {
+        "id": "open_banking_data",
+        "name": "Open Banking Data",
+        "description": "Transaction data and alternative financial information from external sources. Provides insights into spending patterns and cash flow.",
+        "category": "open_banking",
+        "is_enabled": False,
+        "table_name": "open_banking_data",
+        "fields": ["customer_id", "open_banking_consent", "avg_monthly_income", "cash_flow_stability_score", "expense_obligations_rent"],
+        "sample_query": "Find customers with open banking consent and stable cash flow"
+    },
+    {
+        "id": "economic_indicators",
+        "name": "Economic Indicators",
+        "description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "is_enabled": True,
+        "table_name": "state_economic_indicators",
+        "fields": ["state_code", "unemployment_rate", "macro_risk_score", "risk_level", "gdp_growth_rate"],
+        "sample_query": "Show states with high unemployment rates"
     }
 ]
 
-async def convert_text_to_sql(natural_language_query: str, table_name: str, fields: List[str]) -> str:
-    """Convert natural language query to SQL using Azure OpenAI"""
+async def convert_text_to_sql(natural_language_query: str, tables: List[TableInfo]) -> str:
+    """Convert natural language query to SQL using Azure OpenAI for multiple tables"""
     try:
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         api_key = os.getenv("AZURE_OPENAI_KEY")
@@ -183,17 +233,28 @@ async def convert_text_to_sql(natural_language_query: str, table_name: str, fiel
         if not deployment_name:
             raise ValueError("Azure OpenAI deployment name must be set in environment variables")
         
-        # Build the prompt
+        # Build the prompt for multiple tables with intelligent selection guidance
+        tables_info = []
+        for table in tables:
+            tables_info.append(f"Table: {table.table_name}\nAvailable fields: {', '.join(table.fields)}")
+        
+        tables_text = "\n\n".join(tables_info)
+        
         prompt = f"""
 You are a SQL expert. Convert the following natural language query to a MySQL SELECT statement.
 
-Table: {table_name}
-Available fields: {', '.join(fields)}
+Available Tables and Fields:
+{tables_text}
 
 Natural language query: "{natural_language_query}"
 
-Convert this to a MySQL SELECT statement. Use appropriate WHERE clauses, ORDER BY, and LIMIT as needed.
-Only return the SQL query, no explanations or markdown formatting.
+Instructions:
+1. Analyze the query and determine which tables are relevant
+2. Use JOINs to combine data from multiple tables when needed
+3. Only include tables that are actually needed for the query
+4. Use appropriate WHERE clauses, ORDER BY, and LIMIT as needed
+5. For customer-related queries, typically join on customer_id
+6. Only return the SQL query, no explanations or markdown formatting
 
 SQL Query:
 """
@@ -285,62 +346,160 @@ SQL Query:
         # Fallback to mock SQL generation for demo purposes
         logger.warning("Falling back to mock SQL generation")
         try:
-            sql_query = generate_mock_sql(natural_language_query, table_name, fields)
+            sql_query = generate_mock_sql(natural_language_query, tables)
             logger.info(f"Generated mock SQL: {sql_query}")
             return sql_query
         except Exception as fallback_error:
             logger.error(f"Mock SQL generation also failed: {fallback_error}")
             raise HTTPException(status_code=500, detail=f"Failed to convert text to SQL: {str(e)}")
 
-def generate_mock_sql(natural_language_query: str, table_name: str, fields: List[str]) -> str:
-    """Generate mock SQL for demo purposes when Azure OpenAI is not available"""
+def generate_mock_sql(natural_language_query: str, tables: List[TableInfo]) -> str:
+    """Generate mock SQL for demo purposes with intelligent table selection"""
     query_lower = natural_language_query.lower()
     
-    # Simple keyword-based SQL generation
-    if "income" in query_lower and ("above" in query_lower or ">" in query_lower):
-        # Extract number from query
-        numbers = re.findall(r'\d+', natural_language_query)
-        threshold = int(numbers[0]) if numbers else 50000
-        
-        return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE annual_income > {threshold} ORDER BY annual_income DESC"
+    # Get all table names for reference
+    table_names = [table.table_name for table in tables]
     
-    elif "fico" in query_lower and ("below" in query_lower or "<" in query_lower):
-        numbers = re.findall(r'\d+', natural_language_query)
-        threshold = int(numbers[0]) if numbers else 650
-        
-        return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE fico_score_8 < {threshold} ORDER BY fico_score_8 ASC"
+    # Intelligent table selection based on query content
+    selected_tables = []
     
-    elif "utilization" in query_lower and ("above" in query_lower or ">" in query_lower):
-        numbers = re.findall(r'\d+', natural_language_query)
-        threshold = int(numbers[0]) if numbers else 80
-        
-        return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE utilization_rate > {threshold/100} ORDER BY utilization_rate DESC"
+    # Check for customer demographics related queries
+    if any(word in query_lower for word in ["customer", "income", "demographic", "name", "location", "john"]):
+        if "customer_demographics" in table_names:
+            selected_tables.append("customer_demographics")
     
-    elif "fraud" in query_lower and ("above" in query_lower or ">" in query_lower):
-        numbers = re.findall(r'\d+', natural_language_query)
-        threshold = int(numbers[0]) if numbers else 7
-        
-        return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE risk_level = 'high' AND overall_fraud_risk_score > {threshold} ORDER BY overall_fraud_risk_score DESC"
+    # Check for banking related queries
+    if any(word in query_lower for word in ["banking", "credit", "utilization", "balance", "payment"]):
+        if "internal_banking_data" in table_names:
+            selected_tables.append("internal_banking_data")
     
-    elif "risk" in query_lower and "high" in query_lower:
-        return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE risk_level = 'high' ORDER BY overall_fraud_risk_score DESC"
+    # Check for credit bureau related queries
+    if any(word in query_lower for word in ["fico", "credit score", "bureau", "external", "credit risk", "delinquencies"]):
+        if "credit_bureau_data" in table_names:
+            selected_tables.append("credit_bureau_data")
     
-    else:
-        # Default query
-        return f"SELECT {', '.join(fields[:4])} FROM {table_name} LIMIT 10"
+    # Check for fraud related queries
+    if any(word in query_lower for word in ["fraud", "risk", "kyc", "compliance"]):
+        if "fraud_kyc_compliance" in table_names:
+            selected_tables.append("fraud_kyc_compliance")
+    
+    # Check for income/ability to pay queries
+    if any(word in query_lower for word in ["debt", "ratio", "ability", "payment capacity"]):
+        if "income_ability_to_pay" in table_names:
+            selected_tables.append("income_ability_to_pay")
+    
+    # Check for open banking queries
+    if any(word in query_lower for word in ["open banking", "transaction", "cash flow", "spending"]):
+        if "open_banking_data" in table_names:
+            selected_tables.append("open_banking_data")
+    
+    # Check for economic queries
+    if any(word in query_lower for word in ["economic", "unemployment", "gdp", "macro"]):
+        if "state_economic_indicators" in table_names:
+            selected_tables.append("state_economic_indicators")
+    
+    # If no specific tables identified, use customer_demographics as default
+    if not selected_tables and "customer_demographics" in table_names:
+        selected_tables = ["customer_demographics"]
+    
+    # Generate SQL based on selected tables
+    if len(selected_tables) == 1:
+        table_name = selected_tables[0]
+        # Find the table info
+        table_info = next((t for t in tables if t.table_name == table_name), None)
+        if table_info:
+            fields = table_info.fields
+            
+            if "john" in query_lower:
+                return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE first_name = 'John'"
+            
+            elif "income" in query_lower and ("above" in query_lower or ">" in query_lower):
+                numbers = re.findall(r'\d+', natural_language_query)
+                threshold = int(numbers[0]) if numbers else 50000
+                return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE annual_income > {threshold} ORDER BY annual_income DESC"
+            
+            elif "fico" in query_lower and ("below" in query_lower or "<" in query_lower):
+                numbers = re.findall(r'\d+', natural_language_query)
+                threshold = int(numbers[0]) if numbers else 650
+                return f"SELECT {', '.join(fields[:4])} FROM {table_name} WHERE fico_score_8 < {threshold} ORDER BY fico_score_8 ASC"
+            
+            else:
+                return f"SELECT {', '.join(fields[:4])} FROM {table_name} LIMIT 10"
+    
+    elif len(selected_tables) >= 2:
+        # Multi-table JOIN query
+        if "customer_demographics" in selected_tables and "internal_banking_data" in selected_tables:
+            return f"""
+SELECT cd.customer_id, cd.first_name, cd.last_name, cd.annual_income, 
+       ibd.current_credit_limit, ibd.utilization_rate
+FROM customer_demographics cd
+JOIN internal_banking_data ibd ON cd.customer_id = ibd.customer_id
+WHERE cd.annual_income > 50000
+ORDER BY cd.annual_income DESC
+LIMIT 10
+"""
+        elif "customer_demographics" in selected_tables and "credit_bureau_data" in selected_tables:
+            # Check if this is a credit risk query
+            if "credit risk" in query_lower or "risk" in query_lower or "john" in query_lower:
+                return f"""
+SELECT cd.customer_id, cd.first_name, cd.last_name, cbd.fico_score_8, cbd.fico_score_9, cbd.delinquencies_30_plus_12m
+FROM customer_demographics cd
+JOIN credit_bureau_data cbd ON cd.customer_id = cbd.customer_id
+WHERE cd.first_name = 'John'
+"""
+            else:
+                return f"""
+SELECT cd.customer_id, cd.first_name, cd.last_name, cd.annual_income,
+       cbd.fico_score_8, cbd.total_accounts_bureau
+FROM customer_demographics cd
+JOIN credit_bureau_data cbd ON cd.customer_id = cbd.customer_id
+WHERE cbd.fico_score_8 > 700
+ORDER BY cbd.fico_score_8 DESC
+LIMIT 10
+"""
+        elif "customer_demographics" in selected_tables and "fraud_kyc_compliance" in selected_tables:
+            return f"""
+SELECT cd.customer_id, cd.first_name, cd.last_name, cd.annual_income,
+       fk.overall_fraud_risk_score, fk.risk_level
+FROM customer_demographics cd
+JOIN fraud_kyc_compliance fk ON cd.customer_id = fk.customer_id
+WHERE fk.risk_level = 'high'
+ORDER BY fk.overall_fraud_risk_score DESC
+LIMIT 10
+"""
+        else:
+            # Generic multi-table query
+            return f"""
+SELECT * FROM {selected_tables[0]} t1
+JOIN {selected_tables[1]} t2 ON t1.customer_id = t2.customer_id
+LIMIT 10
+"""
+    
+    # Fallback
+    return f"SELECT * FROM {table_names[0]} LIMIT 5"
 
 def execute_mock_sql(sql_query: str, table_name: str) -> List[Dict[str, Any]]:
     """Execute SQL query against mock database"""
     try:
+        sql_lower = sql_query.lower()
+        
+        # Check if this is a JOIN query
+        if "join" in sql_lower:
+            return execute_mock_join_sql(sql_query)
+        
+        # Single table query
         if table_name not in MOCK_DATABASES:
             return []
         
         data = MOCK_DATABASES[table_name].copy()
-        sql_lower = sql_query.lower()
         
         # Simple SQL parsing for demo purposes
         # Filter by WHERE conditions
         if "where" in sql_lower:
+            # Handle name filtering
+            if "first_name = 'john'" in sql_lower:
+                data = [row for row in data if row.get('first_name', '').lower() == 'john']
+            
             # Handle fraud risk score filtering
             if "overall_fraud_risk_score >" in sql_lower:
                 import re
@@ -402,6 +561,114 @@ def execute_mock_sql(sql_query: str, table_name: str) -> List[Dict[str, Any]]:
         logger.error(f"Error executing mock SQL: {e}")
         return []
 
+def execute_mock_join_sql(sql_query: str) -> List[Dict[str, Any]]:
+    """Execute JOIN SQL query against mock database"""
+    try:
+        sql_lower = sql_query.lower()
+        logger.info(f"Executing JOIN SQL: {sql_query}")
+        
+        # Extract tables from JOIN
+        tables = []
+        if "customer_demographics" in sql_lower:
+            tables.append("customer_demographics")
+        if "internal_banking_data" in sql_lower:
+            tables.append("internal_banking_data")
+        if "credit_bureau_data" in sql_lower:
+            tables.append("credit_bureau_data")
+        if "fraud_kyc_compliance" in sql_lower:
+            tables.append("fraud_kyc_compliance")
+        if "income_ability_to_pay" in sql_lower:
+            tables.append("income_ability_to_pay")
+        if "open_banking_data" in sql_lower:
+            tables.append("open_banking_data")
+        if "state_economic_indicators" in sql_lower:
+            tables.append("state_economic_indicators")
+        
+        logger.info(f"Detected tables: {tables}")
+        
+        # Get data from all tables
+        all_data = {}
+        for table in tables:
+            if table in MOCK_DATABASES:
+                all_data[table] = MOCK_DATABASES[table]
+        
+        logger.info(f"Available data: {list(all_data.keys())}")
+        
+        # Perform JOIN on customer_id
+        joined_data = []
+        
+        # Get all unique customer IDs
+        customer_ids = set()
+        for table_data in all_data.values():
+            for row in table_data:
+                if 'customer_id' in row:
+                    customer_ids.add(row['customer_id'])
+        
+        logger.info(f"Customer IDs found: {customer_ids}")
+        
+        # Join data for each customer
+        for customer_id in customer_ids:
+            joined_row = {}
+            
+            # Merge data from all tables for this customer
+            for table_name, table_data in all_data.items():
+                for row in table_data:
+                    if row.get('customer_id') == customer_id:
+                        # Add table prefix to avoid column name conflicts
+                        for key, value in row.items():
+                            if key == 'customer_id':
+                                joined_row[key] = value
+                            elif table_name == 'customer_demographics':
+                                # Don't prefix customer_demographics columns
+                                joined_row[key] = value
+                            else:
+                                # Add prefix for other tables
+                                prefix = table_name.split('_')[0]
+                                joined_row[f"{prefix}_{key}"] = value
+            
+            logger.info(f"Joined row for customer {customer_id}: {joined_row}")
+            
+            # Apply WHERE conditions
+            if "where" in sql_lower:
+                # Handle name filtering
+                if "first_name = 'john'" in sql_lower:
+                    logger.info(f"Checking first_name filter: {joined_row.get('first_name', '')}")
+                    if joined_row.get('first_name', '').lower() != 'john':
+                        logger.info(f"Filtered out customer {customer_id} - name doesn't match")
+                        continue
+                    else:
+                        logger.info(f"Customer {customer_id} matches John filter")
+                
+                # Add more WHERE conditions as needed
+                pass
+            
+            if joined_row:  # Only add if row has data
+                joined_data.append(joined_row)
+                logger.info(f"Added joined row: {joined_row}")
+        
+        logger.info(f"Final joined data: {joined_data}")
+        
+        # Handle ORDER BY
+        if "order by" in sql_lower:
+            if "annual_income desc" in sql_lower:
+                joined_data.sort(key=lambda x: x.get('annual_income', 0), reverse=True)
+            elif "fico_score_8 desc" in sql_lower:
+                joined_data.sort(key=lambda x: x.get('cbd_fico_score_8', 0), reverse=True)
+        
+        # Handle LIMIT
+        if "limit" in sql_lower:
+            import re
+            numbers = re.findall(r'limit (\d+)', sql_lower)
+            if numbers:
+                limit = int(numbers[0])
+                joined_data = joined_data[:limit]
+        
+        return joined_data
+        
+    except Exception as e:
+        logger.error(f"Error executing mock JOIN SQL: {e}")
+        return []
+
 # API Endpoints
 @app.get("/")
 async def root():
@@ -427,15 +694,33 @@ async def text_to_sql(request: TextToSQLRequest):
     start_time = datetime.now()
     
     try:
-        # Convert text to SQL
-        sql_query = await convert_text_to_sql(
-            request.natural_language_query,
-            request.table_name,
-            request.fields
-        )
+        # Handle backward compatibility
+        if request.tables:
+            # New multi-table format
+            sql_query = await convert_text_to_sql(
+                request.natural_language_query,
+                request.tables
+            )
+            # For now, execute against the first table (we'll enhance this later)
+            primary_table = request.tables[0].table_name
+        else:
+            # Legacy single-table format
+            if not request.table_name or not request.fields:
+                raise ValueError("Either 'tables' or both 'table_name' and 'fields' must be provided")
+            
+            # Create a single table info for backward compatibility
+            table_info = TableInfo(
+                table_name=request.table_name,
+                fields=request.fields
+            )
+            sql_query = await convert_text_to_sql(
+                request.natural_language_query,
+                [table_info]
+            )
+            primary_table = request.table_name
         
         # Execute the SQL query (mock execution for demo)
-        data = execute_mock_sql(sql_query, request.table_name)
+        data = execute_mock_sql(sql_query, primary_table)
         
         execution_time = (datetime.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
         
