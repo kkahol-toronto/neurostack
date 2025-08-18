@@ -14,6 +14,7 @@ import {
   Settings as DataProcessingIcon,
   Analytics as DataSimulationIcon,
   Description as DocumentationIcon,
+  Search as SearchIcon,
   ArrowForward as ArrowIcon,
   Menu as MenuIcon,
   Close as CloseIcon
@@ -21,6 +22,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeSwitcher from './ThemeSwitcher';
 import DataLayer from './DataLayer';
+import CustomerSearch from './CustomerSearch';
 
 interface DashboardTile {
   id: string;
@@ -45,9 +47,18 @@ const Dashboard: React.FC = () => {
     { from: 'data-processing', to: 'data-simulation', isActive: true },
     { from: 'data-simulation', to: 'documentation', isActive: true }
   ]);
+  const [verifiedCustomer, setVerifiedCustomer] = useState<any>(null);
   const { theme } = useTheme();
 
   const tiles: DashboardTile[] = [
+    {
+      id: 'customer-search',
+      title: 'Customer Search',
+      description: 'Search and verify customer identity',
+      icon: <SearchIcon sx={{ fontSize: 40 }} />,
+      color: '#f59e0b',
+      isExpanded: selectedTile === 'customer-search'
+    },
     {
       id: 'data-sources',
       title: 'Data Sources',
@@ -106,6 +117,10 @@ const Dashboard: React.FC = () => {
     );
   };
 
+  const handleCustomerVerified = (customer: any) => {
+    setVerifiedCustomer(customer);
+  };
+
   const renderTile = (tile: DashboardTile, index: number) => (
     <Box key={tile.id} sx={{ position: 'relative' }}>
       <Paper
@@ -114,19 +129,25 @@ const Dashboard: React.FC = () => {
           p: 3,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: verifiedCustomer && tile.id === 'customer-search' 
+            ? 'rgba(76, 175, 80, 0.1)' 
+            : 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(10px)',
-          border: `1px solid rgba(255, 255, 255, 0.2)`,
+          border: `1px solid ${verifiedCustomer && tile.id === 'customer-search' 
+            ? 'rgba(76, 175, 80, 0.3)' 
+            : 'rgba(255, 255, 255, 0.2)'}`,
           borderRadius: 3,
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           '&:hover': {
             transform: 'translateY(-4px)',
             boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
-            backgroundColor: 'rgba(255, 255, 255, 0.15)'
+            backgroundColor: verifiedCustomer && tile.id === 'customer-search'
+              ? 'rgba(76, 175, 80, 0.15)'
+              : 'rgba(255, 255, 255, 0.15)'
           },
           position: 'relative',
           overflow: 'hidden',
-          height: 200, // Fixed height for all tiles
+          height: verifiedCustomer && tile.id === 'customer-search' ? 250 : 200, // Increased height for customer info
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -176,12 +197,51 @@ const Dashboard: React.FC = () => {
         </Box>
         
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Typography variant="body2" sx={{ 
-            color: theme.colors.textSecondary,
-            fontSize: '0.8rem'
-          }}>
-            Click to expand
-          </Typography>
+          {verifiedCustomer && tile.id === 'customer-search' ? (
+            <Box sx={{ width: '100%' }}>
+              <Box sx={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                p: 2, 
+                borderRadius: 2,
+                mb: 1
+              }}>
+                <Typography variant="body2" sx={{ 
+                  color: theme.colors.textSecondary,
+                  fontSize: '0.7rem',
+                  mb: 0.5
+                }}>
+                  Verified Customer
+                </Typography>
+                <Typography variant="body1" sx={{ 
+                  color: theme.colors.text,
+                  fontWeight: 600,
+                  fontSize: '0.9rem'
+                }}>
+                  {verifiedCustomer.first_name} {verifiedCustomer.last_name}
+                </Typography>
+                <Typography variant="body2" sx={{ 
+                  color: theme.colors.textSecondary,
+                  fontSize: '0.8rem',
+                  fontFamily: 'monospace'
+                }}>
+                  Account: {verifiedCustomer.customer_id}
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ 
+                color: theme.colors.textSecondary,
+                fontSize: '0.7rem'
+              }}>
+                Click to view details
+              </Typography>
+            </Box>
+          ) : (
+            <Typography variant="body2" sx={{ 
+              color: theme.colors.textSecondary,
+              fontSize: '0.8rem'
+            }}>
+              Click to expand
+            </Typography>
+          )}
         </Box>
       </Paper>
       
@@ -296,6 +356,8 @@ const Dashboard: React.FC = () => {
 
   const renderExpandedContent = () => {
     switch (selectedTile) {
+      case 'customer-search':
+        return <CustomerSearch onCustomerVerified={handleCustomerVerified} />;
       case 'data-sources':
         return <DataLayer />;
       case 'data-processing':

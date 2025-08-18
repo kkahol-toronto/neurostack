@@ -70,6 +70,19 @@ class DataSource(BaseModel):
     fields: List[str]
     sample_query: Optional[str] = None
 
+class CustomerSearchRequest(BaseModel):
+    query: str
+
+class Customer(BaseModel):
+    customer_id: int
+    first_name: str
+    last_name: str
+    annual_income: Optional[int] = None
+    state: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    employment_status: Optional[str] = None
+    customer_segment: Optional[str] = None
+
 # Azure OpenAI client initialization
 def get_azure_openai_client():
     """Initialize Azure OpenAI client with environment variables"""
@@ -108,45 +121,7 @@ def get_azure_openai_client():
         raise
 
 # Mock database for demo purposes
-MOCK_DATABASES = {
-    "customer_demographics": [
-        {"customer_id": 1, "first_name": "John", "last_name": "Doe", "annual_income": 75000, "state": "CA"},
-        {"customer_id": 2, "first_name": "Jane", "last_name": "Smith", "annual_income": 95000, "state": "NY"},
-        {"customer_id": 3, "first_name": "Bob", "last_name": "Johnson", "annual_income": 65000, "state": "TX"},
-    ],
-    "internal_banking_data": [
-        {"customer_id": 1, "current_credit_limit": 15000, "current_balance": 5000, "utilization_rate": 0.33},
-        {"customer_id": 2, "current_credit_limit": 25000, "current_balance": 20000, "utilization_rate": 0.80},
-        {"customer_id": 3, "current_credit_limit": 10000, "current_balance": 3000, "utilization_rate": 0.30},
-    ],
-    "credit_bureau_data": [
-        {"customer_id": 1, "fico_score_8": 720, "fico_score_9": 725, "total_accounts_bureau": 8, "delinquencies_30_plus_12m": 0},
-        {"customer_id": 2, "fico_score_8": 680, "fico_score_9": 685, "total_accounts_bureau": 12, "delinquencies_30_plus_12m": 2},
-        {"customer_id": 3, "fico_score_8": 750, "fico_score_9": 755, "total_accounts_bureau": 5, "delinquencies_30_plus_12m": 0},
-    ],
-    "fraud_kyc_compliance": [
-        {"customer_id": 1, "overall_fraud_risk_score": 3.2, "risk_level": "low", "kyc_score": 85, "identity_verification_status": "verified"},
-        {"customer_id": 2, "overall_fraud_risk_score": 8.5, "risk_level": "high", "kyc_score": 45, "identity_verification_status": "pending"},
-        {"customer_id": 3, "overall_fraud_risk_score": 1.8, "risk_level": "low", "kyc_score": 92, "identity_verification_status": "verified"},
-        {"customer_id": 4, "overall_fraud_risk_score": 9.2, "risk_level": "high", "kyc_score": 30, "identity_verification_status": "failed"},
-        {"customer_id": 5, "overall_fraud_risk_score": 7.8, "risk_level": "high", "kyc_score": 55, "identity_verification_status": "pending"},
-    ],
-    "income_ability_to_pay": [
-        {"customer_id": 1, "verified_annual_income": 75000, "debt_to_income_ratio": 0.25, "total_monthly_debt_payments": 1500, "income_stability_score": 85},
-        {"customer_id": 2, "verified_annual_income": 95000, "debt_to_income_ratio": 0.45, "total_monthly_debt_payments": 3500, "income_stability_score": 70},
-        {"customer_id": 3, "verified_annual_income": 65000, "debt_to_income_ratio": 0.35, "total_monthly_debt_payments": 1900, "income_stability_score": 80},
-    ],
-    "open_banking_data": [
-        {"customer_id": 1, "open_banking_consent": True, "avg_monthly_income": 6250, "cash_flow_stability_score": 75, "expense_obligations_rent": 2000},
-        {"customer_id": 2, "open_banking_consent": False, "avg_monthly_income": 7917, "cash_flow_stability_score": 60, "expense_obligations_rent": 3000},
-        {"customer_id": 3, "open_banking_consent": True, "avg_monthly_income": 5417, "cash_flow_stability_score": 85, "expense_obligations_rent": 1500},
-    ],
-    "state_economic_indicators": [
-        {"state_code": "CA", "unemployment_rate": 4.2, "macro_risk_score": 65, "risk_level": "medium", "gdp_growth_rate": 2.8},
-        {"state_code": "NY", "unemployment_rate": 3.8, "macro_risk_score": 55, "risk_level": "low", "gdp_growth_rate": 3.2},
-        {"state_code": "TX", "unemployment_rate": 3.5, "macro_risk_score": 45, "risk_level": "low", "gdp_growth_rate": 3.5},
-    ]
-}
+MOCK_DATABASES = {'customer_demographics': [{'customer_id': 1, 'first_name': 'John', 'last_name': 'Doe', 'date_of_birth': '1987-08-16', 'annual_income': 75000, 'state': 'CA', 'employment_status': 'Self-employed', 'customer_segment': 'Standard', 'email': 'john.doe@email.com', 'phone': '(524) 436-2415', 'ssn': '***-**-7119', 'address_line1': '131 Chad Well Suite 339', 'address_line2': None, 'city': 'Port Autumn', 'zip_code': '46708', 'customer_since': '2022-12-02', 'employer_name': 'Lam-Roman', 'job_title': 'Restaurant manager', 'household_size': 2}, {'customer_id': 2, 'first_name': 'Jane', 'last_name': 'Smith', 'date_of_birth': '1971-01-17', 'annual_income': 95000, 'state': 'NY', 'employment_status': 'Full-time', 'customer_segment': 'Standard', 'email': 'jane.smith@email.com', 'phone': '(203) 948-4006', 'ssn': '***-**-7069', 'address_line1': '772 Garner Port', 'address_line2': None, 'city': 'Austinfort', 'zip_code': '47055', 'customer_since': '2017-03-16', 'employer_name': 'Wade, Garcia and Bush', 'job_title': 'Sales professional, IT', 'household_size': 2}, {'customer_id': 3, 'first_name': 'Bob', 'last_name': 'Johnson', 'date_of_birth': '1968-07-20', 'annual_income': 65000, 'state': 'TX', 'employment_status': 'Full-time', 'customer_segment': 'Basic', 'email': 'bob.johnson@email.com', 'phone': '(511) 106-5782', 'ssn': '***-**-3003', 'address_line1': '752 Steven Roads', 'address_line2': None, 'city': 'North Benjaminberg', 'zip_code': '64689', 'customer_since': '2016-07-26', 'employer_name': 'Hahn Ltd', 'job_title': 'Producer, radio', 'household_size': 4}, {'customer_id': 4, 'first_name': 'Tom', 'last_name': 'Young', 'date_of_birth': '1982-09-08', 'annual_income': 64485, 'state': 'CA', 'employment_status': 'Full-time', 'customer_segment': 'Standard', 'email': 'tom.young@email.com', 'phone': '(743) 141-2569', 'ssn': '***-**-8190', 'address_line1': '51426 Cunningham Garden', 'address_line2': None, 'city': 'East Annborough', 'zip_code': '93429', 'customer_since': '2019-11-23', 'employer_name': 'Ray Inc', 'job_title': 'Accounting technician', 'household_size': 3}, {'customer_id': 5, 'first_name': 'Michael', 'last_name': 'Gonzales', 'date_of_birth': '1994-04-24', 'annual_income': 114394, 'state': 'CA', 'employment_status': 'Part-time', 'customer_segment': 'Premium', 'email': 'michael.gonzales@email.com', 'phone': '(672) 201-4656', 'ssn': '***-**-2707', 'address_line1': '2053 Mark Common Suite 157', 'address_line2': None, 'city': 'West Donaldton', 'zip_code': '44969', 'customer_since': '2023-04-15', 'employer_name': 'Mitchell Group', 'job_title': 'Teacher, English as a foreign language', 'household_size': 2}, {'customer_id': 6, 'first_name': 'Kyle', 'last_name': 'Johnson', 'date_of_birth': '2002-07-13', 'annual_income': 62859, 'state': 'OH', 'employment_status': 'Full-time', 'customer_segment': 'Standard', 'email': 'kyle.johnson@email.com', 'phone': '(910) 313-2876', 'ssn': '***-**-4213', 'address_line1': '7713 Carrillo Estates', 'address_line2': None, 'city': 'Goodmanmouth', 'zip_code': '03051', 'customer_since': '2021-03-05', 'employer_name': 'Kennedy-Taylor', 'job_title': 'Horticultural consultant', 'household_size': 2}, {'customer_id': 7, 'first_name': 'Thomas', 'last_name': 'Pratt', 'date_of_birth': '1994-12-20', 'annual_income': 109841, 'state': 'IL', 'employment_status': 'Full-time', 'customer_segment': 'Premium', 'email': 'thomas.pratt@email.com', 'phone': '(551) 311-5902', 'ssn': '***-**-6961', 'address_line1': '186 James Unions Apt. 037', 'address_line2': None, 'city': 'Georgeburgh', 'zip_code': '93674', 'customer_since': '2018-02-17', 'employer_name': 'Smith Ltd', 'job_title': 'Civil Service administrator', 'household_size': 5}, {'customer_id': 8, 'first_name': 'Brandon', 'last_name': 'Johnson', 'date_of_birth': '2000-06-19', 'annual_income': 64046, 'state': 'TX', 'employment_status': 'Full-time', 'customer_segment': 'Standard', 'email': 'brandon.johnson@email.com', 'phone': '(899) 326-6238', 'ssn': '***-**-9117', 'address_line1': '59945 Williams Harbor Apt. 076', 'address_line2': None, 'city': 'Nathanview', 'zip_code': '37621', 'customer_since': '2018-09-22', 'employer_name': 'Simmons-Howell', 'job_title': 'Analytical chemist', 'household_size': 2}, {'customer_id': 9, 'first_name': 'Jacqueline', 'last_name': 'Gray', 'date_of_birth': '1961-08-19', 'annual_income': 79181, 'state': 'OH', 'employment_status': 'Full-time', 'customer_segment': 'Standard', 'email': 'jacqueline.gray@email.com', 'phone': '(825) 589-6570', 'ssn': '***-**-5939', 'address_line1': '711 Scott Ridges', 'address_line2': None, 'city': 'Jennifermouth', 'zip_code': '25025', 'customer_since': '2021-12-26', 'employer_name': 'Lutz-Rodriguez', 'job_title': 'Engineer, electrical', 'household_size': 5}, {'customer_id': 10, 'first_name': 'John', 'last_name': 'Hoover', 'date_of_birth': '1968-11-21', 'annual_income': 82719, 'state': 'PA', 'employment_status': 'Full-time', 'customer_segment': 'Standard', 'email': 'john.hoover@email.com', 'phone': '(777) 593-1986', 'ssn': '***-**-7473', 'address_line1': '66865 Rachel Green', 'address_line2': None, 'city': 'Nelsonmouth', 'zip_code': '01513', 'customer_since': '2024-05-28', 'employer_name': 'Cooke and Sons', 'job_title': 'Surveyor, minerals', 'household_size': 3}], 'internal_banking_data': [{'customer_id': 1, 'current_credit_limit': 22000, 'current_balance': 10502.92131344284, 'utilization_rate': 47.740551424740175, 'on_time_payments_12m': 12, 'late_payments_12m': 1, 'tenure_months': 111}, {'customer_id': 2, 'current_credit_limit': 18000, 'current_balance': 10063.825291754425, 'utilization_rate': 55.91014050974681, 'on_time_payments_12m': 12, 'late_payments_12m': 0, 'tenure_months': 119}, {'customer_id': 3, 'current_credit_limit': 21000, 'current_balance': 12375.461518433758, 'utilization_rate': 58.93076913539884, 'on_time_payments_12m': 10, 'late_payments_12m': 2, 'tenure_months': 39}, {'customer_id': 4, 'current_credit_limit': 13000, 'current_balance': 6417.40839835151, 'utilization_rate': 49.364679987319306, 'on_time_payments_12m': 11, 'late_payments_12m': 2, 'tenure_months': 66}, {'customer_id': 5, 'current_credit_limit': 32000, 'current_balance': 6512.544260638192, 'utilization_rate': 20.35170081449435, 'on_time_payments_12m': 11, 'late_payments_12m': 0, 'tenure_months': 38}, {'customer_id': 6, 'current_credit_limit': 18000, 'current_balance': 9062.95104271733, 'utilization_rate': 50.349728015096275, 'on_time_payments_12m': 10, 'late_payments_12m': 0, 'tenure_months': 111}, {'customer_id': 7, 'current_credit_limit': 37000, 'current_balance': 18548.321611445284, 'utilization_rate': 50.13059894985212, 'on_time_payments_12m': 12, 'late_payments_12m': 2, 'tenure_months': 14}, {'customer_id': 8, 'current_credit_limit': 10000, 'current_balance': 5902.834361642002, 'utilization_rate': 59.028343616420024, 'on_time_payments_12m': 10, 'late_payments_12m': 1, 'tenure_months': 50}, {'customer_id': 9, 'current_credit_limit': 27000, 'current_balance': 17005.00818458548, 'utilization_rate': 62.98151179476104, 'on_time_payments_12m': 10, 'late_payments_12m': 2, 'tenure_months': 49}, {'customer_id': 10, 'current_credit_limit': 25000, 'current_balance': 13317.115518155157, 'utilization_rate': 53.26846207262063, 'on_time_payments_12m': 10, 'late_payments_12m': 0, 'tenure_months': 47}], 'credit_bureau_data': [{'customer_id': 1, 'fico_score_8': 687, 'fico_score_9': 680, 'total_accounts_bureau': 11, 'delinquencies_30_plus_12m': 2}, {'customer_id': 2, 'fico_score_8': 677, 'fico_score_9': 664, 'total_accounts_bureau': 4, 'delinquencies_30_plus_12m': 0}, {'customer_id': 3, 'fico_score_8': 636, 'fico_score_9': 646, 'total_accounts_bureau': 7, 'delinquencies_30_plus_12m': 2}, {'customer_id': 4, 'fico_score_8': 699, 'fico_score_9': 684, 'total_accounts_bureau': 14, 'delinquencies_30_plus_12m': 2}, {'customer_id': 5, 'fico_score_8': 724, 'fico_score_9': 722, 'total_accounts_bureau': 9, 'delinquencies_30_plus_12m': 0}, {'customer_id': 6, 'fico_score_8': 613, 'fico_score_9': 600, 'total_accounts_bureau': 13, 'delinquencies_30_plus_12m': 2}, {'customer_id': 7, 'fico_score_8': 744, 'fico_score_9': 755, 'total_accounts_bureau': 12, 'delinquencies_30_plus_12m': 2}, {'customer_id': 8, 'fico_score_8': 688, 'fico_score_9': 701, 'total_accounts_bureau': 8, 'delinquencies_30_plus_12m': 0}, {'customer_id': 9, 'fico_score_8': 661, 'fico_score_9': 666, 'total_accounts_bureau': 9, 'delinquencies_30_plus_12m': 1}, {'customer_id': 10, 'fico_score_8': 749, 'fico_score_9': 767, 'total_accounts_bureau': 12, 'delinquencies_30_plus_12m': 2}], 'fraud_kyc_compliance': [{'customer_id': 1, 'overall_fraud_risk_score': 3.833180872339027, 'risk_level': 'low', 'kyc_score': 87.55148872036064, 'identity_verification_status': 'verified'}, {'customer_id': 2, 'overall_fraud_risk_score': 3.3845604013486987, 'risk_level': 'low', 'kyc_score': 91.42505867290342, 'identity_verification_status': 'verified'}, {'customer_id': 3, 'overall_fraud_risk_score': 4.70160620619146, 'risk_level': 'low', 'kyc_score': 99.11862035234205, 'identity_verification_status': 'verified'}, {'customer_id': 4, 'overall_fraud_risk_score': 2.6444442346574197, 'risk_level': 'medium', 'kyc_score': 76.0861918767091, 'identity_verification_status': 'verified'}, {'customer_id': 5, 'overall_fraud_risk_score': 7.946254314885415, 'risk_level': 'low', 'kyc_score': 74.42342165879084, 'identity_verification_status': 'verified'}, {'customer_id': 6, 'overall_fraud_risk_score': 3.135137151902513, 'risk_level': 'medium', 'kyc_score': 89.34050138356436, 'identity_verification_status': 'verified'}, {'customer_id': 7, 'overall_fraud_risk_score': 4.1446330109242115, 'risk_level': 'low', 'kyc_score': 88.28153373249489, 'identity_verification_status': 'verified'}, {'customer_id': 8, 'overall_fraud_risk_score': 4.720554199915192, 'risk_level': 'low', 'kyc_score': 87.98770583587809, 'identity_verification_status': 'verified'}, {'customer_id': 9, 'overall_fraud_risk_score': 5.560533399506257, 'risk_level': 'low', 'kyc_score': 70.90835169988362, 'identity_verification_status': 'verified'}, {'customer_id': 10, 'overall_fraud_risk_score': 2.789346822584694, 'risk_level': 'low', 'kyc_score': 79.61913016692344, 'identity_verification_status': 'verified'}], 'income_ability_to_pay': [{'customer_id': 1, 'verified_annual_income': 75932.56333069566, 'debt_to_income_ratio': 0.20230207729985694, 'total_monthly_debt_payments': 1264.3879831241059, 'income_stability_score': 89.08880163249897}, {'customer_id': 2, 'verified_annual_income': 97386.78993845794, 'debt_to_income_ratio': 0.4213010074545644, 'total_monthly_debt_payments': 3335.2996423486347, 'income_stability_score': 93.801861293268}, {'customer_id': 3, 'verified_annual_income': 66396.22057920022, 'debt_to_income_ratio': 0.5477854542496878, 'total_monthly_debt_payments': 2967.1712105191423, 'income_stability_score': 81.8691405034217}, {'customer_id': 4, 'verified_annual_income': 63804.13202259315, 'debt_to_income_ratio': 0.4662816558696768, 'total_monthly_debt_payments': 2505.6810482296755, 'income_stability_score': 75.44613175710835}, {'customer_id': 5, 'verified_annual_income': 111398.05645685742, 'debt_to_income_ratio': 0.3167581065732502, 'total_monthly_debt_payments': 3019.6022369450325, 'income_stability_score': 82.42473592743112}, {'customer_id': 6, 'verified_annual_income': 65155.46865714394, 'debt_to_income_ratio': 0.25239909521171017, 'total_monthly_debt_payments': 1322.1295604927407, 'income_stability_score': 73.5447653541292}, {'customer_id': 7, 'verified_annual_income': 111697.1891462478, 'debt_to_income_ratio': 0.3368739029552933, 'total_monthly_debt_payments': 3083.5471978760306, 'income_stability_score': 79.2838867204519}, {'customer_id': 8, 'verified_annual_income': 66522.13648915158, 'debt_to_income_ratio': 0.41086361841433316, 'total_monthly_debt_payments': 2192.8476087470317, 'income_stability_score': 88.45103596272648}, {'customer_id': 9, 'verified_annual_income': 75748.62016811015, 'debt_to_income_ratio': 0.31703443762208305, 'total_monthly_debt_payments': 2091.9253171128466, 'income_stability_score': 78.45711209920695}, {'customer_id': 10, 'verified_annual_income': 82424.02550378154, 'debt_to_income_ratio': 0.4830624946710481, 'total_monthly_debt_payments': 3329.8705413912026, 'income_stability_score': 88.48918042444988}], 'open_banking_data': [{'customer_id': 1, 'open_banking_consent': False, 'avg_monthly_income': 5930.300230349518, 'cash_flow_stability_score': 84.13479297943562, 'expense_obligations_rent': 2431}, {'customer_id': 2, 'open_banking_consent': False, 'avg_monthly_income': 8330.344708991664, 'cash_flow_stability_score': 89.23520139097971, 'expense_obligations_rent': 889}, {'customer_id': 3, 'open_banking_consent': True, 'avg_monthly_income': 5926.328214958623, 'cash_flow_stability_score': 97.02388532194855, 'expense_obligations_rent': 2022}, {'customer_id': 4, 'open_banking_consent': False, 'avg_monthly_income': 5096.1385706394585, 'cash_flow_stability_score': 61.754200700274964, 'expense_obligations_rent': 1723}, {'customer_id': 5, 'open_banking_consent': False, 'avg_monthly_income': 9147.212899353815, 'cash_flow_stability_score': 81.51379994452373, 'expense_obligations_rent': 2175}, {'customer_id': 6, 'open_banking_consent': False, 'avg_monthly_income': 5265.243243051161, 'cash_flow_stability_score': 63.59282972077131, 'expense_obligations_rent': 1537}, {'customer_id': 7, 'open_banking_consent': False, 'avg_monthly_income': 8342.621538727915, 'cash_flow_stability_score': 98.12114056750016, 'expense_obligations_rent': 1037}, {'customer_id': 8, 'open_banking_consent': True, 'avg_monthly_income': 4972.256346271397, 'cash_flow_stability_score': 67.20952662029416, 'expense_obligations_rent': 2473}, {'customer_id': 9, 'open_banking_consent': True, 'avg_monthly_income': 6573.6436446930875, 'cash_flow_stability_score': 66.12059234566405, 'expense_obligations_rent': 1251}, {'customer_id': 10, 'open_banking_consent': False, 'avg_monthly_income': 7380.342520940033, 'cash_flow_stability_score': 75.20835535970673, 'expense_obligations_rent': 955}], 'state_economic_indicators': [{'state_code': 'CA', 'unemployment_rate': 5.646809813422138, 'macro_risk_score': 37.170520782533295, 'risk_level': 'medium', 'gdp_growth_rate': 4.325897349226025}, {'state_code': 'NY', 'unemployment_rate': 4.993932548730503, 'macro_risk_score': 43.05161731180951, 'risk_level': 'medium', 'gdp_growth_rate': 3.8865462834147944}, {'state_code': 'TX', 'unemployment_rate': 5.906421076732912, 'macro_risk_score': 51.731969114504565, 'risk_level': 'low', 'gdp_growth_rate': 4.136441195494254}, {'state_code': 'FL', 'unemployment_rate': 4.2720902882199105, 'macro_risk_score': 33.50540561047708, 'risk_level': 'low', 'gdp_growth_rate': 2.6448379861610167}, {'state_code': 'IL', 'unemployment_rate': 3.1867414823171405, 'macro_risk_score': 32.92949380226529, 'risk_level': 'low', 'gdp_growth_rate': 3.344595524152923}, {'state_code': 'PA', 'unemployment_rate': 3.3200820838729284, 'macro_risk_score': 48.9751659747833, 'risk_level': 'low', 'gdp_growth_rate': 2.8398773755665276}, {'state_code': 'OH', 'unemployment_rate': 4.015212606150735, 'macro_risk_score': 38.289954061761094, 'risk_level': 'low', 'gdp_growth_rate': 3.6235877736773356}, {'state_code': 'GA', 'unemployment_rate': 5.043991943986768, 'macro_risk_score': 46.281285717468876, 'risk_level': 'low', 'gdp_growth_rate': 2.854995438260856}, {'state_code': 'NC', 'unemployment_rate': 4.844191822483808, 'macro_risk_score': 53.16150796969741, 'risk_level': 'medium', 'gdp_growth_rate': 4.301356400508233}, {'state_code': 'MI', 'unemployment_rate': 5.318043359619665, 'macro_risk_score': 55.88017097670608, 'risk_level': 'low', 'gdp_growth_rate': 3.0333892730395653}]}
 
 # Sample data sources
 SAMPLE_DATA_SOURCES = [
@@ -783,6 +758,41 @@ async def get_sample_data(table_name: str, limit: int = 5):
     except Exception as e:
         logger.error(f"Error getting sample data: {e}")
         return {"data": [], "count": 0, "error": str(e)}
+
+@app.post("/api/search-customers")
+async def search_customers(request: CustomerSearchRequest):
+    """Search customers in the customer_demographics table"""
+    try:
+        query = request.query.lower().strip()
+        customers = MOCK_DATABASES.get("customer_demographics", [])
+        
+        # Filter customers based on search query
+        results = []
+        for customer in customers:
+            # Search in first_name, last_name, and full name
+            full_name = f"{customer['first_name']} {customer['last_name']}".lower()
+            first_name = customer['first_name'].lower()
+            last_name = customer['last_name'].lower()
+            
+            if (query in full_name or 
+                query in first_name or 
+                query in last_name or
+                any(word in full_name for word in query.split())):
+                results.append(customer)
+        
+        return {
+            "success": True,
+            "customers": results,
+            "total_count": len(results)
+        }
+    except Exception as e:
+        logger.error(f"Error searching customers: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "customers": [],
+            "total_count": 0
+        }
 
 if __name__ == "__main__":
     import uvicorn

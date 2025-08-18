@@ -185,6 +185,23 @@ Only return the SQL query, no explanations or markdown formatting.
       return [];
     }
   }
+
+  async searchCustomers(query: string): Promise<{ success: boolean; customers: any[]; total_count: number; error?: string }> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/search-customers`, {
+        query: query
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching customers:', error);
+      return {
+        success: false,
+        customers: [],
+        total_count: 0,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
 }
 
 export default ApiService.getInstance();
