@@ -7,7 +7,10 @@ import {
   Drawer,
   Collapse,
   Fade,
-  Slide
+  Slide,
+  Avatar,
+  Chip,
+  Button
 } from '@mui/material';
 import {
   Storage as DataSourcesIcon,
@@ -17,7 +20,9 @@ import {
   Search as SearchIcon,
   ArrowForward as ArrowIcon,
   Menu as MenuIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Logout as LogoutIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeSwitcher from './ThemeSwitcher';
@@ -39,7 +44,12 @@ interface WorkflowConnection {
   isActive: boolean;
 }
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onLogout: () => void;
+  user: any;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   const [selectedTile, setSelectedTile] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [workflowConnections, setWorkflowConnections] = useState<WorkflowConnection[]>([
@@ -537,7 +547,52 @@ const Dashboard: React.FC = () => {
             </Typography>
           </Box>
           
-          <ThemeSwitcher />
+          <Box display="flex" alignItems="center" gap={2}>
+            {/* User Info */}
+            <Box display="flex" alignItems="center" gap={1}>
+              <Avatar sx={{ width: 32, height: 32, bgcolor: '#6366f1' }}>
+                <PersonIcon />
+              </Avatar>
+              <Box>
+                <Typography variant="body2" sx={{ 
+                  color: theme.colors.text,
+                  fontWeight: 600,
+                  fontSize: '0.8rem'
+                }}>
+                  {user?.first_name} {user?.last_name}
+                </Typography>
+                <Chip 
+                  label={user?.role || 'User'} 
+                  size="small" 
+                  sx={{ 
+                    height: 20, 
+                    fontSize: '0.7rem',
+                    backgroundColor: user?.role === 'admin' ? '#ef4444' : 
+                                   user?.role === 'manager' ? '#f59e0b' : '#10b981'
+                  }} 
+                />
+              </Box>
+            </Box>
+            
+            <ThemeSwitcher />
+            
+            <Button
+              onClick={onLogout}
+              startIcon={<LogoutIcon />}
+              variant="outlined"
+              size="small"
+              sx={{
+                color: theme.colors.text,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                }
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
         </Box>
       </Box>
 

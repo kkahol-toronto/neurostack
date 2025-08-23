@@ -17,6 +17,12 @@ export class ApiService {
     this.azureOpenAIKey = process.env.REACT_APP_AZURE_OPENAI_KEY || '';
   }
 
+  // Helper method to get auth headers
+  private getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
   public static getInstance(): ApiService {
     if (!ApiService.instance) {
       ApiService.instance = new ApiService();
@@ -33,6 +39,8 @@ export class ApiService {
         natural_language_query: naturalLanguageQuery,
         table_name: tableName,
         fields: fields
+      }, {
+        headers: this.getAuthHeaders()
       });
 
       const executionTime = Date.now() - startTime;
@@ -72,6 +80,8 @@ export class ApiService {
           fields: table.fields,
           sample_data: table.sampleData
         }))
+      }, {
+        headers: this.getAuthHeaders()
       });
 
       const executionTime = Date.now() - startTime;
@@ -190,6 +200,8 @@ Only return the SQL query, no explanations or markdown formatting.
     try {
       const response = await axios.post(`${API_BASE_URL}/api/search-customers`, {
         query: query
+      }, {
+        headers: this.getAuthHeaders()
       });
       return response.data;
     } catch (error) {
@@ -200,6 +212,95 @@ Only return the SQL query, no explanations or markdown formatting.
         total_count: 0,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };
+    }
+  }
+
+  // Authentication methods
+  async login(username: string, password: string): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+        username,
+        password
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }
+
+  async register(userData: any): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/register`, userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  }
+
+  async getProfile(): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Get profile error:', error);
+      throw error;
+    }
+  }
+
+  async getUserBehavior(userId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/users/${userId}/behavior`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Get user behavior error:', error);
+      throw error;
+    }
+  }
+
+  // NeuroStack enhanced features
+  async getQueryAnalytics(hours: number = 24): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/neurostack/query-analytics?hours=${hours}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Get query analytics error:', error);
+      throw error;
+    }
+  }
+
+  async getOptimizationSuggestions(query: string, userId?: string): Promise<any> {
+    try {
+      const url = userId 
+        ? `${API_BASE_URL}/api/neurostack/optimization-suggestions?query=${encodeURIComponent(query)}&user_id=${userId}`
+        : `${API_BASE_URL}/api/neurostack/optimization-suggestions?query=${encodeURIComponent(query)}`;
+      
+      const response = await axios.get(url, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Get optimization suggestions error:', error);
+      throw error;
+    }
+  }
+
+  async getSimilarQueries(query: string, limit: number = 5): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/neurostack/similar-queries?query=${encodeURIComponent(query)}&limit=${limit}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Get similar queries error:', error);
+      throw error;
     }
   }
 }

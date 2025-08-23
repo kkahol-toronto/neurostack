@@ -9,9 +9,11 @@ semantic memory.
 from .manager import MemoryManager
 from .vector import VectorMemory
 from .working import WorkingMemory
+from .long_term import LongTermMemory
 
 __all__ = [
     "MemoryManager",
     "VectorMemory", 
     "WorkingMemory",
+    "LongTermMemory",
 ] 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -13,6 +13,23 @@ import httpx
 # Azure OpenAI imports
 from openai import AzureOpenAI
 from azure.identity import DefaultAzureCredential
+
+# NeuroStack imports
+from neurostack_integration import (
+    execute_neurostack_text_to_sql,
+    execute_neurostack_customer_search,
+    execute_neurostack_data_analysis,
+    execute_neurostack_customer_verification,
+    get_neurostack_integration
+)
+from neurostack_cosmos_memory import get_cosmos_memory_manager
+
+# Import user management
+from user_management import user_manager, get_current_user, get_current_active_user, require_role, User
+from user_models import (
+    UserRegistrationRequest, UserLoginRequest, UserLoginResponse, UserProfileResponse,
+    UserUpdateRequest, UserListResponse, UserBehaviorResponse, UserSessionsResponse
+)
 
 # Load environment variables from root directory
 load_dotenv(dotenv_path="/Users/kanavkahol/work/neurostack/.env")
@@ -59,6 +76,7 @@ class QueryResult(BaseModel):
     data: Optional[List[Dict[str, Any]]] = None
     execution_time: Optional[float] = None
     error: Optional[str] = None
+    neurostack_features: Optional[Dict[str, Any]] = None
 
 class DataSource(BaseModel):
     id: str
@@ -664,22 +682,72 @@ async def health_check():
     }
 
 @app.post("/api/text-to-sql", response_model=QueryResult)
-async def text_to_sql(request: TextToSQLRequest):
-    """Convert natural language to SQL and execute it"""
+async def text_to_sql(
+    request: TextToSQLRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Convert natural language to SQL using NeuroStack integration"""
     start_time = datetime.now()
     
     try:
-        # Handle backward compatibility
+        # Use NeuroStack integration for enhanced text-to-SQL
         if request.tables:
-            # New multi-table format
-            sql_query = await convert_text_to_sql(
-                request.natural_language_query,
-                request.tables
+            # Multi-table query with NeuroStack
+            result = await execute_neurostack_text_to_sql(
+                natural_query=request.natural_language_query,
+                tables=request.tables,
+                user_id=current_user.user_id
             )
-            # For now, execute against the first table (we'll enhance this later)
-            primary_table = request.tables[0].table_name
+            
+            if result["success"]:
+                    # Execute the generated SQL
+                    sql_result = execute_mock_sql(result["sql"], request.tables[0].table_name if request.tables else None)
+                    
+                    execution_time = (datetime.now() - start_time).total_seconds() * 1000
+                    
+                    # Store query results for learning with enhanced memory
+                    try:
+                        cosmos_memory = await get_cosmos_memory_manager()
+                        await cosmos_memory.store_query_result({
+                            "query": request.natural_language_query,
+                            "sql": result["sql"],
+                            "data": sql_result,  # sql_result is already a list
+                            "result_count": len(sql_result),
+                            "tables": [t.table_name for t in request.tables],
+                            "query_type": "text_to_sql",
+                            "success": True,
+                            "execution_time": execution_time,
+                            "user_id": current_user.user_id
+                        })
+                        
+                        # Get optimization suggestions for the response
+                        optimization_suggestions = await cosmos_memory.get_optimization_suggestions(
+                            request.natural_language_query, 
+                            current_user.user_id
+                        )
+                        
+                        # Add optimization suggestions to neurostack features
+                        result["neurostack_features"]["optimization_suggestions"] = optimization_suggestions
+                        result["neurostack_features"]["persistent_memory"] = True
+                        result["neurostack_features"]["historical_learning"] = True
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to store query result: {str(e)}")
+                    
+                    return QueryResult(
+                        success=True,
+                        sql=result["sql"],
+                        data=sql_result,  # sql_result is already a list
+                        execution_time=execution_time,
+                        neurostack_features=result.get("neurostack_features", {})
+                    )
+            else:
+                return QueryResult(
+                    success=False,
+                    error=result["error"]
+                )
         else:
-            # Legacy single-table format
+            # Fallback to original logic for backward compatibility
             if not request.table_name or not request.fields:
                 raise ValueError("Either 'tables' or both 'table_name' and 'fields' must be provided")
             
@@ -693,18 +761,18 @@ async def text_to_sql(request: TextToSQLRequest):
                 [table_info]
             )
             primary_table = request.table_name
-        
-        # Execute the SQL query (mock execution for demo)
-        data = execute_mock_sql(sql_query, primary_table)
-        
-        execution_time = (datetime.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
-        
-        return QueryResult(
-            success=True,
-            sql=sql_query,
-            data=data,
-            execution_time=execution_time
-        )
+            
+            # Execute the SQL query (mock execution for demo)
+            data = execute_mock_sql(sql_query, primary_table)
+            
+            execution_time = (datetime.now() - start_time).total_seconds() * 1000
+            
+            return QueryResult(
+                success=True,
+                sql=sql_query,
+                data=data,
+                execution_time=execution_time
+            )
         
     except Exception as e:
         logger.error(f"Error in text-to-sql endpoint: {e}")
@@ -761,30 +829,34 @@ async def get_sample_data(table_name: str, limit: int = 5):
 
 @app.post("/api/search-customers")
 async def search_customers(request: CustomerSearchRequest):
-    """Search customers in the customer_demographics table"""
+    """Search customers using NeuroStack integration"""
     try:
-        query = request.query.lower().strip()
-        customers = MOCK_DATABASES.get("customer_demographics", [])
+        # Use NeuroStack integration for enhanced customer search
+        result = await execute_neurostack_customer_search(
+            query=request.query,
+            search_type="semantic",
+            user_id="demo_user"
+        )
         
-        # Filter customers based on search query
-        results = []
-        for customer in customers:
-            # Search in first_name, last_name, and full name
-            full_name = f"{customer['first_name']} {customer['last_name']}".lower()
-            first_name = customer['first_name'].lower()
-            last_name = customer['last_name'].lower()
+        if result["success"]:
+            return {
+                "success": True,
+                "customers": result["customers"],
+                "total_count": result["count"],
+                "neurostack_features": result.get("neurostack_features", {})
+            }
+        else:
+            # Fallback to direct search if NeuroStack fails
+            integration = await get_neurostack_integration()
+            customers = integration.search_customers_direct(request.query)
             
-            if (query in full_name or 
-                query in first_name or 
-                query in last_name or
-                any(word in full_name for word in query.split())):
-                results.append(customer)
-        
-        return {
-            "success": True,
-            "customers": results,
-            "total_count": len(results)
-        }
+            return {
+                "success": True,
+                "customers": customers,
+                "total_count": len(customers),
+                "neurostack_features": {"fallback_used": True}
+            }
+            
     except Exception as e:
         logger.error(f"Error searching customers: {str(e)}")
         return {
@@ -793,6 +865,380 @@ async def search_customers(request: CustomerSearchRequest):
             "customers": [],
             "total_count": 0
         }
+
+# NeuroStack-specific endpoints
+@app.get("/api/neurostack/tools")
+async def get_neurostack_tools():
+    """Get available NeuroStack tools"""
+    try:
+        integration = await get_neurostack_integration()
+        return {
+            "success": True,
+            "tools": integration.get_available_tools(),
+            "schemas": integration.get_tool_schemas()
+        }
+    except Exception as e:
+        logger.error(f"Error getting NeuroStack tools: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.post("/api/neurostack/data-analysis")
+async def neurostack_data_analysis(analysis_type: str, data_source: str = "customer_demographics"):
+    """Execute data analysis using NeuroStack"""
+    try:
+        result = await execute_neurostack_data_analysis(
+            analysis_type=analysis_type,
+            data_source=data_source,
+            user_id="demo_user"
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in NeuroStack data analysis: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/neurostack/recent-activity")
+async def get_neurostack_recent_activity(hours: int = 24):
+    """Get recent activity from NeuroStack memory"""
+    try:
+        integration = await get_neurostack_integration()
+        activity = await integration.get_recent_activity(hours)
+        
+        return {
+            "success": True,
+            "activity": activity
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting recent activity: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/neurostack/similar-queries")
+async def get_similar_queries(query: str, limit: int = 5):
+    """Get similar queries from NeuroStack memory"""
+    try:
+        cosmos_memory = await get_cosmos_memory_manager()
+        similar_queries = await cosmos_memory.get_similar_queries(query, limit)
+        
+        return {
+            "success": True,
+            "similar_queries": similar_queries
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting similar queries: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/neurostack/query-analytics")
+async def get_query_analytics(hours: int = 24):
+    """Get comprehensive query analytics"""
+    try:
+        cosmos_memory = await get_cosmos_memory_manager()
+        analytics = await cosmos_memory.get_query_analytics(hours)
+        
+        return {
+            "success": True,
+            "analytics": analytics
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting query analytics: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/neurostack/optimization-suggestions")
+async def get_optimization_suggestions(query: str, user_id: Optional[str] = None):
+    """Get optimization suggestions based on historical patterns"""
+    try:
+        cosmos_memory = await get_cosmos_memory_manager()
+        suggestions = await cosmos_memory.get_optimization_suggestions(query, user_id)
+        
+        return {
+            "success": True,
+            "suggestions": suggestions
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting optimization suggestions: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/neurostack/user-behavior/{user_id}")
+async def get_user_behavior(user_id: str):
+    """Get user behavior patterns"""
+    try:
+        cosmos_memory = await get_cosmos_memory_manager()
+        behavior = await cosmos_memory.get_user_behavior(user_id)
+        
+        return {
+            "success": True,
+            "behavior": behavior
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting user behavior: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/neurostack/query-patterns")
+async def get_query_patterns(query_type: Optional[str] = None):
+    """Get query patterns for learning and optimization"""
+    try:
+        cosmos_memory = await get_cosmos_memory_manager()
+        patterns = await cosmos_memory.get_query_patterns(query_type)
+        
+        return {
+            "success": True,
+            "patterns": patterns
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting query patterns: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# ============================================================================
+# USER MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.post("/api/auth/register", response_model=UserProfileResponse)
+async def register_user(request: UserRegistrationRequest):
+    """Register a new user."""
+    try:
+        user_data = user_manager.register_user(
+            username=request.username,
+            email=request.email,
+            first_name=request.first_name,
+            last_name=request.last_name,
+            password=request.password,
+            role=request.role,
+            department=request.department
+        )
+        
+        return UserProfileResponse(
+            user_id=user_data["user_id"],
+            username=user_data["username"],
+            email=user_data["email"],
+            first_name=user_data["first_name"],
+            last_name=user_data["last_name"],
+            role=user_data["role"],
+            department=user_data["department"],
+            is_active=True,
+            created_at=datetime.fromisoformat(user_data["created_at"]),
+            last_login=None
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error registering user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/api/auth/login", response_model=UserLoginResponse)
+async def login_user(request: UserLoginRequest, client_request: Request):
+    """Login user and return JWT token."""
+    try:
+        # Authenticate user
+        user = user_manager.authenticate_user(request.username, request.password)
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid username or password"
+            )
+        
+        # Create session
+        session = user_manager.create_session(
+            user=user,
+            ip_address=client_request.client.host if client_request.client else "unknown",
+            user_agent=client_request.headers.get("user-agent", "unknown")
+        )
+        
+        return UserLoginResponse(
+            access_token=session.token,
+            token_type="bearer",
+            user_id=user.user_id,
+            username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            role=user.role,
+            department=user.department,
+            expires_at=session.expires_at
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error logging in user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/auth/profile", response_model=UserProfileResponse)
+async def get_user_profile(current_user: User = Depends(get_current_active_user)):
+    """Get current user's profile."""
+    return UserProfileResponse(
+        user_id=current_user.user_id,
+        username=current_user.username,
+        email=current_user.email,
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        role=current_user.role,
+        department=current_user.department,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at,
+        last_login=current_user.last_login
+    )
+
+@app.put("/api/auth/profile", response_model=UserProfileResponse)
+async def update_user_profile(
+    request: UserUpdateRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update current user's profile."""
+    try:
+        # Only allow users to update their own profile (except admins)
+        if current_user.role != "admin":
+            # Remove role and is_active from update if not admin
+            update_data = request.dict(exclude_unset=True)
+            update_data.pop("role", None)
+            update_data.pop("is_active", None)
+        else:
+            update_data = request.dict(exclude_unset=True)
+        
+        updated_user = user_manager.update_user(current_user.user_id, **update_data)
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return UserProfileResponse(
+            user_id=updated_user.user_id,
+            username=updated_user.username,
+            email=updated_user.email,
+            first_name=updated_user.first_name,
+            last_name=updated_user.last_name,
+            role=updated_user.role,
+            department=updated_user.department,
+            is_active=updated_user.is_active,
+            created_at=updated_user.created_at,
+            last_login=updated_user.last_login
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/users", response_model=UserListResponse)
+async def list_users(
+    role: Optional[str] = None,
+    current_user: User = Depends(require_role("admin"))
+):
+    """List all users (admin only)."""
+    try:
+        users_data = user_manager.list_users(role=role)
+        users = [
+            UserProfileResponse(
+                user_id=user["user_id"],
+                username=user["username"],
+                email=user["email"],
+                first_name=user["first_name"],
+                last_name=user["last_name"],
+                role=user["role"],
+                department=user["department"],
+                is_active=user["is_active"],
+                created_at=datetime.fromisoformat(user["created_at"]),
+                last_login=datetime.fromisoformat(user["last_login"]) if user["last_login"] else None
+            )
+            for user in users_data
+        ]
+        
+        return UserListResponse(users=users, total_count=len(users))
+        
+    except Exception as e:
+        logger.error(f"Error listing users: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/users/{user_id}/behavior", response_model=UserBehaviorResponse)
+async def get_user_behavior_enhanced(
+    user_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get enhanced user behavior with profile information."""
+    try:
+        # Check if user can access this data (own data or admin)
+        if current_user.user_id != user_id and current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Get user profile
+        user = user_manager.get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get behavior data
+        cosmos_memory = await get_cosmos_memory_manager()
+        behavior = await cosmos_memory.get_user_behavior(user_id)
+        
+        if not behavior:
+            # Return empty behavior for new users
+            return UserBehaviorResponse(
+                user_id=user.user_id,
+                username=user.username,
+                total_queries=0,
+                preferred_query_types=[],
+                common_tables=[],
+                avg_query_complexity=0.0,
+                last_activity=user.last_login or user.created_at,
+                department=user.department,
+                role=user.role
+            )
+        
+        return UserBehaviorResponse(
+            user_id=user.user_id,
+            username=user.username,
+            total_queries=behavior.get("total_queries", 0),
+            preferred_query_types=behavior.get("preferred_query_types", []),
+            common_tables=behavior.get("common_tables", []),
+            avg_query_complexity=behavior.get("avg_query_complexity", 0.0),
+            last_activity=datetime.fromisoformat(behavior["last_activity"]) if isinstance(behavior["last_activity"], str) else behavior["last_activity"],
+            department=user.department,
+            role=user.role
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user behavior: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/api/auth/logout")
+async def logout_user(current_user: User = Depends(get_current_active_user)):
+    """Logout user (invalidate session)."""
+    try:
+        # In a real implementation, you would invalidate the JWT token
+        # For now, we'll just return success
+        return {"message": "Successfully logged out"}
+        
+    except Exception as e:
+        logger.error(f"Error logging out user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 if __name__ == "__main__":
     import uvicorn

@@ -11,3 +11,14 @@ pymysql>=1.0.0
 cryptography>=41.0.0
 requests>=2.31.0
 httpx>=0.24.0
+faker==19.13.0
+# NeuroStack dependencies
+structlog==23.2.0
+azure-cosmos==4.6.0
+azure-storage-blob==12.19.0
+sentence-transformers==2.2.2
+numpy==1.24.3
+pandas==2.0.3
+PyJWT==2.8.0
+bcrypt==4.1.2
+email-validator==2.1.0
