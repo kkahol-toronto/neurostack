@@ -266,41 +266,59 @@ Only return the SQL query, no explanations or markdown formatting.
   // NeuroStack enhanced features
   async getQueryAnalytics(hours: number = 24): Promise<any> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/neurostack/query-analytics?hours=${hours}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/neurostack/recent-activity?hours=${hours}`, {
         headers: this.getAuthHeaders()
       });
       return response.data;
     } catch (error) {
-      console.error('Get query analytics error:', error);
-      throw error;
+      console.error('Error getting query analytics:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }
 
   async getOptimizationSuggestions(query: string, userId?: string): Promise<any> {
     try {
-      const url = userId 
-        ? `${API_BASE_URL}/api/neurostack/optimization-suggestions?query=${encodeURIComponent(query)}&user_id=${userId}`
-        : `${API_BASE_URL}/api/neurostack/optimization-suggestions?query=${encodeURIComponent(query)}`;
-      
-      const response = await axios.get(url, {
+      const response = await axios.post(`${API_BASE_URL}/api/neurostack/optimization-suggestions`, {
+        query,
+        user_id: userId
+      }, {
         headers: this.getAuthHeaders()
       });
       return response.data;
     } catch (error) {
-      console.error('Get optimization suggestions error:', error);
-      throw error;
+      console.error('Error getting optimization suggestions:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }
 
   async getSimilarQueries(query: string, limit: number = 5): Promise<any> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/neurostack/similar-queries?query=${encodeURIComponent(query)}&limit=${limit}`, {
+      const response = await axios.post(`${API_BASE_URL}/api/neurostack/similar-queries`, {
+        query,
+        limit
+      }, {
         headers: this.getAuthHeaders()
       });
       return response.data;
     } catch (error) {
-      console.error('Get similar queries error:', error);
-      throw error;
+      console.error('Error getting similar queries:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  // Customer data methods
+  async getCustomerData(customerId: number, includeSummary: boolean = true): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/customer-data`, {
+        customer_id: customerId,
+        include_summary: includeSummary
+      }, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error getting customer data:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }
 }

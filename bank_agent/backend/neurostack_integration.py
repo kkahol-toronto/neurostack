@@ -312,20 +312,87 @@ class NeuroStackBankingIntegration:
             return []
     
     async def get_recent_activity(self, hours: int = 24) -> Dict[str, Any]:
+        """Get recent activity from memory."""
+        try:
+            activity = await self.memory_manager.get_recent_activity(hours)
+            return activity
+        except Exception as e:
+            self.logger.error(f"Error getting recent activity: {str(e)}")
+            return []
+
+    async def generate_customer_summary(self, customer_id: int, customer_data: Dict[str, Any], 
+                                      prompt: str) -> Dict[str, Any]:
         """
-        Get recent activity across all memory types.
+        Generate a comprehensive customer summary using NeuroStack's reasoning engine.
         
         Args:
-            hours: Number of hours to look back
+            customer_id: Customer ID
+            customer_data: Customer data from all sources
+            prompt: Custom prompt for summary generation
             
         Returns:
-            Dictionary of recent activities
+            Dictionary with summary and metadata
         """
         try:
-            return await self.memory_manager.get_recent_activity(hours)
+            self.logger.info(f"Generating customer summary for customer {customer_id}")
+            
+            # Store the customer data in memory for context
+            await self.memory_manager.store_customer_data(
+                customer_id=customer_id,
+                data=customer_data,
+                data_type="comprehensive_profile"
+            )
+            
+            # Use NeuroStack reasoning engine to generate summary
+            context = AgentContext(
+                user_id=f"customer_{customer_id}",
+                tenant_id=self.tenant_id,
+                metadata={
+                    "customer_id": customer_id,
+                    "data_sources": list(customer_data.keys()),
+                    "operation": "customer_summary"
+                }
+            )
+            
+            # Generate summary using reasoning engine
+            summary_result = await self.reasoning_engine.generate_response(
+                prompt=prompt,
+                context=context,
+                max_tokens=1000,
+                temperature=0.3  # Lower temperature for more consistent summaries
+            )
+            
+            # Store the summary in memory
+            await self.memory_manager.store_customer_summary(
+                customer_id=customer_id,
+                summary=summary_result,
+                metadata={
+                    "data_sources": list(customer_data.keys()),
+                    "generated_at": datetime.now().isoformat()
+                }
+            )
+            
+            return {
+                "success": True,
+                "summary": summary_result,
+                "neurostack_features": {
+                    "reasoning_engine_used": True,
+                    "memory_storage": True,
+                    "context_aware": True
+                }
+            }
+            
         except Exception as e:
-            self.logger.error(f"Failed to get recent activity: {str(e)}")
-            return {}
+            self.logger.error(f"Error generating customer summary: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "neurostack_features": {
+                    "reasoning_engine_used": False,
+                    "memory_storage": False,
+                    "context_aware": False
+                }
+            }
     
     async def get_customer_verification_history(self, customer_id: int, 
                                               days: int = 30) -> List[Dict[str, Any]]:

@@ -369,7 +369,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       case 'customer-search':
         return <CustomerSearch onCustomerVerified={handleCustomerVerified} />;
       case 'data-sources':
-        return <DataLayer />;
+        return <DataLayer selectedCustomer={verifiedCustomer} />;
       case 'data-processing':
         return (
           <Box sx={{ p: 4, textAlign: 'center' }}>

@@ -19,9 +19,14 @@ import { DataSource as DataSourceType } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import DataSource from './DataSource';
 import MultiTableQuery from './MultiTableQuery';
+import CustomerDataView from './CustomerDataView';
 import apiService from '../services/api';
 
-const DataLayer: React.FC = () => {
+interface DataLayerProps {
+  selectedCustomer?: { id: number; name: string } | null;
+}
+
+const DataLayer: React.FC<DataLayerProps> = ({ selectedCustomer }) => {
   const [dataSources, setDataSources] = useState<DataSourceType[]>([]);
   const [showInfo, setShowInfo] = useState(false);
   const [showMultiTableQuery, setShowMultiTableQuery] = useState(false);
@@ -242,6 +247,16 @@ const DataLayer: React.FC = () => {
         onClose={() => setShowMultiTableQuery(false)}
         dataSources={dataSources}
       />
+
+              {/* Customer Data View */}
+        {selectedCustomer && (
+          <Box sx={{ mt: 4 }}>
+            <CustomerDataView
+              customerId={selectedCustomer.id}
+              customerName={selectedCustomer.name}
+            />
+          </Box>
+        )}
     </Box>
   );
 };

@@ -101,6 +101,19 @@ class Customer(BaseModel):
     employment_status: Optional[str] = None
     customer_segment: Optional[str] = None
 
+# Add new Pydantic models for customer data request
+class CustomerDataRequest(BaseModel):
+    customer_id: int
+    include_summary: bool = True
+
+class CustomerDataResponse(BaseModel):
+    success: bool
+    customer_id: int
+    data: Dict[str, Any]
+    summary: Optional[str] = None
+    neurostack_features: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
 # Azure OpenAI client initialization
 def get_azure_openai_client():
     """Initialize Azure OpenAI client with environment variables"""
@@ -1239,6 +1252,119 @@ async def logout_user(current_user: User = Depends(get_current_active_user)):
     except Exception as e:
         logger.error(f"Error logging out user: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/api/customer-data", response_model=CustomerDataResponse)
+async def get_customer_data(request: CustomerDataRequest, current_user: User = Depends(get_current_user)):
+    """Get comprehensive customer data from all enabled data sources with LLM summary"""
+    try:
+        customer_id = request.customer_id
+        include_summary = request.include_summary
+        
+        # Get enabled data sources
+        enabled_sources = [source for source in SAMPLE_DATA_SOURCES if source["is_enabled"]]
+        
+        # Collect data from all enabled sources
+        customer_data = {}
+        neurostack_features = {}
+        
+        for source in enabled_sources:
+            table_name = source["table_name"]
+            if table_name in MOCK_DATABASES:
+                # Find customer data in this table
+                table_data = MOCK_DATABASES[table_name]
+                customer_record = None
+                
+                # Handle different table structures
+                if table_name == "state_economic_indicators":
+                    # For economic indicators, we need to join with customer demographics
+                    customer_demo = next((c for c in MOCK_DATABASES["customer_demographics"] if c["customer_id"] == customer_id), None)
+                    if customer_demo:
+                        state_code = customer_demo["state"]
+                        customer_record = next((e for e in table_data if e["state_code"] == state_code), None)
+                else:
+                    # For customer-specific tables
+                    customer_record = next((c for c in table_data if c["customer_id"] == customer_id), None)
+                
+                if customer_record:
+                    customer_data[source["id"]] = {
+                        "source_name": source["name"],
+                        "source_description": source["description"],
+                        "category": source["category"],
+                        "data": customer_record
+                    }
+        
+        # Generate LLM summary using NeuroStack if requested
+        summary = None
+        if include_summary and customer_data:
+            try:
+                # Prepare data for LLM analysis
+                summary_data = {
+                    "customer_id": customer_id,
+                    "sources": customer_data
+                }
+                
+                # Use NeuroStack integration for LLM summary
+                integration = await get_neurostack_integration()
+                
+                # Create a comprehensive prompt for the LLM
+                prompt = f"""
+Analyze the following customer data and provide a comprehensive summary for credit limit decision making:
+
+Customer ID: {customer_id}
+
+Available Data Sources:
+"""
+                
+                for source_id, source_info in customer_data.items():
+                    prompt += f"\n{source_info['source_name']} ({source_info['category']}):\n"
+                    for key, value in source_info['data'].items():
+                        prompt += f"  - {key}: {value}\n"
+                
+                prompt += """
+Please provide a comprehensive summary that includes:
+1. Customer Profile Overview
+2. Financial Health Assessment
+3. Credit Risk Analysis
+4. Key Strengths and Concerns
+5. Recommended Credit Limit Considerations
+
+Format the response as a professional banking summary suitable for credit decisions.
+"""
+                
+                # Use NeuroStack reasoning engine for summary generation
+                summary_result = await integration.generate_customer_summary(
+                    customer_id=customer_id,
+                    customer_data=customer_data,
+                    prompt=prompt
+                )
+                
+                if summary_result.get("success"):
+                    summary = summary_result.get("summary")
+                    neurostack_features["summary_generation"] = summary_result.get("neurostack_features", {})
+                else:
+                    # Fallback to basic summary
+                    summary = f"Customer {customer_id} data retrieved from {len(customer_data)} sources. Manual review recommended."
+                    
+            except Exception as e:
+                logger.error(f"Error generating LLM summary: {str(e)}")
+                summary = f"Customer {customer_id} data retrieved from {len(customer_data)} sources. Summary generation failed: {str(e)}"
+        
+        return CustomerDataResponse(
+            success=True,
+            customer_id=customer_id,
+            data=customer_data,
+            summary=summary,
+            neurostack_features=neurostack_features
+        )
+        
+    except Exception as e:
+        logger.error(f"Error getting customer data: {str(e)}")
+        return CustomerDataResponse(
+            success=False,
+            customer_id=request.customer_id,
+            data={},
+            error=str(e)
+        )
 
 if __name__ == "__main__":
     import uvicorn
