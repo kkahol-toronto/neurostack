@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -133,6 +134,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
   onClose
 }) => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [execution, setExecution] = useState<InvestigationExecution | null>(null);
   const [results, setResults] = useState<InvestigationResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -159,6 +161,14 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
   });
   const [emailLoading, setEmailLoading] = useState(false);
 
+  // Decision Documentation state
+  const [showDecisionDoc, setShowDecisionDoc] = useState(false);
+  const [decisionDocLoading, setDecisionDocLoading] = useState(false);
+  const [decisionDocUrl, setDecisionDocUrl] = useState('');
+  const [decisionDocSummary, setDecisionDocSummary] = useState(null);
+  const [finalDecisionData, setFinalDecisionData] = useState<typeof decisionData | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
+
   // Pre-fill customer email when tab is opened
   useEffect(() => {
     if (activeTab === 4 && customerName) {
@@ -172,6 +182,15 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
       }
     }
   }, [activeTab, customerName, results]);
+
+  // Persist decision documentation state
+  useEffect(() => {
+    // If we have a decision doc URL, ensure the decision doc section stays visible
+    if (decisionDocUrl && !showDecisionDoc) {
+      console.log('🔒 Restoring decision documentation state');
+      setShowDecisionDoc(true);
+    }
+  }, [decisionDocUrl, showDecisionDoc]);
 
   useEffect(() => {
     return () => {
@@ -1852,7 +1871,8 @@ Banking Team`;
         approvedAmount: decisionData.approvedAmount,
         reason: decisionData.reason,
         customerName,
-        customerId
+        customerId,
+        sessionId: execution?.executionId || `session_${customerId}_${Date.now()}`
       };
 
       // Send email via API
@@ -1860,6 +1880,13 @@ Banking Team`;
       
       if (response.success) {
         alert('Email sent successfully!');
+        // Show decision documentation option
+        setShowDecisionDoc(true);
+        setEmailSent(true);
+        
+        // Store the decision data for PDF generation
+        setFinalDecisionData({ ...decisionData });
+        
         // Reset form
         setDecisionData({
           decision: 'approved',
@@ -1878,6 +1905,56 @@ Banking Team`;
       alert('Error sending email. Please try again.');
     } finally {
       setEmailLoading(false);
+    }
+  };
+
+  const generateDecisionDocumentation = async () => {
+    setDecisionDocLoading(true);
+    try {
+      // Use finalDecisionData if available, otherwise use current decisionData
+      const decisionDataToUse = finalDecisionData || decisionData;
+      
+      const docData = {
+        customerId,
+        customerName,
+        decision: decisionDataToUse.decision,
+        approvedAmount: decisionDataToUse.approvedAmount,
+        reason: decisionDataToUse.reason,
+        emailData: {
+          to: decisionDataToUse.customerEmail,
+          subject: decisionDataToUse.emailSubject,
+          body: decisionDataToUse.emailBody
+        },
+        investigationResults: results,
+        chatHistory: chatMessages,
+        execution: execution,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('📄 Generating decision documentation with data:', docData);
+
+      const response = await apiService.generateDecisionDocumentation(docData);
+      
+      console.log('📄 PDF generation response:', response);
+      
+      if (response.success) {
+        setDecisionDocUrl(response.pdf_url);
+        setDecisionDocSummary(response.summary);
+        console.log('✅ PDF generated successfully, URL:', response.pdf_url);
+        alert('Decision documentation generated successfully!');
+        
+        // Ensure we stay on the Finalize Decision tab
+        console.log('🔒 Keeping activeTab at 4 (Finalize Decision)');
+      } else {
+        console.error('❌ PDF generation failed:', response.error);
+        alert(`Error generating documentation: ${response.error || 'Unknown error'}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error generating decision documentation:', error);
+      alert('Error generating decision documentation. Please try again.');
+    } finally {
+      setDecisionDocLoading(false);
     }
   };
 
@@ -2712,6 +2789,117 @@ Banking Team`;
                     {emailLoading ? <CircularProgress size={20} color="inherit" /> : 'Send Email'}
                   </Button>
                 </Box>
+
+                {/* Proceed to Decision Documentation Button - Shows after email is sent */}
+                {emailSent && (
+                  <Box sx={{ mt: 3, p: 3, backgroundColor: 'rgba(76, 175, 80, 0.1)', borderRadius: 2, border: '1px solid rgba(76, 175, 80, 0.3)' }}>
+                    <Typography variant="h6" sx={{ color: '#4CAF50', mb: 2, display: 'flex', alignItems: 'center' }}>
+                      <CheckCircleIcon sx={{ mr: 1 }} />
+                      Email Sent Successfully!
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: theme.colors.textSecondary, mb: 3 }}>
+                      The decision email has been sent to the customer. You can now proceed to generate and view the complete decision documentation.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={() => {
+                        // Extract session ID from the execution or create one
+                        const sessionId = execution?.executionId || `decision_doc_${customerId}_${Date.now()}`;
+                        navigate(`/decision-documentation?sessionId=${sessionId}`);
+                      }}
+                      sx={{
+                        backgroundColor: '#9C27B0',
+                        color: 'white',
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        py: 1.5,
+                        px: 3,
+                        '&:hover': {
+                          backgroundColor: '#7B1FA2',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)'
+                        }
+                      }}
+                    >
+                      Proceed to Decision Documentation
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Decision Documentation Section */}
+                {showDecisionDoc && (
+                  <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', mt: 3 }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ color: theme.colors.text, mb: 3 }}>
+                        Decision Documentation
+                      </Typography>
+                      
+                      {!decisionDocUrl ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                            Generate a comprehensive PDF report documenting all investigation steps, AI analysis, visualizations, chat history, and final decision.
+                          </Typography>
+                          <Button
+                            variant="contained"
+                            onClick={generateDecisionDocumentation}
+                            disabled={decisionDocLoading}
+                            sx={{
+                              backgroundColor: '#9C27B0',
+                              color: 'white',
+                              '&:hover': {
+                                backgroundColor: '#7B1FA2',
+                                opacity: 0.9
+                              }
+                            }}
+                          >
+                            {decisionDocLoading ? (
+                              <CircularProgress size={20} color="inherit" />
+                            ) : (
+                              'Generate Decision Documentation'
+                            )}
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                            Decision documentation has been generated successfully!
+                          </Typography>
+                          
+                          <Button
+                            variant="contained"
+                            onClick={() => {
+                              // Extract session ID from the PDF URL
+                              const sessionId = decisionDocUrl.split('/').pop()?.replace('.pdf', '') || 'decision_doc_5_20250825_034258';
+                              navigate(`/decision-documentation?sessionId=${sessionId}`);
+                            }}
+                            sx={{
+                              backgroundColor: '#4CAF50',
+                              color: 'white',
+                              '&:hover': {
+                                backgroundColor: '#45a049',
+                                opacity: 0.9
+                              }
+                            }}
+                          >
+                            View Documentation
+                          </Button>
+                          
+                          {decisionDocSummary && (
+                            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1 }}>
+                              <Typography variant="subtitle2" sx={{ color: theme.colors.text, mb: 1 }}>
+                                Report Summary:
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                                {decisionDocSummary}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </Box>
             )}
           </Box>

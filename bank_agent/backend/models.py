@@ -24,12 +24,13 @@ class InvestigationExecutionStatus(str, Enum):
     CANCELLED = "cancelled"
 
 class DataSourceType(str, Enum):
-    INTERNAL_BANKING = "internal_banking"
+    INTERNAL_BANKING = "banking"
     CREDIT_BUREAU = "credit_bureau"
-    INCOME_VERIFICATION = "income_verification"
-    CUSTOMER_DEMOGRAPHICS = "customer_demographics"
-    ECONOMIC_INDICATORS = "economic_indicators"
+    INCOME_VERIFICATION = "income"
+    CUSTOMER_DEMOGRAPHICS = "demographics"
+    ECONOMIC_INDICATORS = "economic"
     OPEN_BANKING = "open_banking"
+    FRAUD_KYC_COMPLIANCE = "fraud"
 
 class CustomerReport(BaseModel):
     report_id: Optional[str] = None
@@ -187,9 +188,9 @@ class StrategiesListResponse(BaseModel):
 
 # New models for Data Simulation and Visualization Studio
 class DataSource(BaseModel):
-    source_id: str
+    id: str
     name: str
-    type: DataSourceType
+    category: str
     description: str
     table_name: str
     fields: List[Dict[str, Any]]
@@ -242,5 +243,11 @@ class DataSourcesResponse(BaseModel):
 class InvestigationResultsResponse(BaseModel):
     success: bool
     results: List[InvestigationResult] = []
+    summary: Dict[str, Any] = {}
+    error: Optional[str] = None
+
+class InvestigationExecutionsResponse(BaseModel):
+    success: bool
+    executions: List[InvestigationExecution] = []
     summary: Dict[str, Any] = {}
     error: Optional[str] = None

@@ -3,25 +3,66 @@ import json
 import uuid
 import asyncio
 import httpx
+import logging
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from models import (
     InvestigationExecution, InvestigationResult, DataSource, 
     InvestigationExecutionStatus, DataSourceType, ExecuteInvestigationRequest
 )
+from neurostack_cosmos_memory import get_cosmos_memory_manager
+from report_service import get_azure_openai_client
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class InvestigationService:
     def __init__(self):
-        self.executions: Dict[str, InvestigationExecution] = {}
+        self.executions: List[InvestigationExecution] = []
         self.data_sources = self._initialize_data_sources()
+        
+        # Add sample executions for now (CosmosDB will be initialized when needed)
+        self._add_sample_executions()
+        
+
+    
+    def _add_execution(self, execution: InvestigationExecution):
+        """Add execution to memory and store in CosmosDB."""
+        # Check if execution already exists
+        existing_index = None
+        for i, existing_execution in enumerate(self.executions):
+            if existing_execution.execution_id == execution.execution_id:
+                existing_index = i
+                break
+        
+        if existing_index is not None:
+            # Update existing execution
+            self.executions[existing_index] = execution
+            logger.info(f"🔄 Updated existing execution {execution.execution_id} in memory")
+        else:
+            # Add new execution
+            self.executions.append(execution)
+            logger.info(f"➕ Added new execution {execution.execution_id} to memory. Total executions: {len(self.executions)}")
+        
+        # Store in CosmosDB asynchronously (only if we're in an async context)
+        try:
+            loop = asyncio.get_running_loop()
+            # Create a task and ensure it completes
+            task = loop.create_task(self.store_execution_in_cosmos(execution))
+            # Add a callback to log completion
+            task.add_done_callback(lambda t: logger.info(f"✅ CosmosDB save task completed for {execution.execution_id}") if not t.exception() else logger.error(f"❌ CosmosDB save task failed for {execution.execution_id}: {t.exception()}"))
+        except RuntimeError:
+            # No running loop, just store in memory for now
+            logger.warning(f"⚠️ No async loop available, execution {execution.execution_id} stored in memory only")
+            pass
         
     def _initialize_data_sources(self) -> List[DataSource]:
         """Initialize available data sources with metadata."""
         return [
             DataSource(
-                source_id="internal_banking",
+                id="internal_banking",
                 name="Internal Banking Data",
-                type=DataSourceType.INTERNAL_BANKING,
+                category="banking",
                 description="Customer's internal banking relationship data including credit limits, balances, payment history, and account tenure.",
                 table_name="internal_banking_data",
                 fields=[
@@ -37,9 +78,9 @@ class InvestigationService:
                 is_enabled=True
             ),
             DataSource(
-                source_id="credit_bureau",
+                id="credit_bureau",
                 name="Credit Bureau Data",
-                type=DataSourceType.CREDIT_BUREAU,
+                category="credit_bureau",
                 description="Credit bureau information including FICO scores, account history, and credit inquiries.",
                 table_name="credit_bureau_data",
                 fields=[
@@ -54,9 +95,9 @@ class InvestigationService:
                 is_enabled=True
             ),
             DataSource(
-                source_id="income_verification",
+                id="income_verification",
                 name="Income Verification Data",
-                type=DataSourceType.INCOME_VERIFICATION,
+                category="income",
                 description="Income verification and ability to pay analysis including verified income, debt ratios, and stability scores.",
                 table_name="income_ability_to_pay",
                 fields=[
@@ -70,9 +111,9 @@ class InvestigationService:
                 is_enabled=True
             ),
             DataSource(
-                source_id="customer_demographics",
+                id="customer_demographics",
                 name="Customer Demographics",
-                type=DataSourceType.CUSTOMER_DEMOGRAPHICS,
+                category="demographics",
                 description="Customer demographic information including location, employment status, and personal details.",
                 table_name="customer_demographics",
                 fields=[
@@ -87,9 +128,9 @@ class InvestigationService:
                 is_enabled=True
             ),
             DataSource(
-                source_id="economic_indicators",
+                id="economic_indicators",
                 name="Economic Indicators",
-                type=DataSourceType.ECONOMIC_INDICATORS,
+                category="economic",
                 description="Regional economic data including unemployment rates, GDP growth, and market conditions.",
                 table_name="state_economic_indicators",
                 fields=[
@@ -100,6 +141,36 @@ class InvestigationService:
                     {"name": "gdp_growth_rate", "type": "decimal", "description": "GDP growth rate percentage"}
                 ],
                 is_enabled=True
+            ),
+            DataSource(
+                id="fraud_kyc_compliance",
+                name="Fraud/KYC/Compliance",
+                category="fraud",
+                description="Fraud detection, KYC verification, and compliance monitoring data.",
+                table_name="fraud_kyc_compliance",
+                fields=[
+                    {"name": "customer_id", "type": "int", "description": "Unique customer identifier"},
+                    {"name": "overall_fraud_risk_score", "type": "decimal", "description": "Overall fraud risk score"},
+                    {"name": "risk_level", "type": "string", "description": "Risk level classification"},
+                    {"name": "kyc_score", "type": "decimal", "description": "KYC verification score"},
+                    {"name": "identity_verification_status", "type": "string", "description": "Identity verification status"}
+                ],
+                is_enabled=True
+            ),
+            DataSource(
+                id="open_banking",
+                name="Open Banking Data",
+                category="open_banking",
+                description="Transaction data and alternative financial information from external sources.",
+                table_name="open_banking_data",
+                fields=[
+                    {"name": "customer_id", "type": "int", "description": "Unique customer identifier"},
+                    {"name": "open_banking_consent", "type": "boolean", "description": "Open banking consent status"},
+                    {"name": "avg_monthly_income", "type": "decimal", "description": "Average monthly income"},
+                    {"name": "cash_flow_stability_score", "type": "decimal", "description": "Cash flow stability score"},
+                    {"name": "expense_obligations_rent", "type": "decimal", "description": "Rent expense obligations"}
+                ],
+                is_enabled=False
             )
         ]
     
@@ -132,7 +203,8 @@ class InvestigationService:
             stepStatus=step_status
         )
         
-        self.executions[execution_id] = execution
+        self._add_execution(execution)
+        logger.info(f"✅ Execution {execution_id} added to memory and will be saved to CosmosDB")
         
         # Start execution asynchronously
         asyncio.create_task(self._execute_investigation_async(execution, request.execution_mode))
@@ -152,11 +224,17 @@ class InvestigationService:
             execution.status = InvestigationExecutionStatus.COMPLETED
             execution.completed_at = datetime.now()
             execution.progress = 100.0
+            # Store in CosmosDB for persistence
+            logger.info(f"✅ Execution {execution.execution_id} completed, saving to CosmosDB...")
+            await self.store_execution_in_cosmos(execution)
+            logger.info(f"✅ Execution {execution.execution_id} saved to CosmosDB successfully")
             
         except Exception as e:
             execution.status = InvestigationExecutionStatus.FAILED
             execution.errors.append(str(e))
             execution.completed_at = datetime.now()
+            # Store in CosmosDB for persistence
+            await self.store_execution_in_cosmos(execution)
     
     async def _execute_batch_mode(self, execution: InvestigationExecution):
         """Execute all steps in parallel."""
@@ -206,6 +284,8 @@ class InvestigationService:
         
         execution.current_step = None
         execution.progress = 100.0
+        # Store in CosmosDB for persistence
+        await self.store_execution_in_cosmos(execution)
     
     async def _execute_single_step(self, step: Dict[str, Any], execution: InvestigationExecution) -> InvestigationResult:
         """Execute a single investigation step using LLM-based planning."""
@@ -222,7 +302,7 @@ class InvestigationService:
         
         execution_time = (datetime.now() - start_time).total_seconds()
         
-        return InvestigationResult(
+        result = InvestigationResult(
             step_id=step['id'],
             step_title=step['title'],
             execution_time=execution_time,
@@ -237,6 +317,7 @@ class InvestigationService:
                 "step_priority": step.get('priority', 'medium')
             }
         )
+        return result
     
     async def _generate_execution_plan(self, step: Dict[str, Any], execution: InvestigationExecution) -> Dict[str, Any]:
         """Generate execution plan using LLM."""
@@ -1082,13 +1163,7 @@ Return only the JSON object, no additional text.
                     return result["choices"][0]["message"]["content"].strip()
             else:
                 # Use Azure OpenAI SDK for standard endpoints
-                from openai import AzureOpenAI
-                
-                client = AzureOpenAI(
-                    azure_endpoint=endpoint,
-                    api_key=api_key,
-                    api_version=api_version
-                )
+                client = get_azure_openai_client()
                 
                 response = client.chat.completions.create(
                     model=deployment_name,
@@ -1110,7 +1185,191 @@ Return only the JSON object, no additional text.
     
     def get_all_executions(self) -> List[InvestigationExecution]:
         """Get all executions."""
-        return list(self.executions.values())
+        return self.executions
+    
+    async def store_execution_in_cosmos(self, execution: InvestigationExecution) -> bool:
+        """Store execution in CosmosDB for persistence."""
+        try:
+            logger.info(f"🔄 Storing execution {execution.execution_id} in CosmosDB...")
+            memory_manager = await get_cosmos_memory_manager()
+            
+            # Convert execution to dict for storage
+            execution_data = execution.dict()
+            execution_data["id"] = execution.execution_id
+            execution_data["type"] = "investigation_execution"
+            execution_data["created_at"] = datetime.now().isoformat()
+            
+            logger.info(f"🔄 Execution data to store: {list(execution_data.keys())}")
+            
+            # Store in CosmosDB
+            await memory_manager.containers["investigation_executions"].upsert_item(execution_data)
+            logger.info(f"✅ Successfully stored execution {execution.execution_id} in CosmosDB")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to store execution in CosmosDB: {str(e)}")
+            return False
+    
+    async def load_executions_from_cosmos(self) -> List[InvestigationExecution]:
+        """Load all executions from CosmosDB."""
+        try:
+            logger.info("🔄 Starting to load executions from CosmosDB...")
+            memory_manager = await get_cosmos_memory_manager()
+            
+            # Get all items from the container
+            logger.info("🔄 Reading all items from investigation_executions container...")
+            items = await memory_manager.containers["investigation_executions"].read_all_items()
+            logger.info(f"🔄 Found {len(items)} total items in container")
+            
+            executions = []
+            for i, item in enumerate(items):
+                logger.info(f"🔄 Processing item {i+1}/{len(items)}: {item.get('id', 'no-id')} (type: {item.get('type', 'no-type')})")
+                if item.get("type") == "investigation_execution":
+                    try:
+                        # Convert back to InvestigationExecution
+                        execution = InvestigationExecution(**item)
+                        executions.append(execution)
+                        # Also store in memory for quick access
+                        self.executions.append(execution)
+                        logger.info(f"✅ Successfully loaded execution: {execution.execution_id}")
+                    except Exception as e:
+                        logger.error(f"❌ Failed to parse execution from CosmosDB: {str(e)}")
+                        logger.error(f"❌ Item data: {item}")
+                        continue
+                else:
+                    logger.info(f"⏭️ Skipping item with type: {item.get('type', 'no-type')}")
+            
+            logger.info(f"✅ Successfully loaded {len(executions)} executions from CosmosDB")
+            return executions
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to load executions from CosmosDB: {str(e)}")
+            return []
+
+    def get_execution_by_id(self, execution_id: str) -> Optional[InvestigationExecution]:
+        """Get execution by ID from memory"""
+        try:
+            logger.info(f"🔍 Looking for execution with ID: {execution_id}")
+            
+            # First check in memory
+            for execution in self.executions:
+                if execution.execution_id == execution_id:
+                    logger.info(f"✅ Found execution in memory: {execution_id}")
+                    return execution
+            
+            # If not found in memory, try to load from CosmosDB
+            logger.info(f"Execution not found in memory, checking CosmosDB...")
+            
+            # For now, return None if not found
+            # In a full implementation, you'd load from CosmosDB here
+            logger.warning(f"Execution {execution_id} not found")
+            return None
+            
+        except Exception as e:
+            logger.error(f"❌ Error getting execution by ID {execution_id}: {e}")
+            return None
+    
+    async def initialize_from_cosmos(self):
+        """Initialize the service by loading executions from CosmosDB."""
+        try:
+            logger.info("🔄 Starting to load executions from CosmosDB...")
+            await self.load_executions_from_cosmos()
+            logger.info(f"✅ InvestigationService initialized from CosmosDB. Loaded {len(self.executions)} executions")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize from CosmosDB: {str(e)}")
+            # Fallback to sample data
+            logger.info("🔄 Falling back to sample data...")
+            self._add_sample_executions()
+    
+    async def setup_cosmos_persistence(self):
+        """Setup CosmosDB persistence - call this when the server starts."""
+        try:
+            await self.initialize_from_cosmos()
+            logger.info("CosmosDB persistence setup completed")
+        except Exception as e:
+            logger.error(f"Failed to setup CosmosDB persistence: {str(e)}")
+
+    def _add_sample_executions(self):
+        """Add sample investigation executions for testing."""
+        from datetime import datetime, timedelta
+        
+        # Sample execution 1 - Completed
+        sample_execution_1 = InvestigationExecution(
+            executionId="sample_001",
+            customerId=1001,
+            customerName="John Smith",
+            status=InvestigationExecutionStatus.COMPLETED,
+            startedAt=datetime.now() - timedelta(hours=2),
+            completedAt=datetime.now() - timedelta(hours=1, minutes=30),
+            selectedSteps=[{"step": "customer_verification"}, {"step": "data_analysis"}],
+            results={
+                "step_001": {
+                    "step_id": "step_001",
+                    "step_title": "Customer Verification",
+                    "execution_time": 15.5,
+                    "status": "completed",
+                    "data": {"customer_id": "CUST001", "verification_status": "verified"},
+                    "visualizations": [{"chart_type": "status_pie"}],
+                    "insights": ["Customer identity verified successfully"],
+                    "recommendations": ["Proceed with credit analysis"],
+                    "metadata": {"source": "internal_banking"}
+                },
+                "step_002": {
+                    "step_id": "step_002",
+                    "step_title": "Data Analysis",
+                    "execution_time": 45.2,
+                    "status": "completed",
+                    "data": {"credit_score": 750, "income": 85000},
+                    "visualizations": [{"chart_type": "credit_distribution"}],
+                    "insights": ["Good credit score", "Stable income"],
+                    "recommendations": ["Approve credit limit increase"],
+                    "metadata": {"source": "credit_bureau"}
+                }
+            },
+            progress=1.0
+        )
+        
+        # Sample execution 2 - Running
+        sample_execution_2 = InvestigationExecution(
+            executionId="sample_002",
+            customerId=1002,
+            customerName="Sarah Johnson",
+            status=InvestigationExecutionStatus.RUNNING,
+            startedAt=datetime.now() - timedelta(minutes=30),
+            completedAt=None,
+            selectedSteps=[{"step": "customer_verification"}, {"step": "data_analysis"}, {"step": "risk_assessment"}],
+            results={
+                "step_001": {
+                    "step_id": "step_001",
+                    "step_title": "Customer Verification",
+                    "execution_time": 12.3,
+                    "status": "completed",
+                    "data": {"customer_id": "CUST002", "verification_status": "verified"},
+                    "visualizations": [{"chart_type": "status_pie"}],
+                    "insights": ["Customer identity verified"],
+                    "recommendations": ["Continue with analysis"],
+                    "metadata": {"source": "internal_banking"}
+                }
+            },
+            progress=0.33
+        )
+        
+        # Sample execution 3 - Failed
+        sample_execution_3 = InvestigationExecution(
+            executionId="sample_003",
+            customerId=1003,
+            customerName="Mike Wilson",
+            status=InvestigationExecutionStatus.FAILED,
+            startedAt=datetime.now() - timedelta(hours=4),
+            completedAt=datetime.now() - timedelta(hours=3, minutes=45),
+            selectedSteps=[{"step": "customer_verification"}],
+            results={},
+            progress=0.0
+        )
+        
+        self._add_execution(sample_execution_1)
+        self._add_execution(sample_execution_2)
+        self._add_execution(sample_execution_3)
 
 # Global instance
 investigation_service = InvestigationService()

@@ -9,6 +9,8 @@ from datetime import datetime
 import logging
 from dotenv import load_dotenv
 import httpx
+from fastapi import File, UploadFile
+from fastapi.responses import FileResponse
 
 # Azure OpenAI imports
 from openai import AzureOpenAI
@@ -38,12 +40,14 @@ from models import (
     InvestigationStrategy, CreateStrategyRequest, UpdateStrategyRequest, 
     StrategyResponse, StrategiesListResponse,
     ExecuteInvestigationRequest, InvestigationExecutionResponse, DataSourcesResponse, InvestigationResultsResponse,
+    InvestigationExecutionsResponse,
     ChatMessageRequest, ChatResponse, ChatHistoryResponse, ScenarioAnalysisResponse
 )
 from report_service import report_service
 from investigation_service import investigation_service
 from chat_service import ChatService
 from email_service import email_service
+from pdf_service import pdf_service
 
 # Load environment variables from root directory
 load_dotenv(dotenv_path="/Users/kanavkahol/work/neurostack/.env")
@@ -1659,7 +1663,7 @@ async def get_investigation_execution(
 ):
     """Get investigation execution by ID."""
     try:
-        execution = investigation_service.get_execution(execution_id)
+        execution = investigation_service.get_execution_by_id(execution_id)
         if not execution:
             return InvestigationExecutionResponse(success=False, error="Execution not found")
         return InvestigationExecutionResponse(success=True, execution=execution)
@@ -1667,21 +1671,49 @@ async def get_investigation_execution(
         logger.error(f"Error getting execution: {str(e)}")
         return InvestigationExecutionResponse(success=False, error=str(e))
 
-@app.get("/api/investigations/executions", response_model=InvestigationResultsResponse)
+@app.get("/api/investigations/executions", response_model=InvestigationExecutionsResponse)
 async def get_all_investigation_executions(
     current_user: User = Depends(get_current_user)
 ):
     """Get all investigation executions."""
     try:
         executions = investigation_service.get_all_executions()
-        return InvestigationResultsResponse(
+        return InvestigationExecutionsResponse(
             success=True,
-            results=[execution.dict() for execution in executions],
+            executions=executions,
             summary={"total_executions": len(executions)}
         )
     except Exception as e:
         logger.error(f"Error getting executions: {str(e)}")
-        return InvestigationResultsResponse(success=False, error=str(e))
+        return InvestigationExecutionsResponse(success=False, error=str(e))
+
+@app.post("/api/investigations/save-to-cosmos")
+async def save_all_executions_to_cosmos(
+    current_user: User = Depends(get_current_user)
+):
+    """Manually save all current executions to CosmosDB."""
+    try:
+        logger.info("🔄 Manually saving all executions to CosmosDB...")
+        executions = investigation_service.get_all_executions()
+        saved_count = 0
+        
+        for execution in executions:
+            try:
+                success = await investigation_service.store_execution_in_cosmos(execution)
+                if success:
+                    saved_count += 1
+                    logger.info(f"✅ Saved execution {execution.execution_id} to CosmosDB")
+                else:
+                    logger.error(f"❌ Failed to save execution {execution.execution_id} to CosmosDB")
+            except Exception as e:
+                logger.error(f"❌ Error saving execution {execution.execution_id}: {str(e)}")
+        
+        logger.info(f"✅ Manually saved {saved_count}/{len(executions)} executions to CosmosDB")
+        return {"success": True, "message": f"Saved {saved_count}/{len(executions)} executions to CosmosDB"}
+        
+    except Exception as e:
+        logger.error(f"Error saving executions to CosmosDB: {str(e)}")
+        return {"success": False, "error": str(e)}
 
 @app.get("/api/investigations/data-sources", response_model=DataSourcesResponse)
 async def get_data_sources(
@@ -1754,6 +1786,7 @@ class EmailRequest(BaseModel):
     reason: str
     customerName: str
     customerId: int
+    sessionId: str  # Add session ID to track which session this decision belongs to
 
 class EmailResponse(BaseModel):
     success: bool
@@ -1782,6 +1815,35 @@ async def send_credit_decision_email(
         }
         
         result = await email_service.send_credit_decision_email(email_data)
+        
+        # Save decision data to the session execution
+        if result.get('success'):
+            try:
+                # Get the current execution
+                execution = investigation_service.get_execution_by_id(request.sessionId)
+                if execution:
+                    # Update the execution results with decision data
+                    if not execution.results:
+                        execution.results = {}
+                    
+                    # Add decision data to results
+                    execution.results['decision'] = {
+                        'decision': request.decision,
+                        'approved_amount': request.approvedAmount,
+                        'reason': request.reason,
+                        'decision_date': datetime.now().isoformat(),
+                        'customer_name': request.customerName,
+                        'customer_id': request.customerId
+                    }
+                    
+                    # Save the updated execution
+                    await investigation_service.store_execution_in_cosmos(execution)
+                    logger.info(f"✅ Decision data saved to session {request.sessionId}")
+                else:
+                    logger.warning(f"⚠️ Could not find session {request.sessionId} to save decision data")
+            except Exception as e:
+                logger.error(f"❌ Error saving decision data to session: {str(e)}")
+        
         return EmailResponse(**result)
         
     except Exception as e:
@@ -1789,24 +1851,107 @@ async def send_credit_decision_email(
         return EmailResponse(success=False, error=str(e))
 
 @app.post("/api/email/generate")
-async def generate_email_content(
-    decision_data: Dict[str, Any],
-    current_user: User = Depends(get_current_user)
-):
-    """Generate email content based on decision data."""
+async def generate_email_content(request: Request):
+    """Generate email content based on decision data"""
     try:
-        content = email_service.generate_email_content(decision_data)
-        return {"success": True, "content": content}
+        data = await request.json()
+        email_content = email_service.generate_email_content(data)
+        return email_content
     except Exception as e:
         logger.error(f"Error generating email content: {str(e)}")
         return {"success": False, "error": str(e)}
 
+@app.post("/api/decision-documentation/generate")
+async def generate_decision_documentation(request: Request):
+    """Generate comprehensive decision documentation PDF"""
+    try:
+        data = await request.json()
+        logger.info(f"📄 Generating decision documentation for customer {data.get('customerId')}")
+        
+        result = pdf_service.generate_decision_documentation(data)
+        
+        if result["success"]:
+            logger.info(f"✅ Decision documentation generated successfully: {result['filename']}")
+        else:
+            logger.error(f"❌ Failed to generate decision documentation: {result['error']}")
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error generating decision documentation: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/session/{session_id}")
+async def get_session_data(session_id: str, current_user: User = Depends(get_current_user)):
+    """Get session data from CosmosDB"""
+    try:
+        logger.info(f"🔍 Fetching session data for session ID: {session_id}")
+        
+        # Get execution from investigation service
+        execution = investigation_service.get_execution_by_id(session_id)
+        
+        if not execution:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Extract decision data from execution results
+        decision_data = None
+        if execution.results:
+            # Look for decision data in results
+            for result in execution.results.values():
+                if isinstance(result, dict) and 'decision' in result:
+                    decision_data = result
+                    break
+        
+        # Build session data response
+        session_data = {
+            "sessionId": session_id,
+            "customerName": execution.customer_name,
+            "customerId": execution.customer_id,
+            "decision": decision_data.get('decision', 'pending') if decision_data else 'pending',
+            "approvedAmount": decision_data.get('approved_amount', 0) if decision_data else 0,
+            "currentCreditLimit": decision_data.get('current_credit_limit', 32000) if decision_data else 32000,
+            "decisionDate": execution.completed_at or execution.started_at,
+            "status": execution.status,
+            "agentName": current_user.first_name + " " + current_user.last_name,
+            "pdfUrl": f"http://localhost:8000/reports/{session_id}.pdf"
+        }
+        
+        logger.info(f"✅ Session data retrieved: {session_data}")
+        return {"success": True, "data": session_data}
+        
+    except Exception as e:
+        logger.error(f"Error fetching session data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching session data: {str(e)}")
+
+@app.get("/reports/{filename}")
+async def get_report(filename: str):
+    """Serve generated PDF reports"""
+    try:
+        file_path = os.path.join("reports", filename)
+        if os.path.exists(file_path):
+            return FileResponse(file_path, media_type="application/pdf", filename=filename)
+        else:
+            raise HTTPException(status_code=404, detail="Report not found")
+    except Exception as e:
+        logger.error(f"Error serving report {filename}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error serving report")
+
 if __name__ == "__main__":
     import uvicorn
+    import asyncio
     
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8000))
     debug = os.getenv("DEBUG", "false").lower() == "true"
+    
+    # Initialize CosmosDB persistence
+    async def init_cosmos():
+        try:
+            await investigation_service.setup_cosmos_persistence()
+        except Exception as e:
+            logger.error(f"Failed to initialize CosmosDB: {str(e)}")
+    
+    # Run initialization
+    asyncio.run(init_cosmos())
     
     logger.info(f"Starting Banking Agent Backend on {host}:{port}")
     uvicorn.run("main:app", host=host, port=port, reload=debug)

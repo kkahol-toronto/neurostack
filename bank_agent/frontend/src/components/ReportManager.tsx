@@ -457,6 +457,22 @@ const ReportManager: React.FC<ReportManagerProps> = ({
       setError('');
       setSuccess(''); // Clear any previous success messages
       
+      console.log('🔍 Creating report with data:', {
+        customer_id: customerId,
+        customer_name: customerName,
+        inquiry_type: inquiryType,
+        inquiry_description: inquiryDescription,
+        ai_summary: aiSummary,
+        ai_recommendation: aiRecommendation,
+        suggested_decision: suggestedDecision,
+        current_credit_limit: currentCreditLimit || null,
+        requested_credit_limit: requestedCreditLimit || null,
+        credit_limit_increase: creditLimitIncrease || null,
+        agent_notes: agentNotes,
+        status: status || 'pending',
+        customer_data: customerData
+      });
+
       const reportData = {
         customer_id: customerId,
         customer_name: customerName,
@@ -474,16 +490,24 @@ const ReportManager: React.FC<ReportManagerProps> = ({
       };
 
       const response = await apiService.createReport(reportData);
+      console.log('🔍 Report creation response:', response);
+      
       if (response.success) {
         setSuccess('Report created successfully');
         setError(''); // Clear any previous errors
         setCreateDialogOpen(false);
-        setLastCreatedReportId(response.data.report_id);
+        
+        // Handle different response structures
+        const reportId = response.report?.report_id || response.data?.report_id;
+        if (reportId) {
+          setLastCreatedReportId(reportId);
+          if (onReportSaved) {
+            onReportSaved(reportId);
+          }
+        }
+        
         resetForm();
         loadReports();
-        if (onReportSaved) {
-          onReportSaved(response.data.report_id);
-        }
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(''), 3000);
         // Clear the last created report ID after 10 minutes

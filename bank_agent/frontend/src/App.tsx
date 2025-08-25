@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
+import DecisionDocumentation from './components/DecisionDocumentation';
 import './App.css';
 
 function App() {
@@ -34,11 +36,40 @@ function App() {
   return (
     <div className="App">
       <CssBaseline />
-      {isAuthenticated ? (
-        <Dashboard onLogout={handleLogout} user={user} />
-      ) : (
-        <Login onLogin={handleLogin} />
-      )}
+      <Router>
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              isAuthenticated ? (
+                <Dashboard onLogout={handleLogout} user={user} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            } 
+          />
+          <Route 
+            path="/login" 
+            element={
+              isAuthenticated ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Login onLogin={handleLogin} />
+              )
+            } 
+          />
+          <Route 
+            path="/decision-documentation" 
+            element={
+              isAuthenticated ? (
+                <DecisionDocumentation />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            } 
+          />
+        </Routes>
+      </Router>
     </div>
   );
 }

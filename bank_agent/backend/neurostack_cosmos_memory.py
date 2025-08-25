@@ -99,7 +99,8 @@ class CosmosDBMemoryManager:
                 "query_patterns": PartitionKey(path="/query_type"),
                 "user_behaviors": PartitionKey(path="/user_id"),
                 "semantic_embeddings": PartitionKey(path="/embedding_type"),
-                "query_analytics": PartitionKey(path="/analysis_type")
+                "query_analytics": PartitionKey(path="/analysis_type"),
+                "investigation_executions": PartitionKey(path="/execution_id")
             }
             
             for container_name, partition_key in containers_config.items():
@@ -127,7 +128,8 @@ class CosmosDBMemoryManager:
             "query_patterns": MockContainer("query_patterns"),
             "user_behaviors": MockContainer("user_behaviors"),
             "semantic_embeddings": MockContainer("semantic_embeddings"),
-            "query_analytics": MockContainer("query_analytics")
+            "query_analytics": MockContainer("query_analytics"),
+            "investigation_executions": MockContainer("investigation_executions")
         }
     
     async def store_query_result(self, query_data: Dict[str, Any]) -> str:

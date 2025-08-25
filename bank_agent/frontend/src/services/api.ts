@@ -333,12 +333,17 @@ Only return the SQL query, no explanations or markdown formatting.
   // Report Management Methods
   async createReport(reportData: any): Promise<any> {
     try {
+      console.log('🔍 API Service: Creating report with data:', reportData);
       const response = await axios.post(`${API_BASE_URL}/api/reports`, reportData, {
         headers: this.getAuthHeaders()
       });
+      console.log('🔍 API Service: Report creation response:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ API Service: Error creating report:', error);
+      if (error.response) {
+        console.error('❌ API Service: Error response:', error.response.data);
+      }
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }
@@ -531,9 +536,15 @@ Only return the SQL query, no explanations or markdown formatting.
         headers: this.getAuthHeaders()
       });
       
+      console.log('🔍 Data sources response:', response.data);
+      
       // Handle different response formats
       if (Array.isArray(response.data)) {
         return response.data;
+      } else if (response.data && response.data.success && Array.isArray(response.data.data_sources)) {
+        return response.data.data_sources;
+      } else if (response.data && Array.isArray(response.data.data_sources)) {
+        return response.data.data_sources;
       } else if (response.data && Array.isArray(response.data.data)) {
         return response.data.data;
       } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
@@ -664,6 +675,21 @@ Only return the SQL query, no explanations or markdown formatting.
     }
   }
 
+  async generateDecisionDocumentation(docData: any): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/decision-documentation/generate`, docData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating decision documentation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
   async getChatHistory(sessionId: string): Promise<any> {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/chat/history/${sessionId}`, {
@@ -684,6 +710,30 @@ Only return the SQL query, no explanations or markdown formatting.
       return response.data;
     } catch (error) {
       console.error('❌ API Service: Error getting chat sessions:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getSessionData(sessionId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/session/${sessionId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting session data:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async saveSessionsToCosmos(): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/investigations/save-to-cosmos`, {}, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error saving sessions to CosmosDB:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }

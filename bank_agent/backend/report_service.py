@@ -15,6 +15,7 @@ def get_azure_openai_client():
     try:
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         api_key = os.getenv("AZURE_OPENAI_KEY")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
         
         logger.info(f"Azure OpenAI Endpoint: {endpoint}")
         logger.info(f"Azure OpenAI Key: {'***' + api_key[-4:] if api_key else 'NOT SET'}")
@@ -22,11 +23,25 @@ def get_azure_openai_client():
         if not endpoint or not api_key:
             raise ValueError("Azure OpenAI endpoint and API key must be set in environment variables")
         
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=api_key,
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-        )
+        # Check if this is an APIM endpoint
+        if "azure-api.net" in endpoint:
+            # For APIM endpoints, we need to use the subscription key header
+            client = AzureOpenAI(
+                azure_endpoint=endpoint,
+                api_key=api_key,
+                api_version=api_version,
+                default_headers={
+                    "Ocp-Apim-Subscription-Key": api_key
+                }
+            )
+            logger.info(f"✅ APIM endpoint configured: {endpoint}")
+        else:
+            # Standard Azure OpenAI endpoint
+            client = AzureOpenAI(
+                azure_endpoint=endpoint,
+                api_key=api_key,
+                api_version=api_version
+            )
         
         logger.info("✅ Azure OpenAI client initialized successfully")
         return client
@@ -297,11 +312,7 @@ class ReportService:
             """
 
             # Call Azure OpenAI for recommendation
-            client = AzureOpenAI(
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-                api_key=os.getenv("AZURE_OPENAI_KEY"),
-                api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-            )
+            client = get_azure_openai_client()
             
             response = client.chat.completions.create(
                 model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
@@ -794,11 +805,7 @@ Return only the JSON array of steps, no additional text.
                     content = result["choices"][0]["message"]["content"].strip()
             else:
                 # Use Azure OpenAI SDK for standard endpoints
-                client = AzureOpenAI(
-                    azure_endpoint=endpoint,
-                    api_key=api_key,
-                    api_version=api_version
-                )
+                client = get_azure_openai_client()
                 
                 response = client.chat.completions.create(
                     model=deployment_name,
@@ -1570,11 +1577,7 @@ Return only the JSON array of steps, no additional text.
             - "want limit to be 50000" → {{"increase_amount": null, "requested_total_limit": 50000, "extraction_method": "total_limit"}}
             """
 
-            client = AzureOpenAI(
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-                api_key=os.getenv("AZURE_OPENAI_KEY"),
-                api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-            )
+            client = get_azure_openai_client()
             
             response = client.chat.completions.create(
                 model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
