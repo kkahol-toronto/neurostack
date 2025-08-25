@@ -263,6 +263,12 @@ $RECYCLE.BIN/
 secrets.json
 credentials.json
 
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 # Logs
 logs/
 *.log

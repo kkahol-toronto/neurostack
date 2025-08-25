@@ -1,0 +1,82 @@
+{
+  "382aaece-c340-49b6-a2c3-046e2651740e": {
+    "strategy_id": "382aaece-c340-49b6-a2c3-046e2651740e",
+    "name": "custom-high increase strategy",
+    "description": "to handle customers asking for high increases. have good credentials but need to investigate high increase requested",
+    "strategy_focus": "standard_analysis",
+    "risk_profile": "medium_risk",
+    "steps": [
+      {
+        "id": "basic_credit_analysis",
+        "title": "Basic Credit Profile Analysis",
+        "description": "Analyze credit profile with FICO 724 and 20.4% utilization.",
+        "category": "analysis",
+        "priority": "high",
+        "estimatedTime": "15-20 min"
+      },
+      {
+        "id": "payment_history_review",
+        "title": "Payment History Review",
+        "description": "Review payment history with 11 on-time payments.",
+        "category": "analysis",
+        "priority": "high",
+        "estimatedTime": "10-15 min"
+      },
+      {
+        "id": "scenario_modeling",
+        "title": "Credit Limit Increase Scenarios",
+        "description": "Model different credit limit increase scenarios and calculate probability of default, expected utilization, and credit score impact.",
+        "category": "scenario",
+        "priority": "high",
+        "estimatedTime": "25-30 min"
+      },
+      {
+        "id": "credit_limit_optimization",
+        "title": "Optimal Credit Limit Analysis",
+        "description": "Analyze optimal credit limit for customer with FICO 724 and 20.4% utilization. Determine maximum safe credit increase.",
+        "category": "analysis",
+        "priority": "high",
+        "estimatedTime": "20-25 min"
+      },
+      {
+        "id": "revenue_opportunity_analysis",
+        "title": "Revenue Opportunity Assessment",
+        "description": "Calculate potential revenue increase from credit limit optimization. Analyze customer spending patterns and credit utilization trends.",
+        "category": "analysis",
+        "priority": "high",
+        "estimatedTime": "15-20 min"
+      },
+      {
+        "id": "income_verification",
+        "title": "Income Verification",
+        "description": "Verify income stability for $111,398 annual income.",
+        "category": "data_collection",
+        "priority": "medium",
+        "estimatedTime": "15-20 min"
+      },
+      {
+        "id": "similar_customers",
+        "title": "Similar Customer Profile Analysis",
+        "description": "Analyze customers with similar profiles: FICO 724, income $111,398, Part-time employment.",
+        "category": "data_collection",
+        "priority": "medium",
+        "estimatedTime": "15-20 min"
+      },
+      {
+        "id": "geographic_analysis",
+        "title": "Geographic Risk Assessment",
+        "description": "Analyze credit performance in West Donaldton, CA. Check local economic indicators and market conditions.",
+        "category": "data_collection",
+        "priority": "medium",
+        "estimatedTime": "10-15 min"
+      }
+    ],
+    "created_by": "analyst_001",
+    "created_at": "2025-08-24T22:52:54.918534",
+    "updated_at": null,
+    "is_template": false,
+    "tags": [
+      "high-increase"
+    ]
+  }
+}

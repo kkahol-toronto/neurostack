@@ -34,29 +34,27 @@ class AzureService(ABC):
 
 
 class AzureCognitiveServices(AzureService):
-    """Azure Cognitive Services integration."""
+    """Azure Cognitive Services integration using APIM endpoint."""
     
-    def __init__(self, endpoint: str, key: str):
+    def __init__(self, endpoint: str, key: str, deployment_name: str = None):
         super().__init__()
         self.endpoint = endpoint
         self.key = key
+        self.deployment_name = deployment_name
         self.client = None
     
     async def initialize(self) -> bool:
-        """Initialize Azure Cognitive Services client."""
+        """Initialize Azure Cognitive Services client using APIM."""
         try:
-            from azure.cognitiveservices.vision.computervision import ComputerVisionClient
-            from msrest.authentication import CognitiveServicesCredentials
-            
-            self.client = ComputerVisionClient(
-                self.endpoint, 
-                CognitiveServicesCredentials(self.key)
-            )
-            self.logger.info("Azure Cognitive Services initialized")
+            # For APIM-based setup, we'll use the same endpoint as OpenAI
+            # but with different API paths for vision tasks
+            self.client = {
+                "endpoint": self.endpoint,
+                "key": self.key,
+                "deployment": self.deployment_name
+            }
+            self.logger.info("Azure Cognitive Services (APIM) initialized")
             return True
-        except ImportError:
-            self.logger.warning("Azure Cognitive Services SDK not available")
-            return False
         except Exception as e:
             self.logger.error("Failed to initialize Azure Cognitive Services", error=str(e))
             return False
@@ -65,28 +63,133 @@ class AzureCognitiveServices(AzureService):
         """Check Azure Cognitive Services health."""
         try:
             if self.client:
-                # Simple health check
                 return {"status": "healthy", "service": "cognitive_services"}
             return {"status": "not_initialized", "service": "cognitive_services"}
         except Exception as e:
             return {"status": "error", "service": "cognitive_services", "error": str(e)}
     
-    async def analyze_image(self, image_url: str) -> Dict[str, Any]:
-        """Analyze an image using Azure Computer Vision."""
+    async def analyze_image(self, image_url: str, prompt: str = "Analyze this image and describe what you see") -> Dict[str, Any]:
+        """Analyze an image using GPT-4V through APIM endpoint."""
         try:
             if not self.client:
                 raise ValueError("Azure Cognitive Services not initialized")
             
-            # Analyze image
-            features = ["Description", "Tags", "Faces", "Objects"]
-            result = self.client.analyze_image(image_url, features)
+            # Use GPT-4V for image analysis through APIM
+            import aiohttp
+            import base64
+            import json
             
-            return {
-                "description": result.description.captions[0].text if result.description.captions else "",
-                "tags": [tag.name for tag in result.tags],
-                "faces": len(result.faces),
-                "objects": [obj.object_property for obj in result.objects]
+            # Prepare the request for GPT-4V
+            headers = {
+                "Content-Type": "application/json",
+                "api-key": self.key
             }
+            
+            # Create the message with image
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": image_url
+                            }
+                        }
+                    ]
+                }
+            ]
+            
+            # Build the APIM endpoint URL
+            api_url = f"{self.endpoint}/openai/deployments/{self.deployment_name}/chat/completions"
+            
+            payload = {
+                "messages": messages,
+                "max_tokens": 1000,
+                "temperature": 0.7
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(api_url, json=payload, headers=headers) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        content = result["choices"][0]["message"]["content"]
+                        
+                        return {
+                            "description": content,
+                            "analysis_type": "gpt4v",
+                            "model": self.deployment_name,
+                            "prompt": prompt
+                        }
+                    else:
+                        error_text = await response.text()
+                        return {"error": f"API call failed: {response.status} - {error_text}"}
+                        
+        except Exception as e:
+            self.logger.error("Image analysis failed", error=str(e))
+            return {"error": str(e)}
+    
+    async def analyze_image_with_base64(self, image_base64: str, prompt: str = "Analyze this image and describe what you see") -> Dict[str, Any]:
+        """Analyze an image using base64 encoded image data through APIM endpoint."""
+        try:
+            if not self.client:
+                raise ValueError("Azure Cognitive Services not initialized")
+            
+            import aiohttp
+            import json
+            
+            headers = {
+                "Content-Type": "application/json",
+                "api-key": self.key
+            }
+            
+            # Create the message with base64 image
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            }
+                        }
+                    ]
+                }
+            ]
+            
+            api_url = f"{self.endpoint}/openai/deployments/{self.deployment_name}/chat/completions"
+            
+            payload = {
+                "messages": messages,
+                "max_tokens": 1000,
+                "temperature": 0.7
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(api_url, json=payload, headers=headers) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        content = result["choices"][0]["message"]["content"]
+                        
+                        return {
+                            "description": content,
+                            "analysis_type": "gpt4v_base64",
+                            "model": self.deployment_name,
+                            "prompt": prompt
+                        }
+                    else:
+                        error_text = await response.text()
+                        return {"error": f"API call failed: {response.status} - {error_text}"}
+                        
         except Exception as e:
             self.logger.error("Image analysis failed", error=str(e))
             return {"error": str(e)}
@@ -325,21 +428,32 @@ class AzureIntegration:
     
     def _initialize_services(self):
         """Initialize Azure services based on configuration."""
-        # Azure Cognitive Services
-        if "cognitive_services" in self.config:
-            cs_config = self.config["cognitive_services"]
-            self.cognitive_services = AzureCognitiveServices(
-                endpoint=cs_config.get("endpoint"),
-                key=cs_config.get("key")
-            )
+        # For APIM setup, we use the same endpoint and key for both services
+        apim_endpoint = None
+        apim_key = None
+        deployment_name = None
         
-        # Azure OpenAI
+        # Get APIM configuration from either openai or cognitive_services config
         if "openai" in self.config:
             oai_config = self.config["openai"]
+            apim_endpoint = oai_config.get("endpoint")
+            apim_key = oai_config.get("key")
+            deployment_name = oai_config.get("deployment_name")
+        
+        # Azure OpenAI
+        if apim_endpoint and apim_key and deployment_name:
             self.openai = AzureOpenAI(
-                endpoint=oai_config.get("endpoint"),
-                key=oai_config.get("key"),
-                deployment_name=oai_config.get("deployment_name")
+                endpoint=apim_endpoint,
+                key=apim_key,
+                deployment_name=deployment_name
+            )
+        
+        # Azure Cognitive Services (using same APIM endpoint)
+        if apim_endpoint and apim_key and deployment_name:
+            self.cognitive_services = AzureCognitiveServices(
+                endpoint=apim_endpoint,
+                key=apim_key,
+                deployment_name=deployment_name
             )
         
         # Azure Functions

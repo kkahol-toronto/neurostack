@@ -5,11 +5,10 @@ A flexible, modular library for building multi-agent systems with advanced
 reasoning, memory, and orchestration capabilities.
 """
 
-from .core.agents import Agent, AgentOrchestrator, AgentConfig, SimpleAgent
-from .core.agents.base import AgentContext
+from .core.agents import Agent, AgentOrchestrator, AgentConfig, SimpleAgent, AgentContext, AgentMessage
 from .core.memory import MemoryManager, VectorMemory, WorkingMemory
 from .core.reasoning import ReasoningEngine
-from .core.tools import Tool, ToolRegistry
+from .core.tools import Tool, ToolRegistry, ToolResult, ToolCall
 from .core.protocols import MCPProtocol, A2AProtocol
 from .integrations import AzureIntegration, GCPIntegration
 
@@ -20,12 +19,15 @@ __all__ = [
     "AgentConfig", 
     "SimpleAgent",
     "AgentContext",
+    "AgentMessage",
     "MemoryManager",
     "VectorMemory",
     "WorkingMemory",
     "ReasoningEngine",
     "Tool",
     "ToolRegistry",
+    "ToolResult",
+    "ToolCall",
     "MCPProtocol",
     "A2AProtocol",
     "AzureIntegration",
