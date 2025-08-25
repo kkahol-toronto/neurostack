@@ -1922,6 +1922,24 @@ async def get_session_data(session_id: str, current_user: User = Depends(get_cur
         logger.error(f"Error fetching session data: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching session data: {str(e)}")
 
+@app.post("/api/session/{session_id}/decision")
+async def add_decision_to_session(session_id: str, decision_data: dict, current_user: User = Depends(get_current_user)):
+    """Add decision data to a session"""
+    try:
+        logger.info(f"🔍 Adding decision data to session: {session_id}")
+        
+        success = await investigation_service.add_decision_to_execution(session_id, decision_data)
+        
+        if success:
+            logger.info(f"✅ Decision data added to session {session_id}")
+            return {"success": True, "message": "Decision data added successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+    except Exception as e:
+        logger.error(f"Error adding decision data to session: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error adding decision data: {str(e)}")
+
 @app.get("/reports/{filename}")
 async def get_report(filename: str):
     """Serve generated PDF reports"""

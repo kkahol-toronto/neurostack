@@ -1515,5 +1515,344 @@
     "final_decision": null,
     "decision_date": null,
     "decision_by": null
+  },
+  "46eae0ba-0b58-4f92-ad04-81e6d34cec02": {
+    "report_id": "46eae0ba-0b58-4f92-ad04-81e6d34cec02",
+    "customer_id": 3,
+    "customer_name": "Bob Johnson",
+    "report_date": "2025-08-25T04:53:51.824571",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "customer wants to increase limit to 25000",
+    "ai_summary": "## **Customer Profile**\n- **Name:** Bob Johnson  \n- **Customer ID:** 3  \n- **Date of Birth:** 1968-07-20 (Age: 55)  \n- **State:** Texas (TX)  \n- **City:** North Benjaminberg  \n- **Address:** 752 Steven Roads, North Benjaminberg, TX 64689  \n- **Customer Segment:** Basic  \n- **Employment Status:** Full-time  \n- **Employer:** Hahn Ltd  \n- **Job Title:** Producer, Radio  \n- **Household Size:** 4  \n- **Customer Since:** 2016-07-26 (Approx. 7+ years)  \n- **Identity Verification:** Verified  \n- **KYC Score:** 99.12 (High compliance)\n\n---\n\n## **Financial Health Overview**\n- **Verified Annual Income:** $66,396  \n- **Income Stability Score:** 81.87 (Indicates stable income)  \n- **Current Credit Limit:** $21,000  \n- **Current Credit Balance:** $12,375.46  \n- **Credit Utilization Rate:** 58.93% (Moderately high; best practice is <30%)  \n- **Debt-to-Income Ratio:** 54.78% (High; generally, <36% preferred for new credit)  \n- **Total Monthly Debt Payments:** $2,967.17  \n- **Account Tenure:** 39 months (3.25 years)  \n- **Total Accounts (Bureau):** 7  \n\n---\n\n## **Credit Risk Assessment**\n- **FICO Score 8:** 636  \n- **FICO Score 9:** 646  \n  - *Both scores are in the \"Fair\" range (580-669), below \"Good\" threshold (670+).*\n- **Payment History (Last 12 Months):**  \n  - **On-Time Payments:** 10  \n  - **Late Payments:** 2  \n  - **Delinquencies (30+ days, 12m):** 2  \n- **Fraud Risk Score:** 4.70 (Low risk)  \n- **Overall Risk Level:** Low (per internal and macro indicators)  \n- **Macroeconomic Context (TX):**  \n  - **Unemployment Rate:** 5.91%  \n  - **GDP Growth Rate:** 4.14% (Positive economic environment)  \n  - **Macro Risk Score:** 51.73 (Low)  \n\n**Key Risk Factors:**  \n- Elevated credit utilization and debt-to-income ratio  \n- Two recent late payments and two recent delinquencies  \n- FICO scores below \"Good\" threshold\n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**  \nBob Johnson is a long-standing, verified customer with stable full-time employment and a moderate household income. His income is stable, and he has a solid banking relationship (7+ years). However, financial indicators point to moderate-to-high leverage, reflected in a high debt-to-income ratio (>54%) and a credit utilization rate nearing 60%. His credit scores are in the \"Fair\" range, impacted by recent late payments and delinquencies.\n\n**Recommendations:**  \n- **Credit Limit Increase:** Not recommended at this time due to high utilization and DTI ratios, as well as recent payment delinquencies.\n- **Monitoring:** Continue to monitor payment behavior. Encourage reduction of outstanding balances to improve utilization and credit score.\n- **Credit Counseling/Advisory:** Consider offering financial wellness resources or counseling to help manage debt and improve credit standing.\n- **Product Offers:** Restrict to basic or secured credit products until payment history and utilization improve.\n- **Future Review:** Reassess for credit line increases or premium products after 6\u201312 months of improved payment behavior and reduced debt levels.\n\n**Conclusion:**  \nWhile Mr. Johnson is a verified, stable customer with low fraud and compliance risk, current financial metrics suggest a cautious approach regarding further credit extension. Proactive engagement to support debt management and credit improvement is advisable.",
+    "ai_recommendation": "The customer currently has a credit limit of $21,000.00 and a balance of $12,375.46, resulting in a credit utilization rate of 58.9%, which is above the recommended threshold of 30-40% for optimal credit health. Over the past 12 months, the customer has made 10 on-time payments and had 2 late payments, indicating some payment irregularities. Their FICO scores are 636 (FICO 8) and 646 (FICO 9), which are considered fair but below prime lending standards. The customer has 7 total accounts and 2 delinquencies (30+ days) in the past year, suggesting moderate credit risk. Verified annual income is $66,396.22, but the debt-to-income ratio is high at 54.8%, with total monthly debt payments of $2,967.17. Income stability is relatively strong at 81.9/100. Fraud risk is low (4.7/100), and KYC/identity verification scores are excellent. The customer is employed full-time as a radio producer, with a household size of 4, and has maintained a banking relationship since July 2016 (account tenure: 39 months).\n\nBased on the analysis, the customer demonstrates moderate credit risk due to high credit utilization, a high debt-to-income ratio, and recent payment delinquencies. While income stability and fraud risk are favorable, the current financial profile does not support a full approval of the requested $4,000.00 increase. To mitigate risk, a partial increase is recommended, contingent on improved payment behavior and reduced utilization. Continued monitoring of payment performance is advised.",
+    "suggested_decision": "Approved for credit limit increase from $21,000.00 to $23,000.00. The requested increase to $25,000.00 is not fully supported at this time due to elevated utilization and payment history concerns.",
+    "current_credit_limit": 21000.0,
+    "requested_credit_limit": 25000.0,
+    "credit_limit_increase": 4000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-25T04:53:51.824571",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 3,
+          "first_name": "Bob",
+          "last_name": "Johnson",
+          "date_of_birth": "1968-07-20",
+          "annual_income": 65000,
+          "state": "TX",
+          "employment_status": "Full-time",
+          "customer_segment": "Basic",
+          "email": "bob.johnson@email.com",
+          "phone": "(511) 106-5782",
+          "ssn": "***-**-3003",
+          "address_line1": "752 Steven Roads",
+          "address_line2": null,
+          "city": "North Benjaminberg",
+          "zip_code": "64689",
+          "customer_since": "2016-07-26",
+          "employer_name": "Hahn Ltd",
+          "job_title": "Producer, radio",
+          "household_size": 4
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 3,
+          "current_credit_limit": 21000,
+          "current_balance": 12375.461518433758,
+          "utilization_rate": 58.93076913539884,
+          "on_time_payments_12m": 10,
+          "late_payments_12m": 2,
+          "tenure_months": 39
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 3,
+          "fico_score_8": 636,
+          "fico_score_9": 646,
+          "total_accounts_bureau": 7,
+          "delinquencies_30_plus_12m": 2
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 3,
+          "overall_fraud_risk_score": 4.70160620619146,
+          "risk_level": "low",
+          "kyc_score": 99.11862035234205,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 3,
+          "verified_annual_income": 66396.22057920022,
+          "debt_to_income_ratio": 0.5477854542496878,
+          "total_monthly_debt_payments": 2967.1712105191423,
+          "income_stability_score": 81.8691405034217
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "TX",
+          "unemployment_rate": 5.906421076732912,
+          "macro_risk_score": 51.731969114504565,
+          "risk_level": "low",
+          "gdp_growth_rate": 4.136441195494254
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "9fb69c20-13ed-4265-8f1b-68276e671efd": {
+    "report_id": "9fb69c20-13ed-4265-8f1b-68276e671efd",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-25T05:06:14.643549",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "increase by 3700 ",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer ID:** 5  \n- **Name:** Michael Gonzales  \n- **Date of Birth:** 1994-04-24 (Age: 30)  \n- **Location:** West Donaldton, CA 44969  \n- **Employment Status:** Part-time  \n- **Employer:** Mitchell Group  \n- **Job Title:** Teacher, English as a Foreign Language  \n- **Customer Segment:** Premium  \n- **Household Size:** 2  \n- **Customer Since:** 2023-04-15  \n- **Contact:** michael.gonzales@email.com, (672) 201-4656  \n- **Identity Verification:** Verified  \n- **KYC Score:** 74.4 (on a 100-point scale)  \n- **Fraud Risk Level:** Low (Score: 7.95/100)\n\n---\n\n## **Financial Health Overview**\n\n- **Verified Annual Income:** $111,398  \n- **Reported Annual Income:** $114,394  \n- **Income Stability Score:** 82.4 (strong, above average)  \n- **Debt-to-Income Ratio:** 0.32 (healthy; well below risk thresholds)  \n- **Total Monthly Debt Payments:** $3,019.60  \n- **Current Credit Limit:** $32,000  \n- **Current Balance:** $6,512.54  \n- **Utilization Rate:** 20.4% (well below 30% guideline for healthy credit usage)  \n- **Tenure with Bank:** 38 months  \n- **Customer Segment:** Premium (likely eligible for preferred rates/services)\n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 724  \n- **FICO Score 9:** 722  \n  - **Interpretation:** Both scores indicate \u201cGood\u201d credit, bordering on \u201cVery Good.\u201d\n- **Total Accounts (Bureau):** 9  \n- **Recent Delinquencies (12m):** 0 (excellent recent payment history)  \n- **On-Time Payments (12m):** 11 out of 12 months  \n- **Late Payments (12m):** 0  \n- **Overall Fraud Risk Score:** 7.95 (low risk; below industry concern threshold)  \n- **KYC/Compliance:** Fully verified, score above standard threshold  \n- **Macro-Economic Risk (CA):**  \n  - **Unemployment Rate:** 5.65% (slightly elevated, but not critical)  \n  - **GDP Growth Rate:** 4.33% (positive economic environment)  \n  - **Macro Risk Score:** 37.2 (medium, not high)\n\n---\n\n## **Summary & Recommendations**\n\n- **Overall Assessment:**  \n  - Michael Gonzales demonstrates strong financial health and creditworthiness. His income is well-verified and stable, with a low debt-to-income ratio, healthy credit utilization, and an excellent payment history.  \n  - Credit scores are solidly within the \u201cGood\u201d range, and absence of recent delinquencies enhances his risk profile.  \n  - Fraud/KYC risk is minimal, and identity is verified.  \n  - Economic conditions in CA are stable, with moderate macro risk.\n\n- **Specific Recommendations:**  \n  - **Credit Line Increase:** Consider a moderate credit line increase, given low utilization and strong repayment history, to support ongoing financial needs and reward premium segment loyalty.\n  - **Premium Product Eligibility:** Eligible for premium banking products (lower rates, rewards, etc.) given his segment and financial metrics.\n  - **Monitor Employment Status:** Part-time employment status warrants periodic review for income stability, though current scores indicate no immediate concern.\n  - **Maintain Engagement:** Encourage continued engagement with digital banking and provide personalized offers to retain customer.\n  - **No Action Needed for Risk:** No immediate risk mitigation required; continue standard monitoring.\n\n**Conclusion:**  \nMichael Gonzales is a low-risk, financially healthy premium customer. Banking decisions should be favorable, with consideration for enhanced credit and product offerings. Regular review recommended given part-time employment, but no current adverse factors detected.",
+    "ai_recommendation": "The customer currently maintains a credit limit of $32,000.00 with a balance of $6,512.54, resulting in a low credit utilization rate of 20.4%, which is well below the recommended threshold of 30%. Over the past 12 months, the customer has made 11 on-time payments and has had zero late payments, indicating strong payment discipline. The account tenure of 38 months demonstrates a stable and established banking relationship. The customer\u2019s FICO scores are 724 (FICO 8) and 722 (FICO 9), both reflecting good creditworthiness. There are no delinquencies reported in the past 12 months across 9 total accounts. Verified annual income is $111,398.06, supporting a debt-to-income ratio of 31.7%, which is within acceptable limits for premium segment customers. The income stability score is 82.4/100, indicating reliable income, despite part-time employment status. Fraud risk is low (7.9/100), KYC score is 74.4/100, and identity verification is complete, minimizing compliance concerns. The customer requests a $3,700.00 increase, raising the limit to $35,700.00, which is a moderate adjustment relative to income and current utilization.\n\nBased on the customer\u2019s strong payment history (11/12 on-time payments, 0 late payments), good FICO scores (724/722), low credit utilization (20.4%), and verified stable income ($111,398.06), the risk associated with the requested credit limit increase is low. The debt-to-income ratio (31.7%) is acceptable for the premium segment, and fraud/compliance scores are favorable. The requested increase is reasonable and supported by the customer\u2019s financial profile and responsible credit behavior. Therefore, I recommend approval of the credit limit increase.",
+    "suggested_decision": "Approved for credit limit increase from $32,000.00 to $35,700.00.",
+    "current_credit_limit": 32000.0,
+    "requested_credit_limit": 35700.0,
+    "credit_limit_increase": 3700.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-25T05:06:14.643549",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 5,
+          "first_name": "Michael",
+          "last_name": "Gonzales",
+          "date_of_birth": "1994-04-24",
+          "annual_income": 114394,
+          "state": "CA",
+          "employment_status": "Part-time",
+          "customer_segment": "Premium",
+          "email": "michael.gonzales@email.com",
+          "phone": "(672) 201-4656",
+          "ssn": "***-**-2707",
+          "address_line1": "2053 Mark Common Suite 157",
+          "address_line2": null,
+          "city": "West Donaldton",
+          "zip_code": "44969",
+          "customer_since": "2023-04-15",
+          "employer_name": "Mitchell Group",
+          "job_title": "Teacher, English as a foreign language",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 5,
+          "current_credit_limit": 32000,
+          "current_balance": 6512.544260638192,
+          "utilization_rate": 20.35170081449435,
+          "on_time_payments_12m": 11,
+          "late_payments_12m": 0,
+          "tenure_months": 38
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 5,
+          "fico_score_8": 724,
+          "fico_score_9": 722,
+          "total_accounts_bureau": 9,
+          "delinquencies_30_plus_12m": 0
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 5,
+          "overall_fraud_risk_score": 7.946254314885415,
+          "risk_level": "low",
+          "kyc_score": 74.42342165879084,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 5,
+          "verified_annual_income": 111398.05645685742,
+          "debt_to_income_ratio": 0.3167581065732502,
+          "total_monthly_debt_payments": 3019.6022369450325,
+          "income_stability_score": 82.42473592743112
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "CA",
+          "unemployment_rate": 5.646809813422138,
+          "macro_risk_score": 37.170520782533295,
+          "risk_level": "medium",
+          "gdp_growth_rate": 4.325897349226025
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "750565d7-92ff-43ef-a0d0-4ff8ddf596ba": {
+    "report_id": "750565d7-92ff-43ef-a0d0-4ff8ddf596ba",
+    "customer_id": 6,
+    "customer_name": "Kyle Johnson",
+    "report_date": "2025-08-25T05:13:25.813941",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "wants to increase the limit by 5000",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer ID:** 6  \n- **Name:** Kyle Johnson  \n- **Date of Birth:** July 13, 2002 (Age 21)  \n- **State:** Ohio (OH)  \n- **Address:** 7713 Carrillo Estates, Goodmanmouth, OH 03051  \n- **Contact:** kyle.johnson@email.com, (910) 313-2876  \n- **Employment Status:** Full-time  \n- **Employer:** Kennedy-Taylor  \n- **Job Title:** Horticultural Consultant  \n- **Customer Segment:** Standard  \n- **Customer Since:** March 5, 2021  \n- **Household Size:** 2  \n- **Identity Verification:** Verified  \n- **KYC Score:** 89.34 (out of 100, strong compliance)\n\n---\n\n## **Financial Health Overview**\n\n- **Verified Annual Income:** $65,155  \n  - Reported: $62,859  \n  - Verified slightly higher, indicating credibility.\n- **Income Stability Score:** 73.54 (moderate to high stability)\n- **Debt-to-Income Ratio:** 0.25 (healthy; below industry concern thresholds)\n- **Total Monthly Debt Payments:** $1,322  \n- **Current Credit Limit:** $18,000  \n- **Current Balance:** $9,063  \n- **Utilization Rate:** 50.35%\n  - Slightly above recommended (under 30%). May impact score.\n- **Tenure with Bank:** 111 months (~9.25 years)\n- **Account Activity:**  \n  - **On-time Payments (12m):** 10  \n  - **Late Payments (12m):** 0  \n  - **Total Accounts (Credit Bureau):** 13\n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 613  \n- **FICO Score 9:** 600  \n  - **Range:** Fair (580\u2013669)\n  - Indicates elevated risk, but not subprime.\n- **Delinquencies (30+ days, 12m):** 2  \n  - Recent delinquencies noted; potential concern despite no late payments in bank records.\n- **Fraud/KYC/Compliance:**  \n  - **Fraud Risk Score:** 3.14 (medium risk)  \n  - **Risk Level:** Medium (banking data), Low (macro/region)\n- **Macro-Economic Indicators (Ohio):**  \n  - **Unemployment Rate:** 4.02% (moderate, slightly below national average)\n  - **GDP Growth Rate:** 3.62% (positive economic environment)\n  - **State Macro Risk Level:** Low\n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**  \nKyle Johnson presents as a young, employed, and verified customer with moderate income and financial stability. His debt-to-income ratio is healthy, and he has a relatively long banking tenure. However, his credit utilization is high and his FICO scores fall in the fair range, with two recent bureau-reported delinquencies. Fraud risk is assessed as medium, but KYC compliance is strong, and the economic environment in Ohio is favorable.\n\n**Specific Recommendations:**\n\n- **Credit Limit Decisions:**  \n  - Consider maintaining current credit limit until credit utilization improves and FICO scores rise.\n  - If limit increase is requested, recommend conditional approval based on reducing utilization and demonstrating improved payment behavior.\n- **Risk Mitigation:**  \n  - Monitor account for payment irregularities and maintain close review due to recent bureau delinquencies.\n  - Offer financial counseling or credit education to help improve credit management.\n- **Product Opportunities:**  \n  - Given employment and income stability, offer secured credit products or entry-level loans with careful monitoring.\n  - Suggest balance transfer or debt consolidation products to optimize utilization and payment history.\n- **Continued Compliance:**  \n  - Continue periodic KYC and fraud risk reviews due to medium fraud risk score.\n\n**Conclusion:**  \nKyle Johnson is a viable candidate for continued banking relationship with moderate risk. Caution is advised for any credit extension until utilization and credit scores improve. With targeted support, Kyle has potential to progress to a lower risk segment.",
+    "ai_recommendation": "The customer currently has a credit limit of $18,000 and a balance of $9,062.95, resulting in a credit utilization rate of 50.3%, which is moderately high and above the optimal threshold (typically below 30%). Over the past 12 months, the customer has made 10 on-time payments and has no late payments on this account, indicating responsible recent payment behavior. However, credit bureau data shows 2 delinquencies (30+ days) in the last 12 months across all accounts, which is a notable risk factor. The FICO scores are 613 (FICO 8) and 600 (FICO 9), both below prime lending standards and indicative of fair credit quality. The customer has 13 total accounts, suggesting moderate credit experience. Verified annual income is $65,155.47, with a debt-to-income ratio of 25.2%, which is within acceptable limits and demonstrates the ability to manage additional debt. The income stability score is 73.5/100, reflecting reasonable but not exceptional stability. Fraud risk is low (3.1/100), KYC score is high (89.3/100), and identity verification is complete, mitigating compliance concerns. The customer requests a $5,000 increase to a $23,000 limit.\n\nBased on the analysis, the customer demonstrates responsible recent payment behavior and manageable debt levels, supported by stable full-time employment and verified income. However, the moderately high credit utilization, fair FICO scores, and two recent delinquencies present elevated risk. While the customer\u2019s financial profile supports some increase, a full $5,000 increase may be excessive given the risk factors. A partial increase is recommended to balance risk and support the customer\u2019s credit needs, with continued monitoring of payment behavior.",
+    "suggested_decision": "Approved for credit limit increase from $18,000 to $21,000. A $3,000 increase is granted, with future increases contingent on improved credit scores and no further delinquencies.",
+    "current_credit_limit": 18000.0,
+    "requested_credit_limit": 23000.0,
+    "credit_limit_increase": 5000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-25T05:13:25.813941",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 6,
+          "first_name": "Kyle",
+          "last_name": "Johnson",
+          "date_of_birth": "2002-07-13",
+          "annual_income": 62859,
+          "state": "OH",
+          "employment_status": "Full-time",
+          "customer_segment": "Standard",
+          "email": "kyle.johnson@email.com",
+          "phone": "(910) 313-2876",
+          "ssn": "***-**-4213",
+          "address_line1": "7713 Carrillo Estates",
+          "address_line2": null,
+          "city": "Goodmanmouth",
+          "zip_code": "03051",
+          "customer_since": "2021-03-05",
+          "employer_name": "Kennedy-Taylor",
+          "job_title": "Horticultural consultant",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 6,
+          "current_credit_limit": 18000,
+          "current_balance": 9062.95104271733,
+          "utilization_rate": 50.349728015096275,
+          "on_time_payments_12m": 10,
+          "late_payments_12m": 0,
+          "tenure_months": 111
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 6,
+          "fico_score_8": 613,
+          "fico_score_9": 600,
+          "total_accounts_bureau": 13,
+          "delinquencies_30_plus_12m": 2
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 6,
+          "overall_fraud_risk_score": 3.135137151902513,
+          "risk_level": "medium",
+          "kyc_score": 89.34050138356436,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 6,
+          "verified_annual_income": 65155.46865714394,
+          "debt_to_income_ratio": 0.25239909521171017,
+          "total_monthly_debt_payments": 1322.1295604927407,
+          "income_stability_score": 73.5447653541292
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "OH",
+          "unemployment_rate": 4.015212606150735,
+          "macro_risk_score": 38.289954061761094,
+          "risk_level": "low",
+          "gdp_growth_rate": 3.6235877736773356
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
   }
 }
