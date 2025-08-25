@@ -12,7 +12,18 @@ import {
   Alert,
   CircularProgress,
   Divider,
-  Chip
+  Chip,
+  Checkbox,
+  FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -56,6 +67,15 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [investigationPlan, setInvestigationPlan] = useState<InvestigationStep[]>([]);
+  const [selectedSteps, setSelectedSteps] = useState<Set<string>>(new Set());
+  const [addStepDialogOpen, setAddStepDialogOpen] = useState(false);
+  const [newStep, setNewStep] = useState({
+    title: '',
+    description: '',
+    category: 'analysis' as 'data_collection' | 'analysis' | 'scenario' | 'visualization',
+    priority: 'medium' as 'high' | 'medium' | 'low',
+    estimatedTime: '15-20 min'
+  });
 
   // Steps taken so far
   const stepsTaken = [
@@ -89,7 +109,7 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
     }
   ];
 
-  // Generate investigation plan
+  // Generate investigation strategy
   const generateInvestigationPlan = async () => {
     try {
       setLoading(true);
@@ -105,11 +125,11 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
       if (response.success) {
         setInvestigationPlan(response.data.steps || []);
       } else {
-        setError(response.error || 'Failed to generate investigation plan');
+        setError(response.error || 'Failed to generate investigation strategy');
       }
     } catch (err) {
-      setError('Failed to generate investigation plan');
-      console.error('Error generating investigation plan:', err);
+      setError('Failed to generate investigation strategy');
+      console.error('Error generating investigation strategy:', err);
     } finally {
       setLoading(false);
     }
@@ -145,6 +165,50 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
       default:
         return 'default';
     }
+  };
+
+  const handleStepSelection = (stepId: string, checked: boolean) => {
+    const newSelectedSteps = new Set(selectedSteps);
+    if (checked) {
+      newSelectedSteps.add(stepId);
+    } else {
+      newSelectedSteps.delete(stepId);
+    }
+    setSelectedSteps(newSelectedSteps);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSteps.size === investigationPlan.length) {
+      setSelectedSteps(new Set());
+    } else {
+      setSelectedSteps(new Set(Array.from(investigationPlan.map(step => step.id))));
+    }
+  };
+
+  const handleAddCustomStep = () => {
+    if (newStep.title && newStep.description) {
+      const customStep: InvestigationStep = {
+        id: `custom_${Date.now()}`,
+        ...newStep
+      };
+      setInvestigationPlan(prev => [...prev, customStep]);
+      setSelectedSteps(prev => new Set([...Array.from(prev), customStep.id]));
+      setAddStepDialogOpen(false);
+      setNewStep({
+        title: '',
+        description: '',
+        category: 'analysis',
+        priority: 'medium',
+        estimatedTime: '15-20 min'
+      });
+    }
+  };
+
+  const handleProceedToNextStage = () => {
+    const selectedStepData = investigationPlan.filter(step => selectedSteps.has(step.id));
+    console.log('Selected steps for next stage:', selectedStepData);
+    // TODO: Navigate to next stage with selected steps
+    onClose();
   };
 
   return (
@@ -224,20 +288,49 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
 
       <Divider sx={{ my: 3 }} />
 
-      {/* Investigation Plan */}
+      {/* Investigation Strategy */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" sx={{ color: theme.colors.text }}>
-          Investigation Plan for Further Analysis
+          Investigation Strategy & Analysis Plan
         </Typography>
-        <Button
-          variant="outlined"
-          onClick={generateInvestigationPlan}
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <AssessmentIcon />}
-        >
-          {loading ? 'Generating...' : 'Regenerate Plan'}
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={generateInvestigationPlan}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <AssessmentIcon />}
+          >
+            {loading ? 'Generating...' : 'Regenerate Strategy'}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setAddStepDialogOpen(true)}
+            startIcon={<AssessmentIcon />}
+          >
+            Add Custom Step
+          </Button>
+        </Box>
       </Box>
+
+      {/* Selection Controls */}
+      {investigationPlan.length > 0 && (
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedSteps.size === investigationPlan.length && investigationPlan.length > 0}
+                indeterminate={selectedSteps.size > 0 && selectedSteps.size < investigationPlan.length}
+                onChange={handleSelectAll}
+              />
+            }
+            label={`Select All (${selectedSteps.size}/${investigationPlan.length} selected)`}
+            sx={{ color: theme.colors.text }}
+          />
+          <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+            Select the steps you want to proceed with
+          </Typography>
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
@@ -253,12 +346,21 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 2 }}>
           {investigationPlan.map((step, index) => (
             <Card key={step.id} sx={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              height: '100%'
+              backgroundColor: selectedSteps.has(step.id) ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+              border: selectedSteps.has(step.id) ? '2px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+              height: '100%',
+              transition: 'all 0.2s ease-in-out'
             }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 2 }}>
+                  <Checkbox
+                    checked={selectedSteps.has(step.id)}
+                    onChange={(e) => handleStepSelection(step.id, e.target.checked)}
+                    sx={{ 
+                      color: theme.colors.primary,
+                      '&.Mui-checked': { color: theme.colors.primary }
+                    }}
+                  />
                   {getStepIcon(step.category)}
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
@@ -288,25 +390,108 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
       )}
 
       {/* Action Buttons */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-        <Button onClick={onClose} variant="outlined">
-          Close
-        </Button>
-        <Button
-          variant="contained"
-          onClick={() => {
-            // TODO: Navigate to next stage (scenario analysis, graphs, etc.)
-            console.log('Proceeding to next stage...');
-          }}
-          startIcon={<TrendingUpIcon />}
-          sx={{ 
-            backgroundColor: theme.colors.primary,
-            '&:hover': { backgroundColor: theme.colors.primaryDark }
-          }}
-        >
-          Proceed to Scenario Analysis
-        </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+        <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+          {selectedSteps.size > 0 ? `${selectedSteps.size} step(s) selected` : 'No steps selected'}
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button onClick={onClose} variant="outlined">
+            Close
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleProceedToNextStage}
+            disabled={selectedSteps.size === 0}
+            startIcon={<TrendingUpIcon />}
+            sx={{ 
+              backgroundColor: theme.colors.primary,
+              '&:hover': { backgroundColor: theme.colors.primaryDark }
+            }}
+          >
+            Proceed with Selected Steps ({selectedSteps.size})
+          </Button>
+        </Box>
       </Box>
+
+      {/* Add Custom Step Dialog */}
+      <Dialog
+        open={addStepDialogOpen}
+        onClose={() => setAddStepDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: theme.colors.text }}>
+          Add Custom Investigation Step
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 2, mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Step Title"
+              value={newStep.title}
+              onChange={(e) => setNewStep(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g., Industry Trend Analysis"
+              sx={{ gridColumn: '1 / -1' }}
+            />
+            
+            <TextField
+              fullWidth
+              label="Step Description"
+              value={newStep.description}
+              onChange={(e) => setNewStep(prev => ({ ...prev, description: e.target.value }))}
+              multiline
+              rows={3}
+              placeholder="Describe what this step involves..."
+              sx={{ gridColumn: '1 / -1' }}
+            />
+            
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={newStep.category}
+                onChange={(e) => setNewStep(prev => ({ ...prev, category: e.target.value as any }))}
+                label="Category"
+              >
+                <MenuItem value="data_collection">Data Collection</MenuItem>
+                <MenuItem value="analysis">Analysis</MenuItem>
+                <MenuItem value="scenario">Scenario Modeling</MenuItem>
+                <MenuItem value="visualization">Visualization</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={newStep.priority}
+                onChange={(e) => setNewStep(prev => ({ ...prev, priority: e.target.value as any }))}
+                label="Priority"
+              >
+                <MenuItem value="high">High</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="low">Low</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <TextField
+              fullWidth
+              label="Estimated Time"
+              value={newStep.estimatedTime}
+              onChange={(e) => setNewStep(prev => ({ ...prev, estimatedTime: e.target.value }))}
+              placeholder="e.g., 15-20 min"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddStepDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleAddCustomStep}
+            variant="contained"
+            disabled={!newStep.title || !newStep.description}
+          >
+            Add Step
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

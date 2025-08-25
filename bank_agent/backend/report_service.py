@@ -536,7 +536,7 @@ FRAUD & COMPLIANCE:
             return "Error extracting customer profile data."
 
     def generate_investigation_plan(self, customer_id: int, customer_name: str, customer_data: Dict[str, Any], report_id: Optional[str] = None) -> Dict[str, Any]:
-        """Generate a comprehensive investigation plan for data processing stage."""
+        """Generate a comprehensive investigation strategy for analysis stage."""
         try:
             # Extract key customer data for analysis
             banking_data = customer_data.get('internal_banking_data', {}).get('data', {})
@@ -643,16 +643,16 @@ FRAUD & COMPLIANCE:
             
             return {
                 "steps": investigation_steps,
-                "summary": f"Generated comprehensive investigation plan for {customer_name} with {len(investigation_steps)} analysis steps covering data collection, analysis, scenario modeling, and visualization.",
+                "summary": f"Generated comprehensive investigation strategy for {customer_name} with {len(investigation_steps)} analysis steps covering data collection, analysis, scenario modeling, and visualization.",
                 "total_estimated_time": "2-3 hours",
                 "high_priority_steps": len([step for step in investigation_steps if step["priority"] == "high"])
             }
             
         except Exception as e:
-            logger.error(f"Error generating investigation plan: {e}")
+            logger.error(f"Error generating investigation strategy: {e}")
             return {
                 "steps": [],
-                "summary": "Error generating investigation plan",
+                "summary": "Error generating investigation strategy",
                 "total_estimated_time": "Unknown",
                 "high_priority_steps": 0
             }

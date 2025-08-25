@@ -108,7 +108,7 @@ const ReportManager: React.FC<ReportManagerProps> = ({
   const [inquiryTypes, setInquiryTypes] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
   
-  // Data Processing Stage
+  // Plan for Investigation Stage
   const [dataProcessingOpen, setDataProcessingOpen] = useState(false);
   const [lastCreatedReportId, setLastCreatedReportId] = useState<string | null>(null);
   const [selectedReportForDataProcessing, setSelectedReportForDataProcessing] = useState<Report | null>(null);
@@ -690,9 +690,9 @@ const ReportManager: React.FC<ReportManagerProps> = ({
               backgroundColor: theme.colors.primary,
               '&:hover': { backgroundColor: theme.colors.primaryDark }
             }}
-          >
-            Go to Data Processing Stage
-          </Button>
+                      >
+              Go to Plan for Investigation
+            </Button>
           <Button
             variant="outlined"
             size="small"
@@ -768,9 +768,9 @@ const ReportManager: React.FC<ReportManagerProps> = ({
                           backgroundColor: 'rgba(255, 255, 255, 0.05)'
                         }
                       }}
-                    >
-                      Data Processing
-                    </Button>
+                                          >
+                        Plan for Investigation
+                      </Button>
                     <IconButton
                       size="small"
                       onClick={() => openViewDialog(report)}
@@ -1274,7 +1274,7 @@ const ReportManager: React.FC<ReportManagerProps> = ({
         </DialogActions>
       </Dialog>
 
-      {/* Data Processing Dialog */}
+      {/* Plan for Investigation Dialog */}
       <Dialog
         open={dataProcessingOpen}
         onClose={() => setDataProcessingOpen(false)}
@@ -1284,7 +1284,7 @@ const ReportManager: React.FC<ReportManagerProps> = ({
         <DialogTitle sx={{ color: theme.colors.text }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AssessmentIcon />
-            Data Processing Stage - Investigation Plan
+            Plan for Investigation - Analysis Strategy
           </Box>
         </DialogTitle>
         <DialogContent>

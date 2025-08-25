@@ -1502,7 +1502,7 @@ async def generate_report_recommendation(
 async def generate_investigation_plan(
     request: dict
 ):
-    """Generate investigation plan for data processing stage."""
+    """Generate investigation strategy for analysis stage."""
     try:
         plan = report_service.generate_investigation_plan(
             customer_id=request.get("customerId"),
