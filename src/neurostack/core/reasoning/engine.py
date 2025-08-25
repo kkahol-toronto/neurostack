@@ -51,7 +51,15 @@ class ReasoningEngine:
     def _create_llm_client(self):
         """Create an LLM client based on the model."""
         try:
-            if self.model.startswith("gpt-"):
+            # Check for Azure OpenAI configuration first
+            import os
+            azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            azure_key = os.getenv("AZURE_OPENAI_KEY")
+            azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+            
+            if azure_endpoint and azure_key and azure_deployment:
+                return AzureOpenAIClient(azure_endpoint, azure_key, azure_deployment, self.temperature)
+            elif self.model.startswith("gpt-"):
                 import openai
                 return OpenAIClient(self.model, self.temperature)
             elif self.model.startswith("claude-"):
@@ -284,6 +292,69 @@ class LLMClient(ABC):
         pass
 
 
+class AzureOpenAIClient(LLMClient):
+    """Azure OpenAI client for GPT models."""
+    
+    def __init__(self, endpoint: str, key: str, deployment: str, temperature: float):
+        super().__init__(deployment, temperature)
+        self.endpoint = endpoint
+        self.key = key
+        self.deployment = deployment
+    
+    async def generate(self, prompt: str) -> str:
+        """Generate a response using Azure OpenAI."""
+        try:
+            from openai import AzureOpenAI
+            import asyncio
+            import os
+            
+            # For APIM endpoints, use the same approach as main.py
+            base_endpoint = self.endpoint.rstrip('/')
+            # Get API version from environment
+            api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
+            
+            # Use direct HTTP request for APIM like main.py does
+            import httpx
+            
+            url = f"{base_endpoint}/openai/deployments/{self.deployment}/chat/completions?api-version={api_version}"
+            
+            headers = {
+                "Content-Type": "application/json",
+                "Ocp-Apim-Subscription-Key": self.key,
+                "User-Agent": "BankingAgent/1.0"
+            }
+            
+            data = {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "max_tokens": 1000,
+                "temperature": self.temperature
+            }
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(url, json=data, headers=headers)
+                
+                if response.status_code != 200:
+                    error_msg = response.text
+                    try:
+                        error_data = response.json()
+                        error_msg = error_data.get('message', response.text)
+                    except:
+                        pass
+                    raise Exception(f"APIM returned status {response.status_code}: {error_msg}")
+                
+                result = response.json()
+                return result["choices"][0]["message"]["content"]
+            
+        except Exception as e:
+            logger.error("Azure OpenAI API call failed", error=str(e))
+            return f"Error: {str(e)}"
+
+
 class OpenAIClient(LLMClient):
     """OpenAI client for GPT models."""
     
@@ -292,7 +363,8 @@ class OpenAIClient(LLMClient):
         try:
             import openai
             
-            response = await openai.ChatCompletion.acreate(
+            client = openai.AsyncOpenAI()
+            response = await client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=self.temperature,

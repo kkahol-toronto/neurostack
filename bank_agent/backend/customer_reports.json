@@ -1,0 +1,591 @@
+{
+  "c43803cf-a0a9-464f-852b-1cba0e4934a0": {
+    "report_id": "c43803cf-a0a9-464f-852b-1cba0e4934a0",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-24T19:02:46.084070",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "The client has asked a limit to be increased to 40,000. I would like to visualize the impact before final approval",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer ID:** 5  \n- **Name:** Michael Gonzales  \n- **Date of Birth:** 1994-04-24 (Age: 30)  \n- **State:** CA  \n- **City/Zip:** West Donaldton, 44969  \n- **Address:** 2053 Mark Common Suite 157  \n- **Household Size:** 2  \n- **Employment Status:** Part-time  \n- **Employer:** Mitchell Group  \n- **Job Title:** Teacher, English as a Foreign Language  \n- **Customer Segment:** Premium  \n- **Customer Since:** 2023-04-15  \n- **Contact:** michael.gonzales@email.com, (672) 201-4656  \n- **Identity Verification:** Verified  \n- **KYC Score:** 74.4 (out of 100)  \n\n---\n\n## **Financial Health Overview**\n\n- **Verified Annual Income:** $111,398  \n- **Reported Annual Income:** $114,394  \n- **Income Stability Score:** 82.4 (high stability)  \n- **Employment:** Part-time, but with premium segment status and high income  \n- **Current Credit Limit:** $32,000  \n- **Current Balance:** $6,512.54  \n- **Utilization Rate:** 20.35% (well below risk threshold)  \n- **Total Monthly Debt Payments:** $3,019.60  \n- **Debt-to-Income Ratio:** 31.68% (moderate, below high-risk levels)  \n- **Account Tenure:** 38 months (3+ years)  \n- **Total Accounts (Bureau):** 9  \n- **Customer Activity:** Regular account usage, no indications of excessive credit seeking, and strong payment discipline  \n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 724  \n- **FICO Score 9:** 722  \n- **On-Time Payments (12 months):** 11  \n- **Late Payments (12 months):** 0  \n- **Delinquencies (30+ days, 12 months):** 0  \n- **Overall Fraud Risk Score:** 7.95 (low risk)  \n- **Risk Level (Fraud/KYC):** Low  \n- **Risk Level (Macro/Economic):** Medium (due to state-level factors)  \n- **State Unemployment Rate:** 5.65% (moderate)  \n- **Macro Risk Score:** 37.17 (moderate exposure)  \n- **GDP Growth Rate (State):** 4.33% (positive economic momentum)  \n\n**Key Risk Factors:**  \n- No recent delinquencies or late payments  \n- Credit utilization is prudent  \n- Debt-to-income ratio is manageable  \n- Economic indicators are average for California; macro risk is not elevated  \n- Verified identity and low fraud risk  \n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**  \nMichael Gonzales demonstrates strong financial health, prudent credit management, and an excellent payment record. Income is high and stable, despite part-time employment status. Credit scores are well above prime threshold, and risk indicators (fraud, KYC, macro) are generally low to moderate.\n\n**Recommendations:**  \n- **Credit Line Increase:** Consider a moderate credit line increase, subject to further income stability review, given strong utilization and payment behavior.\n- **Premium Product Eligibility:** Eligible for premium financial products and services, including rewards cards and preferred lending rates.\n- **Continuous Monitoring:** Maintain regular monitoring for any changes in employment status or macroeconomic risks, given the part-time employment and California\u2019s moderate unemployment rate.\n- **Offer Financial Planning:** Recommend tailored financial planning services, focusing on long-term savings and debt optimization due to household size and debt profile.\n- **No Immediate Concerns:** No red flags regarding fraud, identity, or repayment risk at this time.\n\n**Decision:**  \n**Approved** for continued premium banking relationship, with consideration for expanded credit facilities and personalized financial solutions.",
+    "ai_recommendation": null,
+    "suggested_decision": null,
+    "current_credit_limit": null,
+    "requested_credit_limit": null,
+    "credit_limit_increase": null,
+    "agent_notes": null,
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-24T19:02:46.084070",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 5,
+          "first_name": "Michael",
+          "last_name": "Gonzales",
+          "date_of_birth": "1994-04-24",
+          "annual_income": 114394,
+          "state": "CA",
+          "employment_status": "Part-time",
+          "customer_segment": "Premium",
+          "email": "michael.gonzales@email.com",
+          "phone": "(672) 201-4656",
+          "ssn": "***-**-2707",
+          "address_line1": "2053 Mark Common Suite 157",
+          "address_line2": null,
+          "city": "West Donaldton",
+          "zip_code": "44969",
+          "customer_since": "2023-04-15",
+          "employer_name": "Mitchell Group",
+          "job_title": "Teacher, English as a foreign language",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 5,
+          "current_credit_limit": 32000,
+          "current_balance": 6512.544260638192,
+          "utilization_rate": 20.35170081449435,
+          "on_time_payments_12m": 11,
+          "late_payments_12m": 0,
+          "tenure_months": 38
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 5,
+          "fico_score_8": 724,
+          "fico_score_9": 722,
+          "total_accounts_bureau": 9,
+          "delinquencies_30_plus_12m": 0
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 5,
+          "overall_fraud_risk_score": 7.946254314885415,
+          "risk_level": "low",
+          "kyc_score": 74.42342165879084,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 5,
+          "verified_annual_income": 111398.05645685742,
+          "debt_to_income_ratio": 0.3167581065732502,
+          "total_monthly_debt_payments": 3019.6022369450325,
+          "income_stability_score": 82.42473592743112
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "CA",
+          "unemployment_rate": 5.646809813422138,
+          "macro_risk_score": 37.170520782533295,
+          "risk_level": "medium",
+          "gdp_growth_rate": 4.325897349226025
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "a11ee833-5a17-4072-ae00-fe400b26f000": {
+    "report_id": "a11ee833-5a17-4072-ae00-fe400b26f000",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-24T20:44:03.687615",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "customer wants credit limit to be increased to 40000.",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer ID:** 5  \n- **Name:** Michael Gonzales  \n- **Date of Birth:** 1994-04-24 (Age: 30)  \n- **State:** CA (West Donaldton, 44969)  \n- **Customer Segment:** Premium  \n- **Employment Status:** Part-time  \n- **Employer:** Mitchell Group  \n- **Job Title:** Teacher, English as a Foreign Language  \n- **Household Size:** 2  \n- **Customer Since:** 2023-04-15  \n- **Contact:** michael.gonzales@email.com | (672) 201-4656  \n- **Address:** 2053 Mark Common Suite 157, West Donaldton, CA 44969  \n- **Identity Verification:** Verified  \n- **KYC Score:** 74.4 (on a 100-point scale)  \n\n---\n\n## **Financial Health Overview**\n\n- **Verified Annual Income:** $111,398  \n  - **Self-reported:** $114,394  \n- **Income Stability Score:** 82.4 (high stability)  \n- **Current Credit Limit:** $32,000  \n- **Current Credit Balance:** $6,513  \n  - **Utilization Rate:** 20.4% (within healthy range, <30%)  \n- **Debt-to-Income Ratio:** 31.7%  \n  - **Total Monthly Debt Payments:** $3,019.60  \n  - **Industry Benchmark:** Generally, <36% is considered manageable  \n- **Account Tenure:** 38 months (3+ years)  \n- **Customer Activity:** Active, with premium segment engagement  \n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 724  \n- **FICO Score 9:** 722  \n  - **Credit Score Range:** Good (720\u2013739)  \n- **Total Accounts (Bureau):** 9  \n- **On-Time Payments (12 months):** 11 out of 12 (no late payments recorded)  \n- **Late Payments (12 months):** 0  \n- **Delinquencies (30+ days, 12 months):** 0  \n- **Fraud Risk Score:** 7.95 (low risk)  \n- **Overall Risk Level:** Low (per internal and compliance data)  \n- **Macro-Economic Risk Factors:**  \n  - **State Unemployment Rate:** 5.65% (moderate)  \n  - **Macro Risk Score:** 37.17 (medium risk)  \n  - **State GDP Growth Rate:** 4.33% (positive economic indicator)  \n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**  \nMichael Gonzales demonstrates strong financial health and creditworthiness. With a verified high and stable income, a reasonable debt-to-income ratio, and a history of on-time payments with no delinquencies, the customer presents a low credit risk. Both FICO scores are in the 'Good' range, and internal risk and fraud assessments are favorable. The only modest consideration is part-time employment, but income stability and employer type (education sector) mitigate this concern.\n\n**Recommendations:**\n- **Credit Approval:** Strong candidate for increased credit products, credit limit enhancements, or premium banking offers.\n- **Monitoring:** Continue routine account monitoring, particularly due to employment being part-time, but no current red flags.\n- **Customer Engagement:** Proactively offer loyalty benefits and financial planning tools, given premium segment status and healthy financial profile.\n- **Economic Conditions:** No immediate action needed, but monitor for macroeconomic shifts in California, as local unemployment is slightly above the national average.\n\n**Conclusion:**  \nMichael Gonzales is a low-risk, high-value customer suitable for additional credit and advanced banking services, with a strong track record and robust financial standing.",
+    "ai_recommendation": "Based on the customer inquiry (credit_limit_increase), I recommend a thorough review of the customer's financial profile. The inquiry appears to be related to customer wants credit limit to be increased to 40000.. Customer profile analysis shows: \nBANKING RELATIONSHIP:\n- Current Credit Limit: $32,000.00\n- Current Balance: $6,512.54\n- Credit Utilization Rate: 20.4%\n- On-Time Payments (12 months): 11\n- Late Payments (12 months): 0\n- Account Tenu... Please review the customer data and make an informed decision.",
+    "suggested_decision": "Approved for credit limit increase from $32,000 to $40,000. Customer demonstrates strong creditworthiness with 20.4% utilization and FICO score of 724.",
+    "current_credit_limit": 32000.0,
+    "requested_credit_limit": 40000.0,
+    "credit_limit_increase": 8000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-24T20:44:03.687615",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 5,
+          "first_name": "Michael",
+          "last_name": "Gonzales",
+          "date_of_birth": "1994-04-24",
+          "annual_income": 114394,
+          "state": "CA",
+          "employment_status": "Part-time",
+          "customer_segment": "Premium",
+          "email": "michael.gonzales@email.com",
+          "phone": "(672) 201-4656",
+          "ssn": "***-**-2707",
+          "address_line1": "2053 Mark Common Suite 157",
+          "address_line2": null,
+          "city": "West Donaldton",
+          "zip_code": "44969",
+          "customer_since": "2023-04-15",
+          "employer_name": "Mitchell Group",
+          "job_title": "Teacher, English as a foreign language",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 5,
+          "current_credit_limit": 32000,
+          "current_balance": 6512.544260638192,
+          "utilization_rate": 20.35170081449435,
+          "on_time_payments_12m": 11,
+          "late_payments_12m": 0,
+          "tenure_months": 38
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 5,
+          "fico_score_8": 724,
+          "fico_score_9": 722,
+          "total_accounts_bureau": 9,
+          "delinquencies_30_plus_12m": 0
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 5,
+          "overall_fraud_risk_score": 7.946254314885415,
+          "risk_level": "low",
+          "kyc_score": 74.42342165879084,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 5,
+          "verified_annual_income": 111398.05645685742,
+          "debt_to_income_ratio": 0.3167581065732502,
+          "total_monthly_debt_payments": 3019.6022369450325,
+          "income_stability_score": 82.42473592743112
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "CA",
+          "unemployment_rate": 5.646809813422138,
+          "macro_risk_score": 37.170520782533295,
+          "risk_level": "medium",
+          "gdp_growth_rate": 4.325897349226025
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "1e5fa789-4c01-467f-baa9-3615bb573bcf": {
+    "report_id": "1e5fa789-4c01-467f-baa9-3615bb573bcf",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-24T20:46:08.227659",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "Customer wants credit limit to be increased to 40000",
+    "ai_summary": "Customer has good credit history",
+    "ai_recommendation": "Test recommendation",
+    "suggested_decision": "Approved",
+    "current_credit_limit": 32000.0,
+    "requested_credit_limit": 40000.0,
+    "credit_limit_increase": 8000.0,
+    "agent_notes": "Test notes",
+    "status": "pending",
+    "created_by": "test_user",
+    "created_at": "2025-08-24T20:46:08.227659",
+    "updated_at": null,
+    "customer_data": {},
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "88f79378-5dde-4d43-97dc-b0f6022fa238": {
+    "report_id": "88f79378-5dde-4d43-97dc-b0f6022fa238",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-24T20:50:36.683833",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "increase limit to 40000",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer ID:** 5  \n- **Name:** Michael Gonzales  \n- **Date of Birth:** 1994-04-24 (Age: 30)  \n- **State:** CA (West Donaldton, 44969)  \n- **Customer Segment:** Premium  \n- **Employment Status:** Part-time  \n- **Employer:** Mitchell Group  \n- **Job Title:** Teacher, English as a Foreign Language  \n- **Household Size:** 2  \n- **Customer Since:** 2023-04-15  \n- **Contact:** michael.gonzales@email.com | (672) 201-4656  \n- **Address:** 2053 Mark Common Suite 157, West Donaldton, CA 44969  \n- **Identity Verification:** Verified  \n- **KYC Score:** 74.4 (on a 100-point scale)  \n\n---\n\n## **Financial Health Overview**\n\n- **Verified Annual Income:** $111,398  \n  - **Self-reported:** $114,394  \n- **Income Stability Score:** 82.4 (high stability)  \n- **Current Credit Limit:** $32,000  \n- **Current Credit Balance:** $6,513  \n  - **Utilization Rate:** 20.4% (within healthy range, <30%)  \n- **Debt-to-Income Ratio:** 31.7%  \n  - **Total Monthly Debt Payments:** $3,019.60  \n  - **Industry Benchmark:** Generally, <36% is considered manageable  \n- **Account Tenure:** 38 months (3+ years)  \n- **Customer Activity:** Active, with premium segment engagement  \n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 724  \n- **FICO Score 9:** 722  \n  - **Credit Score Range:** Good (720\u2013739)  \n- **Total Accounts (Bureau):** 9  \n- **On-Time Payments (12 months):** 11 out of 12 (no late payments recorded)  \n- **Late Payments (12 months):** 0  \n- **Delinquencies (30+ days, 12 months):** 0  \n- **Fraud Risk Score:** 7.95 (low risk)  \n- **Overall Risk Level:** Low (per internal and compliance data)  \n- **Macro-Economic Risk Factors:**  \n  - **State Unemployment Rate:** 5.65% (moderate)  \n  - **Macro Risk Score:** 37.17 (medium risk)  \n  - **State GDP Growth Rate:** 4.33% (positive economic indicator)  \n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**  \nMichael Gonzales demonstrates strong financial health and creditworthiness. With a verified high and stable income, a reasonable debt-to-income ratio, and a history of on-time payments with no delinquencies, the customer presents a low credit risk. Both FICO scores are in the 'Good' range, and internal risk and fraud assessments are favorable. The only modest consideration is part-time employment, but income stability and employer type (education sector) mitigate this concern.\n\n**Recommendations:**\n- **Credit Approval:** Strong candidate for increased credit products, credit limit enhancements, or premium banking offers.\n- **Monitoring:** Continue routine account monitoring, particularly due to employment being part-time, but no current red flags.\n- **Customer Engagement:** Proactively offer loyalty benefits and financial planning tools, given premium segment status and healthy financial profile.\n- **Economic Conditions:** No immediate action needed, but monitor for macroeconomic shifts in California, as local unemployment is slightly above the national average.\n\n**Conclusion:**  \nMichael Gonzales is a low-risk, high-value customer suitable for additional credit and advanced banking services, with a strong track record and robust financial standing.",
+    "ai_recommendation": "Based on the customer inquiry (credit_limit_increase), I recommend a thorough review of the customer's financial profile. The inquiry appears to be related to increase limit to 40000. Customer profile analysis shows: \nBANKING RELATIONSHIP:\n- Current Credit Limit: $32,000.00\n- Current Balance: $6,512.54\n- Credit Utilization Rate: 20.4%\n- On-Time Payments (12 months): 11\n- Late Payments (12 months): 0\n- Account Tenu... Please review the customer data and make an informed decision.",
+    "suggested_decision": "Approved for credit limit increase from $32,000 to $40,000. Customer demonstrates strong creditworthiness with 20.4% utilization and FICO score of 724.",
+    "current_credit_limit": 32000.0,
+    "requested_credit_limit": 40000.0,
+    "credit_limit_increase": 8000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-24T20:50:36.683833",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 5,
+          "first_name": "Michael",
+          "last_name": "Gonzales",
+          "date_of_birth": "1994-04-24",
+          "annual_income": 114394,
+          "state": "CA",
+          "employment_status": "Part-time",
+          "customer_segment": "Premium",
+          "email": "michael.gonzales@email.com",
+          "phone": "(672) 201-4656",
+          "ssn": "***-**-2707",
+          "address_line1": "2053 Mark Common Suite 157",
+          "address_line2": null,
+          "city": "West Donaldton",
+          "zip_code": "44969",
+          "customer_since": "2023-04-15",
+          "employer_name": "Mitchell Group",
+          "job_title": "Teacher, English as a foreign language",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 5,
+          "current_credit_limit": 32000,
+          "current_balance": 6512.544260638192,
+          "utilization_rate": 20.35170081449435,
+          "on_time_payments_12m": 11,
+          "late_payments_12m": 0,
+          "tenure_months": 38
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 5,
+          "fico_score_8": 724,
+          "fico_score_9": 722,
+          "total_accounts_bureau": 9,
+          "delinquencies_30_plus_12m": 0
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 5,
+          "overall_fraud_risk_score": 7.946254314885415,
+          "risk_level": "low",
+          "kyc_score": 74.42342165879084,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 5,
+          "verified_annual_income": 111398.05645685742,
+          "debt_to_income_ratio": 0.3167581065732502,
+          "total_monthly_debt_payments": 3019.6022369450325,
+          "income_stability_score": 82.42473592743112
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "CA",
+          "unemployment_rate": 5.646809813422138,
+          "macro_risk_score": 37.170520782533295,
+          "risk_level": "medium",
+          "gdp_growth_rate": 4.325897349226025
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "d4f68b31-5cc2-4ce8-89c0-2510c20db94f": {
+    "report_id": "d4f68b31-5cc2-4ce8-89c0-2510c20db94f",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-24T20:57:16.859147",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "Client wants to increase their limit to 45000",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer Name:** Michael Gonzales  \n- **Date of Birth:** 1994-04-24 (Age: 30)  \n- **Address:** 2053 Mark Common Suite 157, West Donaldton, CA 44969  \n- **Contact:** michael.gonzales@email.com | (672) 201-4656  \n- **State:** California (CA)  \n- **Employment Status:** Part-time  \n- **Employer:** Mitchell Group  \n- **Job Title:** Teacher, English as a Foreign Language  \n- **Customer Segment:** Premium  \n- **Customer Since:** April 2023  \n- **Household Size:** 2  \n\n---\n\n## **Financial Health Overview**\n\n- **Verified Annual Income:** $111,398  \n- **Stated Annual Income:** $114,394  \n- **Income Stability Score:** 82.4 (High)  \n- **Employment:** Part-time, but with high verified and stable income  \n- **Current Credit Limit:** $32,000  \n- **Current Credit Balance:** $6,512.54  \n- **Credit Utilization Rate:** 20.35% (well below risk thresholds)  \n- **Debt-to-Income Ratio:** 31.68% (moderate, within acceptable industry standards)  \n- **Total Monthly Debt Payments:** $3,019.60  \n- **Tenure with Institution:** 38 months (over 3 years)  \n- **Customer Activity:** Consistently active, premium segment  \n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 724  \n- **FICO Score 9:** 722  \n- **Credit Score Assessment:** Both scores fall into the \"Good\" category, close to \"Very Good\"  \n- **Total Accounts (Bureau):** 9  \n- **On-Time Payments (last 12 months):** 11 out of 12  \n- **Late Payments (last 12 months):** 0  \n- **Delinquencies (30+ days, last 12 months):** 0  \n- **Fraud Risk Score:** 7.95 (Low)  \n- **Overall Risk Level:** Low (per internal and fraud assessment)  \n- **KYC/Compliance:** Identity verified, KYC score 74.4 (satisfactory)  \n- **State Macro Risk:** California, moderate macro risk (unemployment 5.65%, regional risk level medium)  \n- **GDP Growth Rate (CA):** 4.33% (positive economic environment)  \n\n---\n\n## **Summary & Recommendations**\n\n### **Overall Assessment**\n\nMichael Gonzales demonstrates **strong financial health and low credit risk**. He maintains a high and stable income despite part-time employment status. His debt-to-income and utilization ratios are within prudent banking standards, and his credit score is solidly in the \"Good\" range. He has an excellent payment history, with no late or delinquent payments in the last year. Internal and external fraud risk indicators are low, and all compliance checks are satisfied.\n\n### **Recommendations**\n\n- **Credit Decision:** **Approved** for continued or increased credit access, pending any additional due diligence as per internal policy.\n- **Credit Limit:** Consider a moderate credit limit increase, given low utilization and high income, to further incentivize loyalty and spending in the premium segment.\n- **Product Suitability:** Eligible for premium or preferred banking products, including rewards cards, personal loans, or investment products.\n- **Monitoring:** Maintain standard account monitoring; no enhanced oversight required at this time.\n- **Customer Engagement:** Leverage positive profile to offer tailored financial planning or investment services, especially given high income and stable profile.\n\n**Conclusion:** Michael Gonzales is a low-risk, high-value customer with strong financial credentials. He is suitable for premium banking services and credit products, with no immediate red flags. Continued engagement is recommended to maximize the customer relationship.",
+    "ai_recommendation": "Based on the customer inquiry (credit_limit_increase), I recommend a thorough review of the customer's financial profile.\nThe inquiry appears to be related to: Client wants to increase their limit to 45000\n\nBANKING RELATIONSHIP ANALYSIS:\n- Current Credit Limit: $32,000.00\n- Current Balance: $6,512.54\n- Credit Utilization Rate: 20.4%\n- On-Time Payments (12 months): 11\n- Late Payments (12 months): 0\n- Account Tenure: 38 months\n\nCREDIT BUREAU ANALYSIS:\n- FICO Score 8: 724\n- FICO Score 9: 722\n- Total Accounts: 9\n- Delinquencies (30+ days, 12 months): 0\n\nINCOME & ABILITY TO PAY:\n- Verified Annual Income: $111,398.06\n- Debt-to-Income Ratio: 31.7%\n- Total Monthly Debt Payments: $3,019.60\n- Income Stability Score: 82.4/100\n\nCREDIT REQUEST ANALYSIS:\n- Requested Increase: $13,000.00\n- New Total Limit: $45,000.00\n- Increase Percentage: 40.6%\n\nRISK ASSESSMENT:\n- Low risk profile with strong credit indicators\n\nPlease review the customer data and make an informed decision.",
+    "suggested_decision": "Approved for credit limit increase from $32,000 to $45,000. Customer demonstrates strong creditworthiness with 20.4% utilization and FICO score of 724.",
+    "current_credit_limit": 32000.0,
+    "requested_credit_limit": 45000.0,
+    "credit_limit_increase": 13000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-24T20:57:16.859147",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 5,
+          "first_name": "Michael",
+          "last_name": "Gonzales",
+          "date_of_birth": "1994-04-24",
+          "annual_income": 114394,
+          "state": "CA",
+          "employment_status": "Part-time",
+          "customer_segment": "Premium",
+          "email": "michael.gonzales@email.com",
+          "phone": "(672) 201-4656",
+          "ssn": "***-**-2707",
+          "address_line1": "2053 Mark Common Suite 157",
+          "address_line2": null,
+          "city": "West Donaldton",
+          "zip_code": "44969",
+          "customer_since": "2023-04-15",
+          "employer_name": "Mitchell Group",
+          "job_title": "Teacher, English as a foreign language",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 5,
+          "current_credit_limit": 32000,
+          "current_balance": 6512.544260638192,
+          "utilization_rate": 20.35170081449435,
+          "on_time_payments_12m": 11,
+          "late_payments_12m": 0,
+          "tenure_months": 38
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 5,
+          "fico_score_8": 724,
+          "fico_score_9": 722,
+          "total_accounts_bureau": 9,
+          "delinquencies_30_plus_12m": 0
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 5,
+          "overall_fraud_risk_score": 7.946254314885415,
+          "risk_level": "low",
+          "kyc_score": 74.42342165879084,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 5,
+          "verified_annual_income": 111398.05645685742,
+          "debt_to_income_ratio": 0.3167581065732502,
+          "total_monthly_debt_payments": 3019.6022369450325,
+          "income_stability_score": 82.42473592743112
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "CA",
+          "unemployment_rate": 5.646809813422138,
+          "macro_risk_score": 37.170520782533295,
+          "risk_level": "medium",
+          "gdp_growth_rate": 4.325897349226025
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  },
+  "bcc5649e-d76f-4bdf-91cc-2003449cd881": {
+    "report_id": "bcc5649e-d76f-4bdf-91cc-2003449cd881",
+    "customer_id": 5,
+    "customer_name": "Michael Gonzales",
+    "report_date": "2025-08-24T21:23:50.690710",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "increase limit to 42000",
+    "ai_summary": "## **Customer Profile**\n- **Name:** Michael Gonzales  \n- **Customer ID:** 5  \n- **Date of Birth:** 1994-04-24 (Age: 30)  \n- **State:** CA (California)  \n- **City/Zip:** West Donaldton, 44969  \n- **Customer Segment:** Premium  \n- **Employment Status:** Part-time  \n- **Employer:** Mitchell Group  \n- **Job Title:** Teacher, English as a Foreign Language  \n- **Household Size:** 2  \n- **Customer Since:** 2023-04-15  \n- **Contact:** michael.gonzales@email.com, (672) 201-4656  \n- **Address:** 2053 Mark Common Suite 157, West Donaldton, CA 44969  \n- **Identity Verification:** Verified (KYC score 74.42)  \n\n---\n\n## **Financial Health Overview**\n- **Verified Annual Income:** $111,398  \n- **Reported Annual Income:** $114,394  \n- **Income Stability Score:** 82.42 (above average)  \n- **Employment:** Part-time, but with a high verified annual income  \n- **Current Credit Limit:** $32,000  \n- **Current Credit Card Balance:** $6,512.54  \n- **Credit Utilization Rate:** 20.35% (healthy, under recommended 30%)  \n- **Tenure with Bank:** 38 months  \n- **Total Monthly Debt Payments:** $3,019.60  \n- **Debt-to-Income (DTI) Ratio:** 31.68% (moderate; below risk threshold of 36%)  \n- **Account Activity:**  \n  - On-time Payments (past 12 months): 11  \n  - Late Payments (past 12 months): 0  \n- **Total Accounts (Credit Bureau):** 9  \n\n---\n\n## **Credit Risk Assessment**\n- **FICO Score 8:** 724  \n- **FICO Score 9:** 722  \n  - **Interpretation:** Both scores are in the \"Good\" range (670\u2013739), indicating solid creditworthiness.\n- **Delinquencies (30+ days, last 12 months):** 0  \n- **Recent Late Payments:** None  \n- **Fraud Risk Score:** 7.95 (low risk)  \n- **KYC/Compliance:**  \n  - Risk Level: Low  \n  - KYC Score: 74.42 (satisfactory)  \n  - Identity: Verified  \n- **Economic Context (CA):**  \n  - Unemployment Rate: 5.65% (moderate risk)  \n  - Macro Risk Score: 37.17 (medium risk environment)  \n  - GDP Growth Rate: 4.33% (positive economic outlook)  \n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**  \nMichael Gonzales demonstrates strong financial health and creditworthiness. He maintains a good FICO score, has a verified stable income, manages his credit responsibly (low utilization and no recent delinquencies), and has a low fraud risk profile. The debt-to-income ratio is within recommended thresholds, and all KYC and compliance checks have been satisfied. While his employment is part-time, his income is high and stable, which offsets potential concerns in that area.\n\n**Specific Recommendations:**  \n- **Credit Line Increases:** Eligible for a moderate credit line increase based on strong repayment history, good income, and low utilization.\n- **Preferred Credit Products:** Consider offering premium credit or loan products tailored to high-earning, responsible customers.\n- **Monitor Economic Conditions:** Continue to monitor local economic factors in CA, but no immediate risk flags given customer\u2019s individual profile.\n- **Retention & Upsell:** Target with loyalty or retention offers, given his premium segment status and positive banking relationship.\n\n**Conclusion:**  \nMichael Gonzales is a low-risk, high-value customer suitable for continued and expanded credit offerings. No adverse action is recommended. Maintain regular reviews to ensure continued compliance and risk monitoring, especially if employment status or income changes.",
+    "ai_recommendation": "Based on the customer inquiry (credit_limit_increase), I recommend a thorough review of the customer's financial profile.\nThe inquiry appears to be related to: increase limit to 42000\n\nBANKING RELATIONSHIP ANALYSIS:\n- Current Credit Limit: $32,000.00\n- Current Balance: $6,512.54\n- Credit Utilization Rate: 20.4%\n- On-Time Payments (12 months): 11\n- Late Payments (12 months): 0\n- Account Tenure: 38 months\n\nCREDIT BUREAU ANALYSIS:\n- FICO Score 8: 724\n- FICO Score 9: 722\n- Total Accounts: 9\n- Delinquencies (30+ days, 12 months): 0\n\nINCOME & ABILITY TO PAY:\n- Verified Annual Income: $111,398.06\n- Debt-to-Income Ratio: 31.7%\n- Total Monthly Debt Payments: $3,019.60\n- Income Stability Score: 82.4/100\n\nCREDIT REQUEST ANALYSIS:\n- Requested Increase: $10,000.00\n- New Total Limit: $42,000.00\n- Increase Percentage: 31.2%\n\nRISK ASSESSMENT:\n- Low risk profile with strong credit indicators\n\nPlease review the customer data and make an informed decision.",
+    "suggested_decision": "Approved for credit limit increase from $32,000 to $42,000. Customer demonstrates strong creditworthiness with 20.4% utilization and FICO score of 724.",
+    "current_credit_limit": 32000.0,
+    "requested_credit_limit": 42000.0,
+    "credit_limit_increase": 10000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-24T21:23:50.690710",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 5,
+          "first_name": "Michael",
+          "last_name": "Gonzales",
+          "date_of_birth": "1994-04-24",
+          "annual_income": 114394,
+          "state": "CA",
+          "employment_status": "Part-time",
+          "customer_segment": "Premium",
+          "email": "michael.gonzales@email.com",
+          "phone": "(672) 201-4656",
+          "ssn": "***-**-2707",
+          "address_line1": "2053 Mark Common Suite 157",
+          "address_line2": null,
+          "city": "West Donaldton",
+          "zip_code": "44969",
+          "customer_since": "2023-04-15",
+          "employer_name": "Mitchell Group",
+          "job_title": "Teacher, English as a foreign language",
+          "household_size": 2
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 5,
+          "current_credit_limit": 32000,
+          "current_balance": 6512.544260638192,
+          "utilization_rate": 20.35170081449435,
+          "on_time_payments_12m": 11,
+          "late_payments_12m": 0,
+          "tenure_months": 38
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 5,
+          "fico_score_8": 724,
+          "fico_score_9": 722,
+          "total_accounts_bureau": 9,
+          "delinquencies_30_plus_12m": 0
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 5,
+          "overall_fraud_risk_score": 7.946254314885415,
+          "risk_level": "low",
+          "kyc_score": 74.42342165879084,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 5,
+          "verified_annual_income": 111398.05645685742,
+          "debt_to_income_ratio": 0.3167581065732502,
+          "total_monthly_debt_payments": 3019.6022369450325,
+          "income_stability_score": 82.42473592743112
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "CA",
+          "unemployment_rate": 5.646809813422138,
+          "macro_risk_score": 37.170520782533295,
+          "risk_level": "medium",
+          "gdp_growth_rate": 4.325897349226025
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
+  }
+}

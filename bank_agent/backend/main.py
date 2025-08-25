@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -25,11 +25,18 @@ from neurostack_integration import (
 from neurostack_cosmos_memory import get_cosmos_memory_manager
 
 # Import user management
-from user_management import user_manager, get_current_user, get_current_active_user, require_role, User
+from user_management import user_manager, get_current_user, get_current_active_user, get_current_user_optional, require_role, User
 from user_models import (
     UserRegistrationRequest, UserLoginRequest, UserLoginResponse, UserProfileResponse,
     UserUpdateRequest, UserListResponse, UserBehaviorResponse, UserSessionsResponse
 )
+
+# Import report models and service
+from models import (
+    CreateReportRequest, UpdateReportRequest, ReportResponse, 
+    ReportsListResponse, ReportStatus, CreditInquiryType
+)
+from report_service import report_service
 
 # Load environment variables from root directory
 load_dotenv(dotenv_path="/Users/kanavkahol/work/neurostack/.env")
@@ -1306,30 +1313,15 @@ async def get_customer_data(request: CustomerDataRequest, current_user: User = D
                 # Use NeuroStack integration for LLM summary
                 integration = await get_neurostack_integration()
                 
-                # Create a comprehensive prompt for the LLM
-                prompt = f"""
-Analyze the following customer data and provide a comprehensive summary for credit limit decision making:
-
-Customer ID: {customer_id}
-
-Available Data Sources:
-"""
+                # Create a simple prompt for the LLM
+                prompt = f"Analyze this customer data for credit decisions: Customer ID {customer_id}. "
                 
                 for source_id, source_info in customer_data.items():
-                    prompt += f"\n{source_info['source_name']} ({source_info['category']}):\n"
+                    prompt += f"{source_info['source_name']}: "
                     for key, value in source_info['data'].items():
-                        prompt += f"  - {key}: {value}\n"
+                        prompt += f"{key}={value}, "
                 
-                prompt += """
-Please provide a comprehensive summary that includes:
-1. Customer Profile Overview
-2. Financial Health Assessment
-3. Credit Risk Analysis
-4. Key Strengths and Concerns
-5. Recommended Credit Limit Considerations
-
-Format the response as a professional banking summary suitable for credit decisions.
-"""
+                prompt += "Provide a brief banking summary with customer profile, financial health, credit risk, and recommendations."
                 
                 # Use NeuroStack reasoning engine for summary generation
                 summary_result = await integration.generate_customer_summary(
@@ -1365,6 +1357,177 @@ Format the response as a professional banking summary suitable for credit decisi
             data={},
             error=str(e)
         )
+
+# ============================================================================
+# REPORT MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.post("/api/reports", response_model=ReportResponse)
+async def create_customer_report(
+    request: CreateReportRequest,
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Create a new customer report with AI summary and inquiry details."""
+    try:
+        username = current_user.username if current_user else "test_user"
+        report = report_service.create_report(request, username)
+        return ReportResponse(success=True, report=report)
+    except Exception as e:
+        logger.error(f"Error creating report: {str(e)}")
+        return ReportResponse(success=False, error=str(e))
+
+@app.get("/api/reports", response_model=ReportsListResponse)
+async def get_reports(
+    customer_id: Optional[int] = None,
+    status: Optional[ReportStatus] = None,
+    limit: Optional[int] = 50,
+    offset: int = 0,
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Get customer reports with optional filtering."""
+    try:
+        if customer_id:
+            reports = report_service.get_reports_by_customer(customer_id)
+        elif status:
+            reports = report_service.get_reports_by_status(status)
+        else:
+            reports = report_service.get_all_reports(limit=limit, offset=offset)
+        
+        return ReportsListResponse(
+            success=True,
+            reports=reports,
+            total_count=len(reports)
+        )
+    except Exception as e:
+        logger.error(f"Error getting reports: {str(e)}")
+        return ReportsListResponse(success=False, error=str(e))
+
+@app.get("/api/reports/{report_id}", response_model=ReportResponse)
+async def get_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Get a specific customer report by ID."""
+    try:
+        report = report_service.get_report(report_id)
+        if not report:
+            return ReportResponse(success=False, error="Report not found")
+        
+        return ReportResponse(success=True, report=report)
+    except Exception as e:
+        logger.error(f"Error getting report: {str(e)}")
+        return ReportResponse(success=False, error=str(e))
+
+@app.put("/api/reports/{report_id}", response_model=ReportResponse)
+async def update_report(
+    report_id: str,
+    request: UpdateReportRequest,
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Update a customer report (agent notes, status, decisions)."""
+    try:
+        username = current_user.username if current_user else "test_user"
+        report = report_service.update_report(report_id, request, username)
+        if not report:
+            return ReportResponse(success=False, error="Report not found")
+        
+        return ReportResponse(success=True, report=report)
+    except Exception as e:
+        logger.error(f"Error updating report: {str(e)}")
+        return ReportResponse(success=False, error=str(e))
+
+@app.delete("/api/reports/{report_id}")
+async def delete_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a customer report."""
+    try:
+        success = report_service.delete_report(report_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Report not found")
+        
+        return {"success": True, "message": "Report deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting report: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/reports/extract-credit-limit")
+async def extract_credit_limit_info(
+    request: dict
+):
+    """Extract credit limit information from inquiry description using LLM."""
+    try:
+        extraction_result = report_service.extract_credit_limit_info(
+            inquiry_description=request.get("inquiryDescription"),
+            current_credit_limit=request.get("currentCreditLimit")
+        )
+        
+        return {
+            "success": True,
+            "data": extraction_result
+        }
+    except Exception as e:
+        logger.error(f"Error extracting credit limit info: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/reports/generate-recommendation")
+async def generate_report_recommendation(
+    request: dict
+):
+    """Generate AI recommendation for a customer report using Neurostack Agent."""
+    try:
+        recommendation = report_service.generate_ai_recommendation(
+            customer_id=request.get("customerId"),
+            customer_data=request.get("customerData"),
+            ai_summary=request.get("aiSummary"),
+            inquiry_type=request.get("inquiryType"),
+            inquiry_description=request.get("inquiryDescription"),
+            extracted_credit_data=request.get("extractedCreditData")
+        )
+        
+        return {
+            "success": True,
+            "data": {
+                "recommendation": recommendation.get("recommendation", ""),
+                "suggested_decision": recommendation.get("suggested_decision", ""),
+                "credit_limits": recommendation.get("credit_limits", {})
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error generating report recommendation: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/reports/generate-investigation-plan")
+async def generate_investigation_plan(
+    request: dict
+):
+    """Generate investigation plan for data processing stage."""
+    try:
+        plan = report_service.generate_investigation_plan(
+            customer_id=request.get("customerId"),
+            customer_name=request.get("customerName"),
+            customer_data=request.get("customerData"),
+            report_id=request.get("reportId")
+        )
+        
+        return {
+            "success": True,
+            "data": plan
+        }
+    except Exception as e:
+        logger.error(f"Error generating investigation plan: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/reports/enums/status")
+async def get_report_statuses():
+    """Get available report statuses."""
+    return {"statuses": [status.value for status in ReportStatus]}
+
+@app.get("/api/reports/enums/inquiry-types")
+async def get_inquiry_types():
+    """Get available inquiry types."""
+    return {"inquiry_types": [inquiry_type.value for inquiry_type in CreditInquiryType]}
 
 if __name__ == "__main__":
     import uvicorn

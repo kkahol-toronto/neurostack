@@ -495,8 +495,9 @@ class BankingMemoryManager:
         """
         try:
             # Store in long-term memory
-            memory_id = await self.memory_manager.long_term_memory.store(
+            memory_id = await self.memory_manager.long_term_memory.store_general(
                 content=json.dumps(data),
+                item_type="customer_data",
                 metadata={
                     "customer_id": customer_id,
                     "data_type": data_type,
@@ -538,8 +539,9 @@ class BankingMemoryManager:
         """
         try:
             # Store in long-term memory
-            memory_id = await self.memory_manager.long_term_memory.store(
+            memory_id = await self.memory_manager.long_term_memory.store_general(
                 content=summary,
+                item_type="customer_summary",
                 metadata={
                     "customer_id": customer_id,
                     "summary_type": "llm_generated",

@@ -23,7 +23,12 @@ import CustomerDataView from './CustomerDataView';
 import apiService from '../services/api';
 
 interface DataLayerProps {
-  selectedCustomer?: { id: number; name: string } | null;
+  selectedCustomer?: { 
+    customer_id: number; 
+    first_name: string; 
+    last_name: string;
+    [key: string]: any;
+  } | null;
 }
 
 const DataLayer: React.FC<DataLayerProps> = ({ selectedCustomer }) => {
@@ -252,8 +257,8 @@ const DataLayer: React.FC<DataLayerProps> = ({ selectedCustomer }) => {
         {selectedCustomer && (
           <Box sx={{ mt: 4 }}>
             <CustomerDataView
-              customerId={selectedCustomer.id}
-              customerName={selectedCustomer.name}
+              customerId={selectedCustomer.customer_id}
+              customerName={`${selectedCustomer.first_name} ${selectedCustomer.last_name}`}
             />
           </Box>
         )}

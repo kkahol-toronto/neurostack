@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug Tool</h1>
+    
+    <h2>Step 1: Check Current State</h2>
+    <button onclick="checkState()">Check Current State</button>
+    <div id="stateResult"></div>
+    
+    <h2>Step 2: Clear Everything</h2>
+    <button onclick="clearStorage()">Clear Local Storage</button>
+    <div id="clearResult"></div>
+    
+    <h2>Step 3: Get Fresh Token</h2>
+    <button onclick="getFreshToken()">Get Fresh Token</button>
+    <div id="tokenResult"></div>
+    
+    <h2>Step 4: Test API</h2>
+    <button onclick="testAPI()">Test Customer Data API</button>
+    <div id="apiResult"></div>
+    
+    <h2>Step 5: Go Back to App</h2>
+    <button onclick="goToApp()">Go to Banking App</button>
+
+    <script>
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function checkState() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            let message = '<strong>Current State:</strong><br>';
+            message += `Token exists: ${!!token}<br>`;
+            message += `User exists: ${!!user}<br>`;
+            
+            if (token) {
+                message += `Token: ${token.substring(0, 50)}...<br>`;
+            }
+            if (user) {
+                message += `User: ${user}<br>`;
+            }
+            
+            showResult('stateResult', message, 'info');
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            showResult('clearResult', '✅ Local storage cleared successfully!', 'success');
+        }
+
+        async function getFreshToken() {
+            try {
+                showResult('tokenResult', '🔄 Getting fresh token...', 'info');
+                
+                const response = await fetch('http://localhost:8000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'analyst',
+                        password: 'analyst123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify({
+                        user_id: data.user_id,
+                        username: data.username,
+                        first_name: data.first_name,
+                        last_name: data.last_name,
+                        role: data.role,
+                        department: data.department
+                    }));
+                    
+                    showResult('tokenResult', `✅ Fresh token stored!<br>Token: ${data.access_token.substring(0, 50)}...`, 'success');
+                } else {
+                    showResult('tokenResult', `❌ Login failed: ${JSON.stringify(data)}`, 'error');
+                }
+            } catch (error) {
+                showResult('tokenResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAPI() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('apiResult', '❌ No token found. Please get a fresh token first.', 'error');
+                    return;
+                }
+                
+                showResult('apiResult', '🔄 Testing API...', 'info');
+                
+                const response = await fetch('http://localhost:8000/api/customer-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        customer_id: 5,
+                        include_summary: true
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('apiResult', `✅ API test successful!<br>Customer ID: ${data.customer_id}<br>Data sources: ${Object.keys(data.data).length}`, 'success');
+                } else {
+                    showResult('apiResult', `❌ API test failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult('apiResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function goToApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+    </script>
+</body>
+</html>

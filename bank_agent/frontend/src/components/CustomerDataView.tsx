@@ -15,16 +15,20 @@ import {
   Alert,
   Chip,
   Card,
-  CardContent
+  CardContent,
+  Button
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Assessment as AssessmentIcon,
   TableChart as TableIcon,
-  Description as SummaryIcon
+  Description as SummaryIcon,
+  Save as SaveIcon
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/api';
+import ReactMarkdown from 'react-markdown';
+import ReportManager from './ReportManager';
 
 interface CustomerDataViewProps {
   customerId: number;
@@ -68,32 +72,43 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
   const [summary, setSummary] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [savedReportId, setSavedReportId] = useState<string>('');
   const { theme } = useTheme();
 
   useEffect(() => {
     const fetchCustomerData = async () => {
       try {
+        console.log('🔍 Starting to fetch customer data for ID:', customerId);
         setIsLoading(true);
         setError('');
         
+        console.log('🔍 Calling apiService.getCustomerData...');
         const result = await apiService.getCustomerData(customerId, true);
+        console.log('🔍 API response:', result);
         
         if (result.success) {
+          console.log('✅ Customer data fetched successfully');
           setCustomerData(result.data);
           setSummary(result.summary || 'No summary available');
         } else {
+          console.error('❌ API returned error:', result.error);
           setError(result.error || 'Failed to fetch customer data');
         }
       } catch (err) {
+        console.error('❌ Exception during customer data fetch:', err);
         setError('Network error. Please check your connection.');
         console.error('Error fetching customer data:', err);
       } finally {
+        console.log('🔍 Setting loading to false');
         setIsLoading(false);
       }
     };
 
     if (customerId) {
+      console.log('🔍 Customer ID provided, starting fetch...');
       fetchCustomerData();
+    } else {
+      console.log('❌ No customer ID provided');
     }
   }, [customerId]);
 
@@ -167,6 +182,23 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
   };
 
   const renderSummary = () => {
+    if (isLoading) {
+      return (
+        <Card sx={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          border: `1px solid rgba(255, 255, 255, 0.1)`
+        }}>
+          <CardContent sx={{ textAlign: 'center', py: 4 }}>
+            <CircularProgress sx={{ color: theme.colors.primary, mb: 2 }} />
+            <Typography variant="body1" sx={{ color: theme.colors.textSecondary }}>
+              Generating AI Summary...
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    }
+
     if (!summary) {
       return (
         <Alert severity="info" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
@@ -182,20 +214,74 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
         border: `1px solid rgba(255, 255, 255, 0.1)`
       }}>
         <CardContent>
-          <Typography variant="h6" sx={{ color: theme.colors.text, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AssessmentIcon sx={{ color: theme.colors.primary }} />
-            AI-Generated Summary
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: theme.colors.textSecondary,
-              lineHeight: 1.6,
-              whiteSpace: 'pre-line'
-            }}
-          >
-            {summary}
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ color: theme.colors.text, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AssessmentIcon sx={{ color: theme.colors.primary }} />
+              AI-Generated Summary
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<SaveIcon />}
+              onClick={() => setTabValue(3)}
+              sx={{
+                borderColor: theme.colors.primary,
+                color: theme.colors.primary,
+                '&:hover': {
+                  borderColor: theme.colors.primaryDark,
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                }
+              }}
+            >
+              Save Report
+            </Button>
+          </Box>
+          <Box sx={{ 
+            color: theme.colors.textSecondary,
+            lineHeight: 1.6,
+            '& h2': {
+              color: theme.colors.text,
+              fontSize: '1.5rem',
+              fontWeight: 600,
+              marginTop: 2,
+              marginBottom: 1,
+              borderBottom: `2px solid ${theme.colors.primary}`,
+              paddingBottom: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            },
+            '& h3': {
+              color: theme.colors.primary,
+              fontSize: '1.2rem',
+              fontWeight: 500,
+              marginTop: 1.5,
+              marginBottom: 0.5
+            },
+            '& strong': {
+              color: theme.colors.text,
+              fontWeight: 600
+            },
+            '& ul': {
+              marginLeft: 2,
+              marginTop: 0.5,
+              marginBottom: 0.5
+            },
+            '& li': {
+              marginBottom: 0.5,
+              paddingLeft: 0.5
+            },
+            '& hr': {
+              borderColor: theme.colors.primary,
+              marginTop: 1.5,
+              marginBottom: 1.5,
+              opacity: 0.6
+            },
+            '& p': {
+              marginBottom: 0.5
+            }
+          }}>
+            <ReactMarkdown>{summary}</ReactMarkdown>
+          </Box>
         </CardContent>
       </Card>
     );
@@ -319,6 +405,11 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
             label="Source Breakdown" 
             iconPosition="start"
           />
+          <Tab 
+            icon={<PersonIcon />} 
+            label="Reports" 
+            iconPosition="start"
+          />
         </Tabs>
       </Box>
 
@@ -331,11 +422,22 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
         {renderSummary()}
       </TabPanel>
       
-      <TabPanel value={tabValue} index={2}>
-        {renderSourceBreakdown()}
-      </TabPanel>
-    </Box>
-  );
-};
+              <TabPanel value={tabValue} index={2}>
+          {renderSourceBreakdown()}
+        </TabPanel>
+        <TabPanel value={tabValue} index={3}>
+          {customerData && summary && (
+            <ReportManager
+              customerId={customerId}
+              customerName={customerName}
+              customerData={customerData}
+              aiSummary={summary}
+              onReportSaved={(reportId: string) => setSavedReportId(reportId)}
+            />
+          )}
+        </TabPanel>
+      </Box>
+    );
+  };
 
 export default CustomerDataView;

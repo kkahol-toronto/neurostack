@@ -354,12 +354,36 @@ class NeuroStackBankingIntegration:
                 }
             )
             
-            # Generate summary using reasoning engine
-            summary_result = await self.reasoning_engine.generate_response(
-                prompt=prompt,
-                context=context,
-                max_tokens=1000,
-                temperature=0.3  # Lower temperature for more consistent summaries
+            # Create a detailed prompt with customer data
+            detailed_prompt = f"Analyze this customer data for credit decisions: Customer ID {customer_id}. "
+            
+            for source_id, source_info in customer_data.items():
+                detailed_prompt += f"{source_info['source_name']}: "
+                for key, value in source_info['data'].items():
+                    detailed_prompt += f"{key}={value}, "
+            
+            detailed_prompt += """
+
+Provide a comprehensive banking summary in Markdown format with the following structure:
+
+## **Customer Profile**
+- Key demographic and employment information
+
+## **Financial Health Overview**
+- Income analysis, account activity, and financial metrics
+
+## **Credit Risk Assessment**
+- Credit score analysis, payment history, and risk factors
+
+## **Summary & Recommendations**
+- Overall assessment and specific recommendations
+
+Format with proper Markdown headers (##), bullet points (-), and bold text (**text**). Make it professional and comprehensive for banking decisions."""
+            
+            # Generate summary using reasoning engine with detailed prompt
+            summary_result = await self.reasoning_engine.process(
+                task=detailed_prompt,
+                context=context
             )
             
             # Store the summary in memory

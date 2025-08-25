@@ -367,7 +367,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   const renderExpandedContent = () => {
     switch (selectedTile) {
       case 'customer-search':
-        return <CustomerSearch onCustomerVerified={handleCustomerVerified} />;
+        return <CustomerSearch 
+          onCustomerVerified={handleCustomerVerified} 
+          onNavigateToDataSources={() => setSelectedTile('data-sources')}
+        />;
       case 'data-sources':
         return <DataLayer selectedCustomer={verifiedCustomer} />;
       case 'data-processing':

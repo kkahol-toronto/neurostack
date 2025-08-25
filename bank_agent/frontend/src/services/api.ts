@@ -20,6 +20,8 @@ export class ApiService {
   // Helper method to get auth headers
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
+    console.log('🔍 getAuthHeaders: Token from localStorage:', token ? token.substring(0, 50) + '...' : 'No token');
+    console.log('🔍 getAuthHeaders: User from localStorage:', localStorage.getItem('user'));
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   }
 
@@ -309,15 +311,173 @@ Only return the SQL query, no explanations or markdown formatting.
   // Customer data methods
   async getCustomerData(customerId: number, includeSummary: boolean = true): Promise<any> {
     try {
+      console.log('🔍 API Service: Making request to customer-data endpoint');
+      console.log('🔍 API Service: Customer ID:', customerId);
+      console.log('🔍 API Service: Include Summary:', includeSummary);
+      const authHeaders = this.getAuthHeaders();
+      console.log('🔍 API Service: Auth Headers:', authHeaders);
+      console.log('🔍 API Service: Token exists:', !!authHeaders.Authorization);
+      console.log('🔍 API Service: Token value:', authHeaders.Authorization ? authHeaders.Authorization.substring(0, 50) + '...' : 'No token');
+      
       const response = await axios.post(`${API_BASE_URL}/api/customer-data`, {
         customer_id: customerId,
         include_summary: includeSummary
       }, {
         headers: this.getAuthHeaders()
       });
+      
+      console.log('🔍 API Service: Response received:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error getting customer data:', error);
+      console.error('❌ API Service: Error getting customer data:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('❌ API Service: Response status:', error.response?.status);
+        console.error('❌ API Service: Response data:', error.response?.data);
+      }
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  // Report Management Methods
+  async createReport(reportData: any): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/reports`, reportData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error creating report:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getReports(customerId?: number, status?: string, limit?: number, offset?: number): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      if (customerId) params.append('customer_id', customerId.toString());
+      if (status) params.append('status', status);
+      if (limit) params.append('limit', limit.toString());
+      if (offset) params.append('offset', offset.toString());
+
+      const response = await axios.get(`${API_BASE_URL}/api/reports?${params}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting reports:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getReport(reportId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/reports/${reportId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting report:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async updateReport(reportId: string, updateData: any): Promise<any> {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/api/reports/${reportId}`, updateData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error updating report:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async deleteReport(reportId: string): Promise<any> {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/api/reports/${reportId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error deleting report:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getReportEnums(): Promise<any> {
+    try {
+      const [statusResponse, inquiryTypesResponse] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/reports/enums/status`, {
+          headers: this.getAuthHeaders()
+        }),
+        axios.get(`${API_BASE_URL}/api/reports/enums/inquiry-types`, {
+          headers: this.getAuthHeaders()
+        })
+      ]);
+      return {
+        success: true,
+        statuses: statusResponse.data.statuses,
+        inquiryTypes: inquiryTypesResponse.data.inquiry_types
+      };
+    } catch (error) {
+      console.error('❌ API Service: Error getting report enums:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async extractCreditLimitInfo(extractionData: {
+    inquiryDescription: string;
+    currentCreditLimit: number;
+  }): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/reports/extract-credit-limit`, extractionData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error extracting credit limit info:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async generateReportRecommendation(reportData: {
+    customerId: number;
+    customerData: any;
+    aiSummary: string;
+    inquiryType: string;
+    inquiryDescription: string;
+    extractedCreditData?: {
+      currentCreditLimit: number;
+      requestedCreditLimit: number;
+      creditLimitIncrease: number;
+      extractionMethod: string;
+    };
+  }): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/reports/generate-recommendation`, reportData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error generating report recommendation:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async generateInvestigationPlan(planData: {
+    customerId: number;
+    customerName: string;
+    customerData: any;
+    reportId: string | null;
+  }): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/reports/generate-investigation-plan`, planData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error generating investigation plan:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }

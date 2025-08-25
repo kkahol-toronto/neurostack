@@ -60,9 +60,10 @@ interface SecurityQuestion {
 
 interface CustomerSearchProps {
   onCustomerVerified?: (customer: Customer) => void;
+  onNavigateToDataSources?: () => void;
 }
 
-const CustomerSearch: React.FC<CustomerSearchProps> = ({ onCustomerVerified }) => {
+const CustomerSearch: React.FC<CustomerSearchProps> = ({ onCustomerVerified, onNavigateToDataSources }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -183,11 +184,18 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({ onCustomerVerified }) =
 
   const handleCloseDialog = () => {
     setVerificationDialogOpen(false);
-    setSelectedCustomer(null);
     setSelectedQuestions([]);
     setCurrentQuestionIndex(0);
     setSelectedAnswers([]);
     setVerificationStep('questions');
+    
+    // If verification was successful, navigate to Data Sources
+    if (verificationStep === 'success' && selectedCustomer && onNavigateToDataSources) {
+      onNavigateToDataSources();
+    } else {
+      // Reset customer selection only if verification failed or was cancelled
+      setSelectedCustomer(null);
+    }
   };
 
   const getRandomQuestions = (customer: Customer) => {

@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
-from fastapi import HTTPException, Depends, status
+from fastapi import HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import logging
 
@@ -320,6 +320,19 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         )
     
     return user
+
+async def get_current_user_optional(request: Request) -> Optional[User]:
+    """Get current authenticated user from JWT token (optional - returns None if no valid token)."""
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+        
+        token = auth_header.split(" ")[1]
+        user = user_manager.validate_token(token)
+        return user
+    except Exception:
+        return None
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Get current active user."""
