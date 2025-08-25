@@ -23,7 +23,8 @@ import {
   Assessment as AssessmentIcon,
   TableChart as TableIcon,
   Description as SummaryIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/api';
@@ -92,7 +93,17 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
           setSummary(result.summary || 'No summary available');
         } else {
           console.error('❌ API returned error:', result.error);
-          setError(result.error || 'Failed to fetch customer data');
+          
+          // Handle specific error messages
+          let errorMessage = result.error || 'Failed to fetch customer data';
+          
+          if (errorMessage.includes('500') || errorMessage.includes('Internal server error')) {
+            errorMessage = 'AI Summary generation is in progress. Please wait a moment and try again.';
+          } else if (errorMessage.includes('APIM')) {
+            errorMessage = 'AI service is temporarily unavailable. Please try again in a few moments.';
+          }
+          
+          setError(errorMessage);
         }
       } catch (err) {
         console.error('❌ Exception during customer data fetch:', err);
@@ -114,6 +125,37 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  const handleRetrySummary = async () => {
+    if (!customerId) return;
+    
+    console.log('🔄 Retrying AI summary generation...');
+    try {
+      setIsLoading(true);
+      setError('');
+      
+      const result = await apiService.getCustomerData(customerId, true);
+      
+      if (result.success) {
+        setCustomerData(result.data);
+        setSummary(result.summary || 'No summary available');
+      } else {
+        let errorMessage = result.error || 'Failed to fetch customer data';
+        
+        if (errorMessage.includes('500') || errorMessage.includes('Internal server error')) {
+          errorMessage = 'AI Summary generation is in progress. Please wait a moment and try again.';
+        } else if (errorMessage.includes('APIM')) {
+          errorMessage = 'AI service is temporarily unavailable. Please try again in a few moments.';
+        }
+        
+        setError(errorMessage);
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderDataTable = () => {
@@ -191,8 +233,11 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
         }}>
           <CardContent sx={{ textAlign: 'center', py: 4 }}>
             <CircularProgress sx={{ color: theme.colors.primary, mb: 2 }} />
-            <Typography variant="body1" sx={{ color: theme.colors.textSecondary }}>
+            <Typography variant="body1" sx={{ color: theme.colors.textSecondary, mb: 1 }}>
               Generating AI Summary...
+            </Typography>
+            <Typography variant="caption" sx={{ color: theme.colors.textSecondary, opacity: 0.7 }}>
+              This may take a few moments while we analyze the customer data
             </Typography>
           </CardContent>
         </Card>
@@ -201,9 +246,35 @@ const CustomerDataView: React.FC<CustomerDataViewProps> = ({
 
     if (!summary) {
       return (
-        <Alert severity="info" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
-          No summary available for this customer.
-        </Alert>
+        <Card sx={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          border: `1px solid rgba(255, 255, 255, 0.1)`
+        }}>
+          <CardContent sx={{ textAlign: 'center', py: 3 }}>
+            <InfoIcon sx={{ color: theme.colors.textSecondary, fontSize: 40, mb: 2 }} />
+            <Typography variant="body1" sx={{ color: theme.colors.textSecondary, mb: 2 }}>
+              No AI Summary Available
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.colors.textSecondary, opacity: 0.7, mb: 2 }}>
+              The AI summary could not be generated. This might be due to insufficient data or a temporary service issue.
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={handleRetrySummary}
+              sx={{
+                borderColor: theme.colors.primary,
+                color: theme.colors.primary,
+                '&:hover': {
+                  borderColor: theme.colors.primaryDark,
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                }
+              }}
+            >
+              Retry Summary Generation
+            </Button>
+          </CardContent>
+        </Card>
       );
     }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DataSimulationStudio from './DataSimulationStudio';
 import {
   Box,
   Typography,
@@ -32,7 +33,10 @@ import {
   Assessment as AssessmentIcon,
   TrendingUp as TrendingUpIcon,
   Analytics as AnalyticsIcon,
-  Timeline as TimelineIcon
+  Timeline as TimelineIcon,
+  Save as SaveIcon,
+  Folder as FolderIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/api';
@@ -53,6 +57,8 @@ interface InvestigationStep {
   category: 'data_collection' | 'analysis' | 'scenario' | 'visualization';
   priority: 'high' | 'medium' | 'low';
   estimatedTime: string;
+  strategy_focus?: string;
+  risk_profile?: string;
 }
 
 const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
@@ -76,6 +82,17 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
     priority: 'medium' as 'high' | 'medium' | 'low',
     estimatedTime: '15-20 min'
   });
+
+  // Strategy management state
+  const [strategies, setStrategies] = useState<any[]>([]);
+  const [selectedStrategy, setSelectedStrategy] = useState<string>('');
+  const [saveStrategyDialogOpen, setSaveStrategyDialogOpen] = useState(false);
+  const [strategyToSave, setStrategyToSave] = useState({
+    name: '',
+    description: '',
+    tags: [] as string[]
+  });
+  const [showDataSimulationStudio, setShowDataSimulationStudio] = useState(false);
 
   // Steps taken so far
   const stepsTaken = [
@@ -135,9 +152,95 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
     }
   };
 
+  const personalizeStrategy = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Pass current steps for personalization
+      const response = await apiService.generateInvestigationPlan({
+        customerId,
+        customerName,
+        customerData,
+        reportId,
+        currentSteps: investigationPlan // Pass current steps for LLM personalization
+      });
+      
+      if (response.success) {
+        setInvestigationPlan(response.data.steps || []);
+        setSelectedSteps(new Set()); // Clear selections
+      } else {
+        setError(response.error || 'Failed to personalize strategy');
+      }
+    } catch (err) {
+      setError('Failed to personalize strategy');
+      console.error('Error personalizing strategy:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     generateInvestigationPlan();
+    loadStrategies();
   }, []);
+
+  const loadStrategies = async () => {
+    try {
+      const response = await apiService.getStrategies();
+      if (response.success) {
+        setStrategies(response.strategies || []);
+      }
+    } catch (error) {
+      console.error('Error loading strategies:', error);
+    }
+  };
+
+  const handleSaveStrategy = async () => {
+    if (!strategyToSave.name.trim()) {
+      setError('Strategy name is required');
+      return;
+    }
+
+    try {
+      const strategyData = {
+        name: strategyToSave.name,
+        description: strategyToSave.description,
+        strategy_focus: investigationPlan[0]?.strategy_focus || 'standard_analysis',
+        risk_profile: investigationPlan[0]?.risk_profile || 'medium_risk',
+        steps: investigationPlan,
+        tags: strategyToSave.tags
+      };
+
+      const response = await apiService.createStrategy(strategyData);
+      if (response.success) {
+        setSaveStrategyDialogOpen(false);
+        setStrategyToSave({ name: '', description: '', tags: [] });
+        await loadStrategies(); // Reload strategies
+        setError('');
+      } else {
+        setError(response.error || 'Failed to save strategy');
+      }
+    } catch (error) {
+      setError('Error saving strategy');
+    }
+  };
+
+  const handleLoadStrategy = async (strategyId: string) => {
+    try {
+      const response = await apiService.getStrategy(strategyId);
+      if (response.success && response.strategy) {
+        setInvestigationPlan(response.strategy.steps);
+        setSelectedSteps(new Set()); // Clear selections
+        setSelectedStrategy(strategyId);
+        setError('');
+      } else {
+        setError('Failed to load strategy');
+      }
+    } catch (error) {
+      setError('Error loading strategy');
+    }
+  };
 
   const getStepIcon = (category: string) => {
     switch (category) {
@@ -205,10 +308,13 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
   };
 
   const handleProceedToNextStage = () => {
+    if (selectedSteps.size === 0) {
+      setError('Please select at least one step to proceed');
+      return;
+    }
+    
     const selectedStepData = investigationPlan.filter(step => selectedSteps.has(step.id));
-    console.log('Selected steps for next stage:', selectedStepData);
-    // TODO: Navigate to next stage with selected steps
-    onClose();
+    setShowDataSimulationStudio(true);
   };
 
   return (
@@ -290,17 +396,35 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
 
       {/* Investigation Strategy */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ color: theme.colors.text }}>
-          Investigation Strategy & Analysis Plan
-        </Typography>
+        <Box>
+          <Typography variant="h6" sx={{ color: theme.colors.text }}>
+            Investigation Strategy & Analysis Plan
+          </Typography>
+          {investigationPlan.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Chip
+                label={`${investigationPlan[0]?.strategy_focus?.replace('_', ' ').toUpperCase() || 'STANDARD'} STRATEGY`}
+                color="primary"
+                size="small"
+                variant="outlined"
+              />
+              <Chip
+                label={`${investigationPlan[0]?.risk_profile?.replace('_', ' ').toUpperCase() || 'MEDIUM'} RISK`}
+                color={investigationPlan[0]?.risk_profile === 'high_risk' ? 'error' : investigationPlan[0]?.risk_profile === 'low_risk' ? 'success' : 'warning'}
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+          )}
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
             variant="outlined"
-            onClick={generateInvestigationPlan}
+            onClick={personalizeStrategy}
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} /> : <AssessmentIcon />}
           >
-            {loading ? 'Generating...' : 'Regenerate Strategy'}
+            {loading ? 'Personalizing...' : 'Personalize Strategy'}
           </Button>
           <Button
             variant="outlined"
@@ -309,8 +433,65 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
           >
             Add Custom Step
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setSaveStrategyDialogOpen(true)}
+            startIcon={<SaveIcon />}
+            disabled={investigationPlan.length === 0}
+          >
+            Save Strategy
+          </Button>
         </Box>
       </Box>
+
+      {/* Strategy Selection */}
+      {strategies.length > 0 && (
+        <Box sx={{ mb: 3, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1 }}>
+          <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+            Load Saved Strategy
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <FormControl sx={{ minWidth: 300 }}>
+              <InputLabel sx={{ color: theme.colors.textSecondary }}>Select Strategy</InputLabel>
+              <Select
+                value={selectedStrategy}
+                onChange={(e) => handleLoadStrategy(e.target.value)}
+                sx={{ 
+                  color: theme.colors.text,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' }
+                }}
+              >
+                <MenuItem value="">
+                  <em>Choose a saved strategy...</em>
+                </MenuItem>
+                {strategies.map((strategy) => (
+                  <MenuItem key={strategy.strategy_id} value={strategy.strategy_id}>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: theme.colors.text }}>
+                        {strategy.name}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: theme.colors.textSecondary }}>
+                        {strategy.strategy_focus?.replace('_', ' ')} • {strategy.risk_profile?.replace('_', ' ')} • {strategy.steps?.length || 0} steps
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {selectedStrategy && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setSelectedStrategy('')}
+                startIcon={<DeleteIcon />}
+              >
+                Clear
+              </Button>
+            )}
+          </Box>
+        </Box>
+      )}
 
       {/* Selection Controls */}
       {investigationPlan.length > 0 && (
@@ -492,6 +673,87 @@ const DataProcessingStage: React.FC<DataProcessingStageProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Save Strategy Dialog */}
+      <Dialog 
+        open={saveStrategyDialogOpen} 
+        onClose={() => setSaveStrategyDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ backgroundColor: theme.colors.background, color: theme.colors.text }}>
+          Save Investigation Strategy
+        </DialogTitle>
+        <DialogContent sx={{ backgroundColor: theme.colors.background }}>
+          <Box sx={{ pt: 2 }}>
+            <TextField
+              fullWidth
+              label="Strategy Name"
+              value={strategyToSave.name}
+              onChange={(e) => setStrategyToSave({ ...strategyToSave, name: e.target.value })}
+              sx={{ mb: 2 }}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Description (Optional)"
+              value={strategyToSave.description}
+              onChange={(e) => setStrategyToSave({ ...strategyToSave, description: e.target.value })}
+              multiline
+              rows={3}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Tags (comma-separated)"
+              value={strategyToSave.tags.join(', ')}
+              onChange={(e) => setStrategyToSave({ 
+                ...strategyToSave, 
+                tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+              })}
+              placeholder="e.g., high-risk, credit-limit, self-employed"
+              sx={{ mb: 2 }}
+            />
+            <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1 }}>
+              <Typography variant="body2" sx={{ color: theme.colors.textSecondary, mb: 1 }}>
+                Strategy Details:
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.colors.text }}>
+                • Focus: {investigationPlan[0]?.strategy_focus?.replace('_', ' ').toUpperCase() || 'STANDARD'}
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.colors.text }}>
+                • Risk Profile: {investigationPlan[0]?.risk_profile?.replace('_', ' ').toUpperCase() || 'MEDIUM'}
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.colors.text }}>
+                • Steps: {investigationPlan.length}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ backgroundColor: theme.colors.background }}>
+          <Button onClick={() => setSaveStrategyDialogOpen(false)} sx={{ color: theme.colors.textSecondary }}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSaveStrategy}
+            variant="contained"
+            disabled={!strategyToSave.name.trim()}
+          >
+            Save Strategy
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Data Simulation Studio */}
+      {showDataSimulationStudio && (
+        <DataSimulationStudio
+          customerId={customerId}
+          customerName={customerName}
+          reportId={reportId || undefined}
+          selectedSteps={investigationPlan.filter(step => selectedSteps.has(step.id))}
+          onClose={() => setShowDataSimulationStudio(false)}
+        />
+      )}
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from enum import Enum
@@ -15,6 +15,21 @@ class CreditInquiryType(str, Enum):
     LOAN_APPLICATION = "loan_application"
     REFINANCING = "refinancing"
     GENERAL_INQUIRY = "general_inquiry"
+
+class InvestigationExecutionStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+class DataSourceType(str, Enum):
+    INTERNAL_BANKING = "internal_banking"
+    CREDIT_BUREAU = "credit_bureau"
+    INCOME_VERIFICATION = "income_verification"
+    CUSTOMER_DEMOGRAPHICS = "customer_demographics"
+    ECONOMIC_INDICATORS = "economic_indicators"
+    OPEN_BANKING = "open_banking"
 
 class CustomerReport(BaseModel):
     report_id: Optional[str] = None
@@ -73,4 +88,103 @@ class ReportsListResponse(BaseModel):
     success: bool
     reports: List[CustomerReport] = []
     total_count: int = 0
+    error: Optional[str] = None
+
+class InvestigationStrategy(BaseModel):
+    strategy_id: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+    strategy_focus: str
+    risk_profile: str
+    steps: List[Dict[str, Any]]
+    created_by: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    is_template: bool = False
+    tags: List[str] = []
+
+class CreateStrategyRequest(BaseModel):
+    name: str
+    description: Optional[str] = None
+    strategy_focus: str
+    risk_profile: str
+    steps: List[Dict[str, Any]]
+    is_template: bool = False
+    tags: List[str] = []
+
+class UpdateStrategyRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    tags: Optional[List[str]] = None
+    is_template: Optional[bool] = None
+
+class StrategyResponse(BaseModel):
+    success: bool
+    strategy: Optional[InvestigationStrategy] = None
+    error: Optional[str] = None
+
+class StrategiesListResponse(BaseModel):
+    success: bool
+    strategies: List[InvestigationStrategy] = []
+    total_count: int = 0
+    error: Optional[str] = None
+
+# New models for Data Simulation and Visualization Studio
+class DataSource(BaseModel):
+    source_id: str
+    name: str
+    type: DataSourceType
+    description: str
+    table_name: str
+    fields: List[Dict[str, Any]]
+    sample_data: Optional[List[Dict[str, Any]]] = None
+    is_enabled: bool = True
+
+class InvestigationExecution(BaseModel):
+    execution_id: str = Field(alias="executionId")
+    customer_id: int = Field(alias="customerId")
+    customer_name: str = Field(alias="customerName")
+    report_id: Optional[str] = Field(None, alias="reportId")
+    selectedSteps: List[Dict[str, Any]]
+    status: InvestigationExecutionStatus
+    started_at: datetime = Field(alias="startedAt")
+    completed_at: Optional[datetime] = Field(None, alias="completedAt")
+    results: Dict[str, Any] = {}
+    errors: List[str] = []
+    progress: float = 0.0
+    current_step: Optional[str] = Field(None, alias="currentStep")
+    step_status: Dict[str, str] = Field(default_factory=dict, alias="stepStatus")  # Track individual step status
+
+class InvestigationResult(BaseModel):
+    step_id: str
+    step_title: str
+    execution_time: float
+    status: InvestigationExecutionStatus
+    data: Dict[str, Any]
+    visualizations: List[Dict[str, Any]]
+    insights: List[str]
+    recommendations: List[str]
+    metadata: Dict[str, Any]
+
+class ExecuteInvestigationRequest(BaseModel):
+    customer_id: int = Field(alias="customerId")
+    customer_name: str = Field(alias="customerName")
+    report_id: Optional[str] = Field(None, alias="reportId")
+    selectedSteps: List[Dict[str, Any]]
+    execution_mode: str = Field("batch", alias="executionMode")
+
+class InvestigationExecutionResponse(BaseModel):
+    success: bool
+    execution: Optional[InvestigationExecution] = None
+    error: Optional[str] = None
+
+class DataSourcesResponse(BaseModel):
+    success: bool
+    data_sources: List[DataSource] = []
+    error: Optional[str] = None
+
+class InvestigationResultsResponse(BaseModel):
+    success: bool
+    results: List[InvestigationResult] = []
+    summary: Dict[str, Any] = {}
     error: Optional[str] = None

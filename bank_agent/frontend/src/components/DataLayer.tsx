@@ -42,9 +42,18 @@ const DataLayer: React.FC<DataLayerProps> = ({ selectedCustomer }) => {
     const fetchDataSources = async () => {
       try {
         const sources = await apiService.getDataSources();
-        setDataSources(sources);
+        console.log('Fetched data sources:', sources);
+        
+        // Ensure sources is an array
+        if (Array.isArray(sources)) {
+          setDataSources(sources);
+        } else {
+          console.error('Data sources is not an array:', sources);
+          setDataSources([]);
+        }
       } catch (error) {
         console.error('Error fetching data sources:', error);
+        setDataSources([]);
       } finally {
         setIsLoading(false);
       }
@@ -61,14 +70,26 @@ const DataLayer: React.FC<DataLayerProps> = ({ selectedCustomer }) => {
   };
 
   const getEnabledCount = () => {
+    if (!Array.isArray(dataSources)) {
+      console.warn('dataSources is not an array:', dataSources);
+      return 0;
+    }
     return dataSources.filter(ds => ds.is_enabled).length;
   };
 
   const getCategoryCount = (category: string) => {
+    if (!Array.isArray(dataSources)) {
+      console.warn('dataSources is not an array:', dataSources);
+      return 0;
+    }
     return dataSources.filter(ds => ds.category === category).length;
   };
 
   const getEnabledCategoryCount = (category: string) => {
+    if (!Array.isArray(dataSources)) {
+      console.warn('dataSources is not an array:', dataSources);
+      return 0;
+    }
     return dataSources.filter(ds => ds.category === category && ds.is_enabled).length;
   };
 

@@ -178,15 +178,7 @@ Only return the SQL query, no explanations or markdown formatting.
     }
   }
 
-  async getDataSources(): Promise<any[]> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/datasources`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching data sources:', error);
-      return [];
-    }
-  }
+
 
   async getSampleData(tableName: string, limit: number = 5): Promise<any[]> {
     try {
@@ -470,6 +462,7 @@ Only return the SQL query, no explanations or markdown formatting.
     customerName: string;
     customerData: any;
     reportId: string | null;
+    currentSteps?: any[];  // New parameter for personalization
   }): Promise<any> {
     try {
       const response = await axios.post(`${API_BASE_URL}/api/reports/generate-investigation-plan`, planData, {
@@ -478,6 +471,164 @@ Only return the SQL query, no explanations or markdown formatting.
       return response.data;
     } catch (error) {
       console.error('❌ API Service: Error generating investigation plan:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  // Investigation Execution Methods
+  async executeInvestigation(request: {
+    customerId: number;
+    customerName: string;
+    reportId?: string;
+    selectedSteps: any[];
+    executionMode: 'batch' | 'sequential';
+  }): Promise<any> {
+    try {
+      console.log('🔍 API Service: Sending request to backend:', request);
+      const response = await axios.post(`${API_BASE_URL}/api/investigations/execute`, request, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ API Service: Error executing investigation:', error);
+      if (error.response) {
+        console.error('❌ Response data:', error.response.data);
+        console.error('❌ Response status:', error.response.status);
+      }
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+
+
+  async getInvestigationExecution(executionId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/investigations/executions/${executionId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting investigation execution:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getAllInvestigationExecutions(): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/investigations/executions`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting all investigation executions:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getDataSources(): Promise<any[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/investigations/data-sources`, {
+        headers: this.getAuthHeaders()
+      });
+      
+      // Handle different response formats
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else {
+        console.warn('Unexpected data sources response format:', response.data);
+        return [];
+      }
+    } catch (error) {
+      console.error('❌ API Service: Error getting data sources:', error);
+      return [];
+    }
+  }
+
+  // Strategy Management Methods
+  async createStrategy(strategyData: {
+    name: string;
+    description?: string;
+    strategy_focus: string;
+    risk_profile: string;
+    steps: any[];
+    is_template?: boolean;
+    tags?: string[];
+  }): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/strategies`, strategyData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error creating strategy:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getStrategies(params?: {
+    focus?: string;
+    risk_profile?: string;
+    search?: string;
+    templates_only?: boolean;
+  }): Promise<any> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.focus) queryParams.append('focus', params.focus);
+      if (params?.risk_profile) queryParams.append('risk_profile', params.risk_profile);
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.templates_only) queryParams.append('templates_only', 'true');
+
+      const response = await axios.get(`${API_BASE_URL}/api/strategies?${queryParams}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting strategies:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getStrategy(strategyId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/strategies/${strategyId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting strategy:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async updateStrategy(strategyId: string, updateData: {
+    name?: string;
+    description?: string;
+    tags?: string[];
+    is_template?: boolean;
+  }): Promise<any> {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/api/strategies/${strategyId}`, updateData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error updating strategy:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async deleteStrategy(strategyId: string): Promise<any> {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/api/strategies/${strategyId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error deleting strategy:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }

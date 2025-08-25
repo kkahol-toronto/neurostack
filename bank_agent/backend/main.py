@@ -34,9 +34,13 @@ from user_models import (
 # Import report models and service
 from models import (
     CreateReportRequest, UpdateReportRequest, ReportResponse, 
-    ReportsListResponse, ReportStatus, CreditInquiryType
+    ReportsListResponse, ReportStatus, CreditInquiryType,
+    InvestigationStrategy, CreateStrategyRequest, UpdateStrategyRequest, 
+    StrategyResponse, StrategiesListResponse,
+    ExecuteInvestigationRequest, InvestigationExecutionResponse, DataSourcesResponse, InvestigationResultsResponse
 )
 from report_service import report_service
+from investigation_service import investigation_service
 
 # Load environment variables from root directory
 load_dotenv(dotenv_path="/Users/kanavkahol/work/neurostack/.env")
@@ -1504,11 +1508,12 @@ async def generate_investigation_plan(
 ):
     """Generate investigation strategy for analysis stage."""
     try:
-        plan = report_service.generate_investigation_plan(
+        plan = await report_service.generate_investigation_plan(
             customer_id=request.get("customerId"),
             customer_name=request.get("customerName"),
             customer_data=request.get("customerData"),
-            report_id=request.get("reportId")
+            report_id=request.get("reportId"),
+            current_steps=request.get("currentSteps")  # New parameter for personalization
         )
         
         return {
@@ -1528,6 +1533,161 @@ async def get_report_statuses():
 async def get_inquiry_types():
     """Get available inquiry types."""
     return {"inquiry_types": [inquiry_type.value for inquiry_type in CreditInquiryType]}
+
+# Strategy Management Endpoints
+@app.post("/api/strategies", response_model=StrategyResponse)
+async def create_strategy(
+    request: CreateStrategyRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new investigation strategy."""
+    try:
+        strategy = report_service.create_strategy(request, current_user.user_id)
+        return StrategyResponse(success=True, strategy=strategy)
+    except Exception as e:
+        logger.error(f"Error creating strategy: {str(e)}")
+        return StrategyResponse(success=False, error=str(e))
+
+@app.get("/api/strategies", response_model=StrategiesListResponse)
+async def get_strategies(
+    focus: Optional[str] = None,
+    risk_profile: Optional[str] = None,
+    search: Optional[str] = None,
+    templates_only: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all strategies with optional filtering."""
+    try:
+        if search:
+            strategies = report_service.search_strategies(search)
+        elif templates_only:
+            strategies = report_service.get_template_strategies()
+        elif focus:
+            strategies = report_service.get_strategies_by_focus(focus)
+        elif risk_profile:
+            strategies = report_service.get_strategies_by_risk_profile(risk_profile)
+        else:
+            strategies = report_service.get_all_strategies()
+        
+        return StrategiesListResponse(
+            success=True,
+            strategies=strategies,
+            total_count=len(strategies)
+        )
+    except Exception as e:
+        logger.error(f"Error getting strategies: {str(e)}")
+        return StrategiesListResponse(success=False, error=str(e))
+
+@app.get("/api/strategies/{strategy_id}", response_model=StrategyResponse)
+async def get_strategy(
+    strategy_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific strategy by ID."""
+    try:
+        strategy = report_service.get_strategy(strategy_id)
+        if not strategy:
+            return StrategyResponse(success=False, error="Strategy not found")
+        return StrategyResponse(success=True, strategy=strategy)
+    except Exception as e:
+        logger.error(f"Error getting strategy: {str(e)}")
+        return StrategyResponse(success=False, error=str(e))
+
+@app.put("/api/strategies/{strategy_id}", response_model=StrategyResponse)
+async def update_strategy(
+    strategy_id: str,
+    request: UpdateStrategyRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a strategy."""
+    try:
+        strategy = report_service.update_strategy(strategy_id, request)
+        if not strategy:
+            return StrategyResponse(success=False, error="Strategy not found")
+        return StrategyResponse(success=True, strategy=strategy)
+    except Exception as e:
+        logger.error(f"Error updating strategy: {str(e)}")
+        return StrategyResponse(success=False, error=str(e))
+
+@app.delete("/api/strategies/{strategy_id}")
+async def delete_strategy(
+    strategy_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a strategy."""
+    try:
+        success = report_service.delete_strategy(strategy_id)
+        if not success:
+            return {"success": False, "error": "Strategy not found"}
+        return {"success": True, "message": "Strategy deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting strategy: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+# Investigation Execution Endpoints
+@app.post("/api/investigations/execute", response_model=InvestigationExecutionResponse)
+async def execute_investigation(
+    request: ExecuteInvestigationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Execute investigation steps using LLM-based planning and execution."""
+    try:
+        logger.info(f"🔍 Received investigation execution request: {request}")
+        logger.info(f"🔍 Request type: {type(request)}")
+        logger.info(f"🔍 selectedSteps type: {type(request.selectedSteps)}")
+        logger.info(f"🔍 selectedSteps content: {request.selectedSteps}")
+        execution = await investigation_service.execute_investigation(request)
+        logger.info(f"🔍 Created execution: {execution}")
+        logger.info(f"🔍 Execution ID: {execution.execution_id}")
+        return InvestigationExecutionResponse(success=True, execution=execution)
+    except Exception as e:
+        logger.error(f"Error executing investigation: {str(e)}")
+        return InvestigationExecutionResponse(success=False, error=str(e))
+
+
+
+@app.get("/api/investigations/executions/{execution_id}", response_model=InvestigationExecutionResponse)
+async def get_investigation_execution(
+    execution_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get investigation execution by ID."""
+    try:
+        execution = investigation_service.get_execution(execution_id)
+        if not execution:
+            return InvestigationExecutionResponse(success=False, error="Execution not found")
+        return InvestigationExecutionResponse(success=True, execution=execution)
+    except Exception as e:
+        logger.error(f"Error getting execution: {str(e)}")
+        return InvestigationExecutionResponse(success=False, error=str(e))
+
+@app.get("/api/investigations/executions", response_model=InvestigationResultsResponse)
+async def get_all_investigation_executions(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all investigation executions."""
+    try:
+        executions = investigation_service.get_all_executions()
+        return InvestigationResultsResponse(
+            success=True,
+            results=[execution.dict() for execution in executions],
+            summary={"total_executions": len(executions)}
+        )
+    except Exception as e:
+        logger.error(f"Error getting executions: {str(e)}")
+        return InvestigationResultsResponse(success=False, error=str(e))
+
+@app.get("/api/investigations/data-sources", response_model=DataSourcesResponse)
+async def get_data_sources(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all available data sources for investigation execution."""
+    try:
+        data_sources = investigation_service.get_data_sources()
+        return DataSourcesResponse(success=True, data_sources=data_sources)
+    except Exception as e:
+        logger.error(f"Error getting data sources: {str(e)}")
+        return DataSourcesResponse(success=False, error=str(e))
 
 if __name__ == "__main__":
     import uvicorn
