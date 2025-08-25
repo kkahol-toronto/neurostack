@@ -172,13 +172,40 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
   // Pre-fill customer email when tab is opened
   useEffect(() => {
     if (activeTab === 4 && customerName) {
+      console.log('🔍 Tab 4 opened, attempting to populate customer email');
+      console.log('🔍 Customer Name:', customerName);
+      console.log('🔍 Results:', results);
+      
       // Try to get customer email from profile data
       const customerProfile = results.find(r => r.data?.customer_profile);
+      console.log('🔍 Customer Profile:', customerProfile);
+      
       if (customerProfile?.data?.customer_profile?.email) {
+        console.log('✅ Found email in customer profile:', customerProfile.data.customer_profile.email);
         setDecisionData(prev => ({
           ...prev,
           customerEmail: customerProfile.data.customer_profile.email
         }));
+      } else {
+        // Try to get email from customer demographics data
+        const customerDemo = results.find(r => r.data?.customer_demographics);
+        console.log('🔍 Customer Demographics:', customerDemo);
+        
+        if (customerDemo?.data?.customer_demographics?.email) {
+          console.log('✅ Found email in customer demographics:', customerDemo.data.customer_demographics.email);
+          setDecisionData(prev => ({
+            ...prev,
+            customerEmail: customerDemo.data.customer_demographics.email
+          }));
+        } else {
+          // Fallback: use a default email based on customer name
+          const defaultEmail = `${customerName.toLowerCase().replace(' ', '.')}@example.com`;
+          console.log('⚠️ Using fallback email:', defaultEmail);
+          setDecisionData(prev => ({
+            ...prev,
+            customerEmail: defaultEmail
+          }));
+        }
       }
     }
   }, [activeTab, customerName, results]);
@@ -2666,26 +2693,44 @@ Banking Team`;
                         <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
                           Customer Email *
                         </Typography>
-                        <Box
-                          component="input"
-                          type="email"
-                          value={decisionData.customerEmail}
-                          onChange={(e) => setDecisionData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                          placeholder="customer@example.com"
-                          sx={{
-                            width: '100%',
-                            p: 2,
-                            border: `1px solid ${theme.colors.border}`,
-                            borderRadius: 1,
-                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                            color: theme.colors.text,
-                            fontSize: '16px',
-                            '&:focus': {
-                              outline: 'none',
-                              borderColor: theme.colors.primary
-                            }
-                          }}
-                        />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Box
+                            component="input"
+                            type="email"
+                            value={decisionData.customerEmail}
+                            onChange={(e) => setDecisionData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                            placeholder="customer@example.com"
+                            sx={{
+                              flex: 1,
+                              p: 2,
+                              border: `1px solid ${theme.colors.border}`,
+                              borderRadius: 1,
+                              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                              color: theme.colors.text,
+                              fontSize: '16px',
+                              '&:focus': {
+                                outline: 'none',
+                                borderColor: theme.colors.primary
+                              }
+                            }}
+                          />
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                              const defaultEmail = `${customerName.toLowerCase().replace(' ', '.')}@example.com`;
+                              setDecisionData(prev => ({ ...prev, customerEmail: defaultEmail }));
+                            }}
+                            sx={{
+                              borderColor: theme.colors.primary,
+                              color: theme.colors.primary,
+                              minWidth: 'auto',
+                              px: 2
+                            }}
+                          >
+                            Auto-fill
+                          </Button>
+                        </Box>
                       </Box>
                     </Box>
                   </CardContent>

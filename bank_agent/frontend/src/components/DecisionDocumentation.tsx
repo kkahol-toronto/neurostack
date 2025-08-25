@@ -59,23 +59,30 @@ const DecisionDocumentation: React.FC<DecisionDocumentationProps> = ({ onBack })
         const sessionId = searchParams.get('sessionId') || 'decision_doc_5_20250825_034258';
         
         console.log('🔍 Loading session data for sessionId:', sessionId);
+        console.log('🔍 Search params:', Object.fromEntries(searchParams.entries()));
+        console.log('🔍 Current URL:', window.location.href);
         
         // Try to fetch session data from API first
         try {
+          console.log('🔍 Attempting to fetch session data from API...');
           const response = await apiService.getSessionData(sessionId);
+          console.log('🔍 API response:', response);
+          
           if (response.success && response.data) {
             console.log('✅ Real session data loaded:', response.data);
             setSessionData(response.data);
             return;
           } else {
-            console.log('API returned no data, using fallback');
+            console.log('⚠️ API returned no data, using fallback');
+            console.log('⚠️ API response:', response);
           }
         } catch (apiError) {
-          console.log('API not available, using fallback data');
+          console.log('⚠️ API not available, using fallback data');
+          console.log('⚠️ API error:', apiError);
         }
         
         // Fallback to corrected mock data based on the session ID
-        // Use the actual session ID from the URL (like 2ff99de2-a642-4177-b564-9afe2afce8cf)
+        console.log('🔍 Using fallback mock data for session:', sessionId);
         const mockSessionData: SessionData = {
           sessionId: sessionId,
           customerName: 'Michael Gonzales',
@@ -89,9 +96,10 @@ const DecisionDocumentation: React.FC<DecisionDocumentationProps> = ({ onBack })
           agentName: 'Data Analyst'
         };
 
+        console.log('✅ Mock session data created:', mockSessionData);
         setSessionData(mockSessionData);
       } catch (err) {
-        console.error('Error loading session data:', err);
+        console.error('❌ Error loading session data:', err);
         setError('Failed to load session data');
       } finally {
         setLoading(false);
@@ -209,7 +217,7 @@ const DecisionDocumentation: React.FC<DecisionDocumentationProps> = ({ onBack })
         minHeight: '100vh'
       }}>
         <Alert severity="warning" sx={{ mb: 2 }}>
-          Session data not found
+          Session data not found. Session ID: {searchParams.get('sessionId') || 'Not provided'}
         </Alert>
         <Button onClick={handleBack} startIcon={<ArrowBackIcon />}>
           Go Back

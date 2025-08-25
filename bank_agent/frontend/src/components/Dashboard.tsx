@@ -136,6 +136,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   ];
 
   const handleTileClick = (tileId: string) => {
+    // Special handling for Decision Documentation when session data is loaded
+    if (tileId === 'documentation' && selectedSession && lastExecutionResults['documentation']) {
+      // Navigate to the Decision Documentation page
+      const sessionId = selectedSession.id || selectedSession.execution_id;
+      window.open(`/decision-documentation?sessionId=${sessionId}`, '_blank');
+      return;
+    }
+    
     setSelectedTile(selectedTile === tileId ? null : tileId);
     setSidebarOpen(false);
   };
@@ -165,6 +173,83 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
 
   const handleViewResults = (moduleId: string) => {
     const execution = lastExecutionResults[moduleId];
+    
+    // Special handling for Decision Documentation module
+    if (moduleId === 'documentation' && selectedSession) {
+      // Show decision data in a modal instead of navigating
+      setSelectedTile(moduleId);
+      setIsDialogOpen(true);
+      setDialogTitle(`Decision Documentation - ${selectedSession.customerName}`);
+      
+      // Format decision data for display
+      let formattedContent = '';
+      
+      if (selectedSession.results && Object.keys(selectedSession.results).length > 0) {
+        formattedContent += `📊 Decision Summary\n`;
+        formattedContent += `==================\n`;
+        formattedContent += `Customer: ${selectedSession.customerName}\n`;
+        formattedContent += `Status: ${selectedSession.status}\n`;
+        formattedContent += `Started: ${new Date(selectedSession.startedAt).toLocaleString()}\n`;
+        if (selectedSession.completedAt) {
+          formattedContent += `Completed: ${new Date(selectedSession.completedAt).toLocaleString()}\n`;
+        }
+        formattedContent += `Progress: ${selectedSession.progress}%\n`;
+        formattedContent += `\n`;
+        
+        // Look for decision data in results
+        const decisionData = selectedSession.results.decision || selectedSession.results.step_004;
+        if (decisionData) {
+          formattedContent += `🎯 Decision Details:\n`;
+          formattedContent += `Decision: ${decisionData.decision || 'Pending'}\n`;
+          if (decisionData.approved_amount) {
+            formattedContent += `Approved Amount: $${decisionData.approved_amount.toLocaleString()}\n`;
+          }
+          if (decisionData.current_credit_limit) {
+            formattedContent += `Current Credit Limit: $${decisionData.current_credit_limit.toLocaleString()}\n`;
+          }
+          if (decisionData.reason) {
+            formattedContent += `Reason: ${decisionData.reason}\n`;
+          }
+          if (decisionData.decision_date) {
+            formattedContent += `Decision Date: ${new Date(decisionData.decision_date).toLocaleString()}\n`;
+          }
+          formattedContent += `\n`;
+        }
+        
+        // Show all step results
+        formattedContent += `📋 Execution Steps:\n`;
+        Object.entries(selectedSession.results).forEach(([stepId, result]: [string, any]) => {
+          if (stepId !== 'decision' && typeof result === 'object') {
+            formattedContent += `\n${stepId}: ${result.step_title || 'Unknown Step'}\n`;
+            formattedContent += `Status: ${result.status || 'Unknown'}\n`;
+            if (result.execution_time) {
+              formattedContent += `Duration: ${result.execution_time}s\n`;
+            }
+            
+            if (result.insights && result.insights.length > 0) {
+              formattedContent += `Insights:\n`;
+              result.insights.forEach((insight: string) => {
+                formattedContent += `• ${insight}\n`;
+              });
+            }
+            
+            if (result.recommendations && result.recommendations.length > 0) {
+              formattedContent += `Recommendations:\n`;
+              result.recommendations.forEach((rec: string) => {
+                formattedContent += `• ${rec}\n`;
+              });
+            }
+          }
+        });
+      } else {
+        formattedContent = 'No decision data available for this session.';
+      }
+      
+      setDialogContent(formattedContent);
+      return;
+    }
+
+    // For other modules, require execution results
     if (!execution) return;
 
     setSelectedTile(moduleId);
@@ -182,45 +267,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       if (execution.end_time) {
         formattedContent += `Completed: ${new Date(execution.end_time).toLocaleString()}\n`;
       }
-      formattedContent += `Total Steps: ${execution.results.length}\n\n`;
-      
-      formattedContent += `📋 Step Results\n`;
-      formattedContent += `==============\n`;
+      formattedContent += `\n`;
       
       execution.results.forEach((result: any, index: number) => {
-        formattedContent += `${index + 1}. ${result.step_title || 'Unknown Step'}\n`;
-        formattedContent += `   Status: ${result.status}\n`;
-        formattedContent += `   Duration: ${result.execution_time?.toFixed(2) || 'N/A'} seconds\n`;
+        formattedContent += `📋 Step ${index + 1}: ${result.step_title || 'Unknown Step'}\n`;
+        formattedContent += `Status: ${result.status}\n`;
+        if (result.execution_time) {
+          formattedContent += `Duration: ${result.execution_time}ms\n`;
+        }
+        formattedContent += `\n`;
         
         if (result.insights && result.insights.length > 0) {
-          formattedContent += `   Key Insights:\n`;
+          formattedContent += `💡 Insights:\n`;
           result.insights.forEach((insight: string) => {
-            formattedContent += `     • ${insight}\n`;
+            formattedContent += `• ${insight}\n`;
           });
+          formattedContent += `\n`;
         }
         
         if (result.recommendations && result.recommendations.length > 0) {
-          formattedContent += `   Recommendations:\n`;
+          formattedContent += `🎯 Recommendations:\n`;
           result.recommendations.forEach((rec: string) => {
-            formattedContent += `     • ${rec}\n`;
+            formattedContent += `• ${rec}\n`;
           });
+          formattedContent += `\n`;
         }
-        
-        if (result.data && Object.keys(result.data).length > 0) {
-          formattedContent += `   Data Summary:\n`;
-          Object.entries(result.data).forEach(([key, value]) => {
-            if (typeof value === 'object' && value !== null) {
-              formattedContent += `     ${key}: [Complex Object]\n`;
-            } else {
-              formattedContent += `     ${key}: ${value}\n`;
-            }
-          });
-        }
-        
-        formattedContent += `\n`;
       });
     } else {
-      formattedContent = 'No detailed results available for this execution.';
+      formattedContent = 'No results available for this module.';
     }
     
     setDialogContent(formattedContent);
@@ -270,6 +344,65 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
     setSelectedSession(session);
     setSessionSearchValue(`${session.customerName} (${session.status})`);
     setSessionMenuOpen(false);
+    
+    // Load session data and make it available to workflow modules
+    loadSessionData(session);
+  };
+
+  const loadSessionData = (session: any) => {
+    console.log('📂 Loading session data for:', session);
+    
+    // Convert session results to the format expected by workflow modules
+    const sessionResults: { [key: string]: any } = {};
+    
+    if (session.results && session.results.length > 0) {
+      // Map session results to module types
+      session.results.forEach((result: any) => {
+        const moduleType = determineModuleType(result);
+        if (moduleType) {
+          if (!sessionResults[moduleType]) {
+            sessionResults[moduleType] = {
+              status: session.status,
+              start_time: session.startedAt,
+              end_time: session.completedAt,
+              results: []
+            };
+          }
+          sessionResults[moduleType].results.push(result);
+        }
+      });
+    }
+    
+    // Handle decision data specifically
+    if (session.results && session.results.decision) {
+      sessionResults['documentation'] = {
+        status: session.status,
+        start_time: session.startedAt,
+        end_time: session.completedAt,
+        results: [{
+          step_title: 'Decision Documentation',
+          step_id: 'decision_documentation',
+          status: 'completed',
+          data: session.results.decision,
+          insights: [`Decision: ${session.results.decision.decision}`],
+          recommendations: [`Approved Amount: $${session.results.decision.approved_amount}`]
+        }]
+      };
+    }
+    
+    // Update the last execution results with session data
+    setLastExecutionResults(sessionResults);
+    
+    // Set verified customer if available
+    if (session.customerName && session.customerId) {
+      setVerifiedCustomer({
+        name: session.customerName,
+        id: session.customerId,
+        email: session.customerEmail || `${session.customerName.toLowerCase().replace(' ', '.')}@example.com`
+      });
+    }
+    
+    console.log('✅ Session data loaded:', sessionResults);
   };
 
   const handleViewSessionResults = (session: any) => {
@@ -364,23 +497,28 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
     }
   };
 
-  const determineModuleType = (execution: any): string | null => {
-    // Determine which module this execution belongs to based on steps
-    if (execution.results && execution.results.length > 0) {
-      const firstResult = execution.results[0];
-      if (firstResult.step_title?.toLowerCase().includes('customer')) {
-        return 'customer-search';
-      } else if (firstResult.step_title?.toLowerCase().includes('data source')) {
-        return 'data-sources';
-      } else if (firstResult.step_title?.toLowerCase().includes('processing')) {
-        return 'data-processing';
-      } else if (firstResult.step_title?.toLowerCase().includes('simulation') || 
-                 firstResult.step_title?.toLowerCase().includes('visualization')) {
-        return 'data-simulation';
-      } else if (firstResult.step_title?.toLowerCase().includes('documentation')) {
-        return 'documentation';
-      }
+  const determineModuleType = (result: any): string | null => {
+    // Determine which module this result belongs to based on step title or step ID
+    const stepTitle = result.step_title || result.step_id || '';
+    const stepId = result.step_id || '';
+    
+    if (stepTitle.toLowerCase().includes('customer') || stepId.toLowerCase().includes('customer')) {
+      return 'customer-search';
+    } else if (stepTitle.toLowerCase().includes('data source') || stepId.toLowerCase().includes('data_source')) {
+      return 'data-sources';
+    } else if (stepTitle.toLowerCase().includes('processing') || stepId.toLowerCase().includes('processing')) {
+      return 'data-processing';
+    } else if (stepTitle.toLowerCase().includes('simulation') || 
+               stepTitle.toLowerCase().includes('visualization') ||
+               stepId.toLowerCase().includes('simulation')) {
+      return 'data-simulation';
+    } else if (stepTitle.toLowerCase().includes('documentation') || 
+               stepTitle.toLowerCase().includes('decision') ||
+               stepId.toLowerCase().includes('documentation')) {
+      return 'documentation';
     }
+    
+    // Default mapping based on step order or other criteria
     return null;
   };
 
@@ -528,9 +666,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
                 color: theme.colors.textSecondary,
                 fontSize: '0.8rem'
               }}>
-                {lastExecutionResults[tile.id] ? 'Completed' : 'Click to expand'}
+                {lastExecutionResults[tile.id] ? 
+                  (selectedSession ? 'Session Data Available' : 'Completed') : 
+                  (tile.id === 'documentation' && selectedSession ? 'Session Data Available' : 'Click to expand')
+                }
               </Typography>
-              {lastExecutionResults[tile.id] && (
+              {(lastExecutionResults[tile.id] || (tile.id === 'documentation' && selectedSession)) && (
                 <>
                   <CheckCircleIcon sx={{ 
                     fontSize: 16, 
@@ -908,7 +1049,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
                         {option.customerName}
                       </Typography>
                       <Typography variant="caption" sx={{ color: theme.colors.textSecondary }}>
-                        {new Date(option.startedAt).toLocaleDateString()} - {Math.round(option.progress * 100)}% complete
+                        {new Date(option.startedAt).toLocaleDateString()} - {Math.round(option.progress)}% complete
                       </Typography>
                     </Box>
                   </Box>
@@ -1095,11 +1236,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       <Dialog
         open={isDialogOpen}
         onClose={handleCloseDialog}
+        maxWidth="lg"
+        fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: theme.colors.background,
             backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: `1px solid ${theme.colors.border}`,
             borderRadius: 3,
             boxShadow: '0 16px 48px rgba(0, 0, 0, 0.3)'
           }
@@ -1109,33 +1252,43 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
           color: theme.colors.text,
           fontWeight: 700,
           textAlign: 'center',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          borderBottom: `1px solid ${theme.colors.border}`,
+          backgroundColor: theme.colors.background
         }}>
           {dialogTitle}
         </DialogTitle>
         <DialogContent sx={{ 
-          color: theme.colors.textSecondary,
+          color: theme.colors.text,
           fontSize: '0.9rem',
           p: 3,
           maxHeight: '70vh',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          backgroundColor: theme.colors.background
         }}>
-          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{dialogContent}</pre>
+          <pre style={{ 
+            whiteSpace: 'pre-wrap', 
+            wordBreak: 'break-all',
+            color: theme.colors.text,
+            fontFamily: 'monospace',
+            fontSize: '0.85rem',
+            lineHeight: 1.5
+          }}>{dialogContent}</pre>
         </DialogContent>
         <DialogActions sx={{ 
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+          borderTop: `1px solid ${theme.colors.border}`,
           p: 2,
-          justifyContent: 'center'
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background
         }}>
           <Button
             onClick={handleCloseDialog}
             variant="outlined"
             sx={{
               color: theme.colors.text,
-              borderColor: 'rgba(255, 255, 255, 0.3)',
+              borderColor: theme.colors.border,
               '&:hover': {
-                borderColor: 'rgba(255, 255, 255, 0.5)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                borderColor: theme.colors.primary,
+                backgroundColor: theme.colors.primary + '20'
               }
             }}
           >
@@ -1152,9 +1305,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            backgroundColor: theme.colors.background,
             backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: `1px solid ${theme.colors.border}`,
             borderRadius: 3,
             boxShadow: '0 16px 48px rgba(0, 0, 0, 0.3)'
           }
@@ -1163,25 +1316,28 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
         <DialogTitle sx={{ 
           color: theme.colors.text,
           fontWeight: 700,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          borderBottom: `1px solid ${theme.colors.border}`,
           display: 'flex',
           alignItems: 'center',
-          gap: 2
+          gap: 2,
+          backgroundColor: theme.colors.background
         }}>
           <HistoryIcon />
           Session Results: {currentSessionResults?.customerName}
         </DialogTitle>
         <DialogContent sx={{ 
-          color: theme.colors.textSecondary,
+          color: theme.colors.text,
           p: 3,
           maxHeight: '80vh',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          backgroundColor: theme.colors.background
         }}>
           {currentSessionResults && (
             <Box>
               {/* Session Summary */}
               <Box sx={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                backgroundColor: theme.colors.background,
+                border: `1px solid ${theme.colors.border}`,
                 p: 3, 
                 borderRadius: 2, 
                 mb: 3 
@@ -1217,7 +1373,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
                       Progress
                     </Typography>
                     <Typography variant="body1" sx={{ color: theme.colors.text, fontWeight: 600 }}>
-                      {Math.round(currentSessionResults.progress * 100)}%
+                                              {Math.round(currentSessionResults.progress)}%
                     </Typography>
                   </Box>
                   <Box>
@@ -1284,7 +1440,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
                           </Typography>
                           <Box component="ul" sx={{ pl: 2, m: 0 }}>
                             {result.insights.map((insight: string, i: number) => (
-                              <Typography key={i} component="li" variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                              <Typography key={i} component="li" variant="body2" sx={{ color: theme.colors.text }}>
                                 {insight}
                               </Typography>
                             ))}
@@ -1299,7 +1455,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
                           </Typography>
                           <Box component="ul" sx={{ pl: 2, m: 0 }}>
                             {result.recommendations.map((rec: string, i: number) => (
-                              <Typography key={i} component="li" variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                              <Typography key={i} component="li" variant="body2" sx={{ color: theme.colors.text }}>
                                 {rec}
                               </Typography>
                             ))}
@@ -1313,13 +1469,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
                             Data Summary:
                           </Typography>
                           <Box sx={{ 
-                            backgroundColor: 'rgba(0, 0, 0, 0.3)', 
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)', 
                             p: 2, 
                             borderRadius: 1,
                             fontFamily: 'monospace',
-                            fontSize: '0.8rem'
+                            fontSize: '0.8rem',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
                           }}>
-                            <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                            <pre style={{ 
+                              margin: 0, 
+                              whiteSpace: 'pre-wrap',
+                              color: theme.colors.text,
+                              lineHeight: 1.4
+                            }}>
                               {JSON.stringify(result.data, null, 2)}
                             </pre>
                           </Box>
