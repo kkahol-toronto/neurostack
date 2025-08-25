@@ -148,6 +148,31 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
   const [chatLoading, setChatLoading] = useState(false);
   const [sessionId] = useState(`session_${customerId}_${Date.now()}`);
 
+  // Finalize Decision state
+  const [decisionData, setDecisionData] = useState({
+    decision: 'approved' as 'approved' | 'rejected',
+    approvedAmount: 0,
+    reason: '',
+    customerEmail: '',
+    emailSubject: '',
+    emailBody: ''
+  });
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  // Pre-fill customer email when tab is opened
+  useEffect(() => {
+    if (activeTab === 4 && customerName) {
+      // Try to get customer email from profile data
+      const customerProfile = results.find(r => r.data?.customer_profile);
+      if (customerProfile?.data?.customer_profile?.email) {
+        setDecisionData(prev => ({
+          ...prev,
+          customerEmail: customerProfile.data.customer_profile.email
+        }));
+      }
+    }
+  }, [activeTab, customerName, results]);
+
   useEffect(() => {
     return () => {
       if (pollingInterval) {
@@ -1761,6 +1786,101 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
     );
   };
 
+  // Email generation and sending functions
+  const generateEmailContent = () => {
+    const subject = decisionData.emailSubject || `Credit Limit Decision - ${customerName}`;
+    
+    let body = '';
+    if (decisionData.decision === 'approved') {
+      body = `Dear ${customerName},
+
+Thank you for your credit limit increase request. After careful review of your application and credit profile, I am pleased to inform you that your request has been **APPROVED**.
+
+**Decision Details:**
+- Approved Amount: $${decisionData.approvedAmount.toLocaleString()}
+- Decision Date: ${new Date().toLocaleDateString()}
+
+**Reason for Approval:**
+${decisionData.reason}
+
+Your new credit limit will be effective immediately. You can view your updated credit limit in your online banking portal or mobile app.
+
+If you have any questions about this decision, please don't hesitate to contact our customer service team.
+
+Best regards,
+Banking Team`;
+    } else {
+      body = `Dear ${customerName},
+
+Thank you for your credit limit increase request. After careful review of your application and credit profile, I regret to inform you that your request has been **DECLINED**.
+
+**Decision Details:**
+- Decision: Declined
+- Decision Date: ${new Date().toLocaleDateString()}
+
+**Reason for Decline:**
+${decisionData.reason}
+
+We understand this may be disappointing, and we encourage you to continue building your credit profile. You may be eligible for a credit limit increase in the future as your financial situation improves.
+
+If you have any questions about this decision or would like to discuss ways to improve your credit profile, please don't hesitate to contact our customer service team.
+
+Best regards,
+Banking Team`;
+    }
+    
+    setDecisionData(prev => ({
+      ...prev,
+      emailSubject: subject,
+      emailBody: body
+    }));
+  };
+
+  const sendEmail = async () => {
+    if (!decisionData.customerEmail || !decisionData.reason) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const emailData = {
+        to: decisionData.customerEmail,
+        subject: decisionData.emailSubject,
+        body: decisionData.emailBody,
+        decision: decisionData.decision,
+        approvedAmount: decisionData.approvedAmount,
+        reason: decisionData.reason,
+        customerName,
+        customerId
+      };
+
+      // Send email via API
+      const response = await apiService.sendEmail(emailData);
+      
+      if (response.success) {
+        alert('Email sent successfully!');
+        // Reset form
+        setDecisionData({
+          decision: 'approved',
+          approvedAmount: 0,
+          reason: '',
+          customerEmail: '',
+          emailSubject: '',
+          emailBody: ''
+        });
+      } else {
+        alert(`Error sending email: ${response.error || 'Unknown error'}`);
+      }
+      
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Error sending email. Please try again.');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ 
       position: 'fixed', 
@@ -1974,6 +2094,10 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
               />
               <Tab 
                 label="Data Sources" 
+                sx={{ color: theme.colors.text }}
+              />
+              <Tab 
+                label="Finalize Decision" 
                 sx={{ color: theme.colors.text }}
               />
             </Tabs>
@@ -2347,6 +2471,246 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                       </Card>
                     </Box>
                   ))}
+                </Box>
+              </Box>
+            )}
+
+            {activeTab === 4 && (
+              <Box>
+                <Typography variant="h5" sx={{ color: theme.colors.text, mb: 3 }}>
+                  Finalize Credit Decision
+                </Typography>
+                
+                {/* Decision Form */}
+                <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', mb: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ color: theme.colors.text, mb: 3 }}>
+                      Decision Details
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {/* Decision Type */}
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+                          Decision *
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Button
+                            variant={decisionData.decision === 'approved' ? 'contained' : 'outlined'}
+                            onClick={() => setDecisionData(prev => ({ ...prev, decision: 'approved' }))}
+                            sx={{
+                              backgroundColor: decisionData.decision === 'approved' ? '#4CAF50' : 'transparent',
+                              color: decisionData.decision === 'approved' ? 'white' : theme.colors.text,
+                              borderColor: '#4CAF50',
+                              '&:hover': {
+                                backgroundColor: decisionData.decision === 'approved' ? '#45a049' : 'rgba(76, 175, 80, 0.1)'
+                              }
+                            }}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant={decisionData.decision === 'rejected' ? 'contained' : 'outlined'}
+                            onClick={() => setDecisionData(prev => ({ ...prev, decision: 'rejected' }))}
+                            sx={{
+                              backgroundColor: decisionData.decision === 'rejected' ? '#F44336' : 'transparent',
+                              color: decisionData.decision === 'rejected' ? 'white' : theme.colors.text,
+                              borderColor: '#F44336',
+                              '&:hover': {
+                                backgroundColor: decisionData.decision === 'rejected' ? '#d32f2f' : 'rgba(244, 67, 54, 0.1)'
+                              }
+                            }}
+                          >
+                            Reject
+                          </Button>
+                        </Box>
+                      </Box>
+
+                      {/* Approved Amount (only show if approved) */}
+                      {decisionData.decision === 'approved' && (
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+                            Approved Amount *
+                          </Typography>
+                          <Box
+                            component="input"
+                            type="number"
+                            value={decisionData.approvedAmount}
+                            onChange={(e) => setDecisionData(prev => ({ ...prev, approvedAmount: parseFloat(e.target.value) || 0 }))}
+                            placeholder="Enter approved amount"
+                            sx={{
+                              width: '100%',
+                              p: 2,
+                              border: `1px solid ${theme.colors.border}`,
+                              borderRadius: 1,
+                              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                              color: theme.colors.text,
+                              fontSize: '16px',
+                              '&:focus': {
+                                outline: 'none',
+                                borderColor: theme.colors.primary
+                              }
+                            }}
+                          />
+                        </Box>
+                      )}
+
+                      {/* Reason */}
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+                          Decision Reason *
+                        </Typography>
+                        <Box
+                          component="textarea"
+                          value={decisionData.reason}
+                          onChange={(e) => setDecisionData(prev => ({ ...prev, reason: e.target.value }))}
+                          placeholder="Provide detailed reason for approval or rejection..."
+                          rows={4}
+                          sx={{
+                            width: '100%',
+                            p: 2,
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: 1,
+                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                            color: theme.colors.text,
+                            fontSize: '14px',
+                            fontFamily: 'inherit',
+                            resize: 'vertical',
+                            '&:focus': {
+                              outline: 'none',
+                              borderColor: theme.colors.primary
+                            }
+                          }}
+                        />
+                      </Box>
+
+                      {/* Customer Email */}
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+                          Customer Email *
+                        </Typography>
+                        <Box
+                          component="input"
+                          type="email"
+                          value={decisionData.customerEmail}
+                          onChange={(e) => setDecisionData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                          placeholder="customer@example.com"
+                          sx={{
+                            width: '100%',
+                            p: 2,
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: 1,
+                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                            color: theme.colors.text,
+                            fontSize: '16px',
+                            '&:focus': {
+                              outline: 'none',
+                              borderColor: theme.colors.primary
+                            }
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+
+                {/* Email Preview */}
+                <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', mb: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ color: theme.colors.text, mb: 3 }}>
+                      Email Communication
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {/* Email Subject */}
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+                          Email Subject
+                        </Typography>
+                        <Box
+                          component="input"
+                          value={decisionData.emailSubject}
+                          onChange={(e) => setDecisionData(prev => ({ ...prev, emailSubject: e.target.value }))}
+                          placeholder="Credit Limit Decision - [Customer Name]"
+                          sx={{
+                            width: '100%',
+                            p: 2,
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: 1,
+                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                            color: theme.colors.text,
+                            fontSize: '16px',
+                            '&:focus': {
+                              outline: 'none',
+                              borderColor: theme.colors.primary
+                            }
+                          }}
+                        />
+                      </Box>
+
+                      {/* Email Body */}
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
+                          Email Body
+                        </Typography>
+                        <Box
+                          component="textarea"
+                          value={decisionData.emailBody}
+                          onChange={(e) => setDecisionData(prev => ({ ...prev, emailBody: e.target.value }))}
+                          placeholder="Email content will be generated automatically..."
+                          rows={8}
+                          sx={{
+                            width: '100%',
+                            p: 2,
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: 1,
+                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                            color: theme.colors.text,
+                            fontSize: '14px',
+                            fontFamily: 'inherit',
+                            resize: 'vertical',
+                            '&:focus': {
+                              outline: 'none',
+                              borderColor: theme.colors.primary
+                            }
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+
+                {/* Action Buttons */}
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => generateEmailContent()}
+                    sx={{
+                      borderColor: theme.colors.primary,
+                      color: theme.colors.primary,
+                      '&:hover': {
+                        borderColor: theme.colors.primary,
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                      }
+                    }}
+                  >
+                    Generate Email
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => sendEmail()}
+                    disabled={emailLoading || !decisionData.customerEmail || !decisionData.reason}
+                    sx={{
+                      backgroundColor: theme.colors.primary,
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: theme.colors.primary,
+                        opacity: 0.9
+                      }
+                    }}
+                  >
+                    {emailLoading ? <CircularProgress size={20} color="inherit" /> : 'Send Email'}
+                  </Button>
                 </Box>
               </Box>
             )}

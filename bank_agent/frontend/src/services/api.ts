@@ -634,22 +634,33 @@ Only return the SQL query, no explanations or markdown formatting.
   }
 
   // Chat with Investigations Methods
-  async sendChatMessage(request: {
-    session_id: string;
-    customer_id: number;
-    customer_name: string;
-    content: string;
-    execution_id?: string;
-    investigation_results?: any;
-  }): Promise<any> {
+  async sendChatMessage(request: any): Promise<any> {
     try {
       const response = await axios.post(`${API_BASE_URL}/api/chat/send`, request, {
         headers: this.getAuthHeaders()
       });
       return response.data;
     } catch (error) {
-      console.error('❌ API Service: Error sending chat message:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+      console.error('Error sending chat message:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  async sendEmail(emailData: any): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/email/send`, emailData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending email:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
     }
   }
 

@@ -43,6 +43,7 @@ from models import (
 from report_service import report_service
 from investigation_service import investigation_service
 from chat_service import ChatService
+from email_service import email_service
 
 # Load environment variables from root directory
 load_dotenv(dotenv_path="/Users/kanavkahol/work/neurostack/.env")
@@ -1742,6 +1743,63 @@ async def get_all_chat_sessions(
     except Exception as e:
         logger.error(f"Error getting chat sessions: {str(e)}")
         return ChatHistoryResponse(success=False, error=str(e))
+
+# Email Endpoints
+class EmailRequest(BaseModel):
+    to: str
+    subject: str
+    body: str
+    decision: str  # 'approved' or 'rejected'
+    approvedAmount: Optional[float] = None
+    reason: str
+    customerName: str
+    customerId: int
+
+class EmailResponse(BaseModel):
+    success: bool
+    message: str
+    email_id: Optional[str] = None
+    error: Optional[str] = None
+
+@app.post("/api/email/send", response_model=EmailResponse)
+async def send_credit_decision_email(
+    request: EmailRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Send credit decision email to customer."""
+    try:
+        logger.info(f"📧 Sending credit decision email to {request.to}")
+        
+        email_data = {
+            "to": request.to,
+            "subject": request.subject,
+            "body": request.body,
+            "decision": request.decision,
+            "approvedAmount": request.approvedAmount,
+            "reason": request.reason,
+            "customerName": request.customerName,
+            "customerId": request.customerId
+        }
+        
+        result = await email_service.send_credit_decision_email(email_data)
+        return EmailResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Error sending email: {str(e)}")
+        return EmailResponse(success=False, error=str(e))
+
+@app.post("/api/email/generate")
+async def generate_email_content(
+    decision_data: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """Generate email content based on decision data."""
+    try:
+        content = email_service.generate_email_content(decision_data)
+        return {"success": True, "content": content}
+    except Exception as e:
+        logger.error(f"Error generating email content: {str(e)}")
+        return {"success": False, "error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

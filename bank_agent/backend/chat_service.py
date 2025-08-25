@@ -264,8 +264,10 @@ class ChatService:
             # Fallback to direct APIM call
             try:
                 ai_response = await self._call_apim_directly(prompt)
-            except:
-                ai_response = self._generate_fallback_scenario_response(scenarios, spending_trends)
+            except Exception as apim_error:
+                print(f"Direct APIM call also failed: {apim_error}")
+                # Generate intelligent fallback response based on the scenarios
+                ai_response = self._generate_intelligent_fallback_response(scenarios, spending_trends, customer_name, base_increase)
         
         return {
             "content": ai_response,
@@ -320,6 +322,66 @@ class ChatService:
         
         return response
     
+    def _generate_intelligent_fallback_response(self, scenarios: List[Dict], spending_trends: Dict, customer_name: str, base_increase: float) -> str:
+        """Generate intelligent fallback response for scenario analysis when APIM fails"""
+        
+        response = f"## Credit Limit Increase Analysis for {customer_name}\n\n"
+        response += f"Based on the scenario analysis for a **${base_increase:,.0f}** base increase request, here's my comprehensive assessment:\n\n"
+        
+        # Find the 100% scenario (the requested amount)
+        requested_scenario = next((s for s in scenarios if s['variation_percentage'] == 100), None)
+        
+        if requested_scenario:
+            response += f"**Requested Increase Analysis (100%):**\n"
+            response += f"- **Increase Amount:** ${requested_scenario['increase_amount']:,.0f}\n"
+            response += f"- **New Credit Limit:** ${requested_scenario['new_credit_limit']:,.0f}\n"
+            response += f"- **Projected Utilization:** {requested_scenario['projected_utilization']:.1f}%\n"
+            response += f"- **Risk Level:** {requested_scenario['risk_level']} (Score: {requested_scenario['risk_score']})\n"
+            response += f"- **Recommendation:** {requested_scenario['recommendation']}\n\n"
+        
+        # Analyze the difference between 80% and 100% scenarios
+        scenario_80 = next((s for s in scenarios if s['variation_percentage'] == 80), None)
+        scenario_100 = next((s for s in scenarios if s['variation_percentage'] == 100), None)
+        
+        if scenario_80 and scenario_100:
+            difference = scenario_100['increase_amount'] - scenario_80['increase_amount']
+            risk_difference = scenario_100['risk_score'] - scenario_80['risk_score']
+            
+            response += f"**Risk Analysis for Additional ${difference:,.0f}:**\n"
+            response += f"- The difference between 80% and 100% scenarios is **${difference:,.0f}**\n"
+            response += f"- Risk score increases by **{risk_difference:.1f} points**\n"
+            response += f"- This represents a **{risk_difference/scenario_80['risk_score']*100:.1f}%** increase in risk\n\n"
+        
+        # Spending pattern analysis
+        response += f"**Spending Pattern Context:**\n"
+        response += f"- Monthly Average: ${spending_trends['monthly_average']:,.0f}\n"
+        response += f"- Trend Direction: {spending_trends['trend_direction'].title()}\n"
+        response += f"- Projected Spending: ${spending_trends['projected_spending']:,.0f}\n"
+        response += f"- Confidence Level: {spending_trends['confidence_level']}%\n\n"
+        
+        # Recommendations
+        response += "**Strategic Recommendations:**\n"
+        
+        if requested_scenario and requested_scenario['risk_score'] < 50:
+            response += "✅ **Recommend proceeding with the full requested amount** - Risk profile remains acceptable\n"
+        elif requested_scenario and requested_scenario['risk_score'] < 70:
+            response += "⚠️ **Consider a compromise approach** - Moderate risk increase, suggest 90% of requested amount\n"
+        else:
+            response += "❌ **Recommend against full amount** - Risk profile becomes elevated, suggest 80% of requested amount\n"
+        
+        response += "\n**Monitoring Strategy:**\n"
+        response += "1. **Monthly utilization monitoring** for the first 3 months\n"
+        response += "2. **Quarterly spending pattern review** to adjust if needed\n"
+        response += "3. **Credit score monitoring** to ensure no negative impact\n"
+        response += "4. **Payment behavior tracking** to maintain risk profile\n\n"
+        
+        response += "**Next Steps:**\n"
+        response += "- If proceeding with full amount: Implement with enhanced monitoring\n"
+        response += "- If compromise needed: Present 90% option with rationale\n"
+        response += "- Document decision factors for future reference\n"
+        
+        return response
+    
     async def _generate_ai_response(self, request: ChatMessageRequest, session: ChatSession) -> Dict[str, Any]:
         """Generate AI response using comprehensive context"""
         
@@ -329,6 +391,9 @@ class ChatService:
             
             # Create intelligent prompt with full context
             prompt = self._create_intelligent_prompt(request, context)
+            
+            print(f"Prompt length: {len(prompt)} characters")
+            print(f"Context includes: customer_profile={bool(context.get('customer_profile'))}, investigation_results={bool(context.get('investigation_results'))}, chat_history={len(context.get('chat_history', []))}")
             
             # Use reasoning agent as primary method
             neurostack = await self._get_neurostack()
@@ -349,6 +414,9 @@ class ChatService:
             
         except Exception as e:
             print(f"Reasoning agent failed: {e}")
+            print(f"Error type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
             # Only use direct APIM as last resort
             try:
                 fallback_prompt = f"""
