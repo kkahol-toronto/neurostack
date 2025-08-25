@@ -1854,5 +1854,118 @@
     "final_decision": null,
     "decision_date": null,
     "decision_by": null
+  },
+  "6fb7533e-069d-4ada-a409-70ae67751e3b": {
+    "report_id": "6fb7533e-069d-4ada-a409-70ae67751e3b",
+    "customer_id": 10,
+    "customer_name": "John Hoover",
+    "report_date": "2025-08-25T05:46:29.032143",
+    "inquiry_type": "credit_limit_increase",
+    "inquiry_description": "wants limit at 27000",
+    "ai_summary": "## **Customer Profile**\n\n- **Customer ID:** 10\n- **Name:** John Hoover\n- **Date of Birth:** 1968-11-21 (Age: 55)\n- **Location:** Nelsonmouth, PA (ZIP: 01513)\n- **Employment Status:** Full-time\n- **Employer:** Cooke and Sons\n- **Job Title:** Surveyor, Minerals\n- **Annual Income (Verified):** $82,424\n- **Customer Segment:** Standard\n- **Household Size:** 3\n- **Customer Since:** 2024-05-28\n- **Contact:** john.hoover@email.com | (777) 593-1986\n- **Identity Verification:** Verified (KYC score: 79.62)\n\n---\n\n## **Financial Health Overview**\n\n- **Annual Income:** $82,719 (stated); $82,424 (verified)\n- **Income Stability Score:** 88.49 (High)\n- **Debt-to-Income Ratio:** 0.48 (Moderate; below industry concern threshold)\n- **Total Monthly Debt Payments:** $3,329.87\n- **Current Credit Limit:** $25,000\n- **Current Balance:** $13,317.12\n- **Utilization Rate:** 53.27% (Slightly elevated; industry guideline typically < 30-40%)\n- **Tenure with Bank:** 47 months\n- **Account Activity:** Consistent usage with no late payments in past 12 months\n\n---\n\n## **Credit Risk Assessment**\n\n- **FICO Score 8:** 749 (Good/Prime)\n- **FICO Score 9:** 767 (Very Good)\n- **Total Accounts (Bureau):** 12\n- **On-Time Payments (12m):** 10\n- **Late Payments (12m):** 0\n- **Delinquencies (30+ Days, 12m):** 2 (Possible historic issue; not current)\n- **Fraud/KYC/Compliance:**\n  - **Overall Fraud Risk Score:** 2.79 (Low)\n  - **Risk Level:** Low\n  - **Identity Verification:** Verified\n- **Macro-Economic Factors:**\n  - **State Unemployment Rate (PA):** 3.32% (Low)\n  - **Macro Risk Score:** 48.98 (Low)\n  - **GDP Growth Rate:** 2.84% (Positive)\n\n---\n\n## **Summary & Recommendations**\n\n**Overall Assessment:**\n- John Hoover is a well-established customer with a strong income profile, high income stability, and verified identity. His credit scores are in the \"good to very good\" range, and his recent payment history is excellent, with no late payments in the past year. While there are two 30+ day delinquencies in the past 12 months, these do not appear to be ongoing concerns given current performance.\n- Debt-to-income ratio is moderate and within industry standards, though credit utilization is slightly above recommended thresholds, suggesting active use of credit facilities.\n\n**Recommendations:**\n- **Credit Decisions:** Eligible for credit limit increase or new loan products, subject to review of current utilization rate. Consider educating customer on maintaining utilization below 40%.\n- **Risk Monitoring:** Continue standard risk monitoring due to good payment history and low fraud risk. Monitor for any increases in utilization or new delinquencies.\n- **Product Suitability:** Suitable for prime lending products, rewards credit cards, or personal loans. May benefit from financial planning services given household size and moderate debt load.\n- **Customer Engagement:** High-value customer for retention; consider offering tailored banking solutions and loyalty incentives.\n\n**Conclusion:**  \nJohn Hoover demonstrates strong financial health and creditworthiness. With low risk indicators and stable income, he qualifies for favorable credit terms. Proactive engagement and periodic reviews are recommended to maintain portfolio quality.\n\n---\n\n**Session ID:** 6c528325-c2a5-4e71-a157-8df2aaaa6276  \n**User ID:** customer_10  \n**Tenant ID:** banking_agent",
+    "ai_recommendation": "The customer currently has a credit limit of $25,000.00 with a balance of $13,317.12, resulting in a credit utilization rate of 53.3%, which is moderately high but within acceptable risk parameters. Over the past 12 months, the customer has made 10 on-time payments and has had 0 late payments on this account, indicating strong payment discipline. However, the credit bureau data shows 2 delinquencies (30+ days) across all accounts in the last 12 months, which is a minor concern but not a significant risk given the otherwise positive payment history. The customer's FICO scores are strong (FICO 8: 749, FICO 9: 767), reflecting good overall creditworthiness. Verified annual income is $82,424.03, but the debt-to-income ratio is elevated at 48.3%, suggesting a relatively high debt burden. Monthly debt payments total $3,329.87. Income stability is high, with a score of 88.5/100. The customer is employed full-time as a surveyor and has a low fraud risk score (2.8/100) and verified identity. The KYC score is 79.6/100, indicating satisfactory compliance. The requested increase is $2,000.00, raising the limit to $27,000.00, which is a modest adjustment relative to the current limit and usage.\n\nApprove the requested credit limit increase from $25,000.00 to $27,000.00. The customer demonstrates strong payment behavior on this account, excellent FICO scores, stable employment, and low fraud risk. While the debt-to-income ratio is somewhat high and there are 2 recent delinquencies on other accounts, these risks are mitigated by the customer's overall credit profile, income stability, and responsible account management. The requested increase is modest and unlikely to materially impact credit risk.",
+    "suggested_decision": "Approved for credit limit increase from $25,000.00 to $27,000.00.",
+    "current_credit_limit": 25000.0,
+    "requested_credit_limit": 27000.0,
+    "credit_limit_increase": 2000.0,
+    "agent_notes": "",
+    "status": "pending",
+    "created_by": "analyst",
+    "created_at": "2025-08-25T05:46:29.032143",
+    "updated_at": null,
+    "customer_data": {
+      "customer_demographics": {
+        "source_name": "Customer Demographics",
+        "source_description": "Basic customer information including age, income, employment status, and location.",
+        "category": "demographics",
+        "data": {
+          "customer_id": 10,
+          "first_name": "John",
+          "last_name": "Hoover",
+          "date_of_birth": "1968-11-21",
+          "annual_income": 82719,
+          "state": "PA",
+          "employment_status": "Full-time",
+          "customer_segment": "Standard",
+          "email": "john.hoover@email.com",
+          "phone": "(777) 593-1986",
+          "ssn": "***-**-7473",
+          "address_line1": "66865 Rachel Green",
+          "address_line2": null,
+          "city": "Nelsonmouth",
+          "zip_code": "01513",
+          "customer_since": "2024-05-28",
+          "employer_name": "Cooke and Sons",
+          "job_title": "Surveyor, minerals",
+          "household_size": 3
+        }
+      },
+      "internal_banking_data": {
+        "source_name": "Internal Banking Data",
+        "source_description": "Banking relationship data including payment history, credit utilization, account relationships, and tenure.",
+        "category": "banking",
+        "data": {
+          "customer_id": 10,
+          "current_credit_limit": 25000,
+          "current_balance": 13317.115518155157,
+          "utilization_rate": 53.26846207262063,
+          "on_time_payments_12m": 10,
+          "late_payments_12m": 0,
+          "tenure_months": 47
+        }
+      },
+      "credit_bureau_data": {
+        "source_name": "Credit Bureau Data",
+        "source_description": "External credit information including FICO scores, external accounts, delinquencies, and credit history.",
+        "category": "credit_bureau",
+        "data": {
+          "customer_id": 10,
+          "fico_score_8": 749,
+          "fico_score_9": 767,
+          "total_accounts_bureau": 12,
+          "delinquencies_30_plus_12m": 2
+        }
+      },
+      "fraud_kyc_compliance": {
+        "source_name": "Fraud/KYC/Compliance",
+        "source_description": "Fraud detection, KYC verification, and compliance monitoring data.",
+        "category": "fraud",
+        "data": {
+          "customer_id": 10,
+          "overall_fraud_risk_score": 2.789346822584694,
+          "risk_level": "low",
+          "kyc_score": 79.61913016692344,
+          "identity_verification_status": "verified"
+        }
+      },
+      "income_ability_to_pay": {
+        "source_name": "Income & Ability-to-Pay",
+        "source_description": "Verified income data, debt-to-income ratios, and payment capacity metrics. Determines customer ability to handle additional credit.",
+        "category": "income",
+        "data": {
+          "customer_id": 10,
+          "verified_annual_income": 82424.02550378154,
+          "debt_to_income_ratio": 0.4830624946710481,
+          "total_monthly_debt_payments": 3329.8705413912026,
+          "income_stability_score": 88.48918042444988
+        }
+      },
+      "economic_indicators": {
+        "source_name": "Economic Indicators",
+        "source_description": "Regional economic data including unemployment rates, GDP growth, and market conditions. Provides macro-economic context for decisions.",
+        "category": "economic",
+        "data": {
+          "state_code": "PA",
+          "unemployment_rate": 3.3200820838729284,
+          "macro_risk_score": 48.9751659747833,
+          "risk_level": "low",
+          "gdp_growth_rate": 2.8398773755665276
+        }
+      }
+    },
+    "credit_recommendation": null,
+    "final_decision": null,
+    "decision_date": null,
+    "decision_by": null
   }
 }

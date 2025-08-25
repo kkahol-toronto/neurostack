@@ -198,4 +198,4 @@ export const themes: { [key: string]: Theme } = {
   }
 };
 
-export const defaultTheme = "matrix";
+export const defaultTheme = "corporate";

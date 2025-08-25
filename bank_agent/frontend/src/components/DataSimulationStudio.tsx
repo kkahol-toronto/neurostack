@@ -29,7 +29,8 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Tooltip
+  Tooltip,
+  TextField
 } from '@mui/material';
 
 import {
@@ -160,6 +161,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
     emailBody: ''
   });
   const [emailLoading, setEmailLoading] = useState(false);
+  const [emailManuallyEdited, setEmailManuallyEdited] = useState(false);
 
   // Decision Documentation state
   const [showDecisionDoc, setShowDecisionDoc] = useState(false);
@@ -171,7 +173,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
 
   // Pre-fill customer email when tab is opened
   useEffect(() => {
-    if (activeTab === 4 && customerName) {
+    if (activeTab === 4 && customerName && !emailManuallyEdited) {
       console.log('🔍 Tab 4 opened, attempting to populate customer email');
       console.log('🔍 Customer Name:', customerName);
       console.log('🔍 Results:', results);
@@ -208,7 +210,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
         }
       }
     }
-  }, [activeTab, customerName, results]);
+  }, [activeTab, customerName, results, emailManuallyEdited]);
 
   // Persist decision documentation state
   useEffect(() => {
@@ -343,7 +345,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
     switch (viz.type) {
       case 'comparison_chart':
         return (
-          <Box sx={{ mt: 2, p: 3, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+          <Box sx={{ mt: 2, p: 3, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 2 }}>
             <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
               {viz.title}
             </Typography>
@@ -375,13 +377,14 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                     tooltip.style.position = 'absolute';
                     tooltip.style.left = `${e.clientX + 10}px`;
                     tooltip.style.top = `${e.clientY - 10}px`;
-                    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                    tooltip.style.color = 'white';
+                    tooltip.style.backgroundColor = theme.colors.surface;
+                    tooltip.style.color = theme.colors.text;
                     tooltip.style.padding = '8px 12px';
                     tooltip.style.borderRadius = '4px';
                     tooltip.style.fontSize = '12px';
                     tooltip.style.zIndex = '1000';
                     tooltip.style.pointerEvents = 'none';
+                    tooltip.style.border = `1px solid ${theme.colors.border}`;
                     tooltip.innerHTML = `
                       <div><strong>Current Credit Limit</strong></div>
                       <div>Amount: $${viz.data.current.toLocaleString()}</div>
@@ -428,18 +431,18 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                     tooltip.style.position = 'absolute';
                     tooltip.style.left = `${e.clientX + 10}px`;
                     tooltip.style.top = `${e.clientY - 10}px`;
-                    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                    tooltip.style.color = 'white';
+                    tooltip.style.backgroundColor = theme.colors.surface;
+                    tooltip.style.color = theme.colors.text;
                     tooltip.style.padding = '8px 12px';
                     tooltip.style.borderRadius = '4px';
                     tooltip.style.fontSize = '12px';
                     tooltip.style.zIndex = '1000';
                     tooltip.style.pointerEvents = 'none';
+                    tooltip.style.border = `1px solid ${theme.colors.border}`;
                     tooltip.innerHTML = `
                       <div><strong>Requested Credit Limit</strong></div>
                       <div>Amount: $${viz.data.requested.toLocaleString()}</div>
-                      <div>Increase: $${viz.data.increase.toLocaleString()}</div>
-                      <div>Percentage: ${viz.data.percentage_increase.toFixed(1)}%</div>
+                      <div>Status: Pending</div>
                     `;
                     document.body.appendChild(tooltip);
                     (e.target as any).tooltip = tooltip;
@@ -459,7 +462,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                 </Typography>
               </Box>
             </Box>
-            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1 }}>
+            <Box sx={{ mt: 2, p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1 }}>
               <Typography variant="body2" sx={{ color: theme.colors.text }}>
                 <strong>Increase:</strong> ${viz.data.increase.toLocaleString()} ({viz.data.percentage_increase.toFixed(1)}%)
               </Typography>
@@ -469,7 +472,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
 
       case 'line_chart':
         return (
-          <Box sx={{ mt: 2, p: 3, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+          <Box sx={{ mt: 2, p: 3, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 2 }}>
             <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
               {viz.title}
             </Typography>
@@ -497,7 +500,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                       right: 0,
                       top: (1 - value / 30) * 200,
                       height: 1,
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      backgroundColor: theme.colors.border,
                       zIndex: 0
                     }}
                   />
@@ -558,20 +561,17 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                           tooltip.style.position = 'absolute';
                           tooltip.style.left = `${e.clientX + 10}px`;
                           tooltip.style.top = `${e.clientY - 10}px`;
-                          tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-                          tooltip.style.color = 'white';
-                          tooltip.style.padding = '10px 12px';
-                          tooltip.style.borderRadius = '6px';
+                          tooltip.style.backgroundColor = theme.colors.surface;
+                          tooltip.style.color = theme.colors.text;
+                          tooltip.style.padding = '8px 12px';
+                          tooltip.style.borderRadius = '4px';
                           tooltip.style.fontSize = '12px';
                           tooltip.style.zIndex = '1000';
                           tooltip.style.pointerEvents = 'none';
-                          tooltip.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+                          tooltip.style.border = `1px solid ${theme.colors.border}`;
                           tooltip.innerHTML = `
-                            <div style="font-weight: bold; margin-bottom: 4px;">${label}</div>
-                            <div>Credit Utilization: <strong>${viz.data.values[index].toFixed(1)}%</strong></div>
-                            <div style="font-size: 10px; margin-top: 4px; opacity: 0.8;">
-                              ${viz.data.values[index] < viz.data.threshold ? '✅ Below recommended threshold' : '⚠️ Above recommended threshold'}
-                            </div>
+                            <div><strong>${label}</strong></div>
+                            <div>Utilization: ${viz.data.values[index]}%</div>
                           `;
                           document.body.appendChild(tooltip);
                           (e.target as any).tooltip = tooltip;
@@ -584,50 +584,19 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                           }
                         }}
                       />
-                      {/* Visible data point with glow effect */}
+                      {/* Visible data point */}
                       <circle
                         cx={(index / (viz.data.labels.length - 1)) * 100}
                         cy={200 - (viz.data.values[index] / 30) * 200}
-                        r="5"
+                        r="4"
                         fill={theme.colors.primary}
                         stroke="white"
                         strokeWidth="2"
-                        style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
                       />
                     </g>
                   ))}
                 </svg>
               </Box>
-            </Box>
-            
-            {/* X-axis labels */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, ml: 5 }}>
-              {viz.data.labels.map((label: string, index: number) => (
-                <Typography 
-                  key={index} 
-                  variant="caption" 
-                  sx={{ 
-                    color: theme.colors.textSecondary,
-                    fontSize: '11px',
-                    fontWeight: 'medium'
-                  }}
-                >
-                  {label}
-                </Typography>
-              ))}
-            </Box>
-            
-            {/* Summary stats */}
-            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1 }}>
-              <Typography variant="body2" sx={{ color: theme.colors.text }}>
-                <strong>Average Utilization:</strong> {(viz.data.values.reduce((a: number, b: number) => a + b, 0) / viz.data.values.length).toFixed(1)}%
-              </Typography>
-              <Typography variant="body2" sx={{ color: theme.colors.text }}>
-                <strong>Peak Utilization:</strong> {Math.max(...viz.data.values).toFixed(1)}% ({viz.data.labels[viz.data.values.indexOf(Math.max(...viz.data.values))]})
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#4CAF50' }}>
-                ✅ All months below {viz.data.threshold}% threshold
-              </Typography>
             </Box>
           </Box>
         );
@@ -986,7 +955,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                 </Box>
               ))}
             </Box>
-            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1 }}>
+            <Box sx={{ mt: 2, p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1 }}>
               <Typography variant="body2" sx={{ color: theme.colors.text }}>
                 <strong>Overall Risk:</strong> {viz.data.overall_risk} (Score: {viz.data.risk_score})
               </Typography>
@@ -996,7 +965,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
 
       case 'impact_chart':
         return (
-          <Box sx={{ mt: 2, p: 3, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+          <Box sx={{ mt: 2, p: 3, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 2 }}>
             <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
               {viz.title}
             </Typography>
@@ -1024,7 +993,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                 </Typography>
               </Box>
             </Box>
-            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(76, 175, 80, 0.1)', borderRadius: 1 }}>
+            <Box sx={{ mt: 2, p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1 }}>
               <Typography variant="body2" sx={{ color: '#4CAF50', textAlign: 'center' }}>
                 <strong>Improvement:</strong> {viz.data.improvement.toFixed(1)}% reduction in utilization
               </Typography>
@@ -1034,7 +1003,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
 
       case 'credit_profile_dashboard':
         return (
-          <Box sx={{ mt: 2, p: 3, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+          <Box sx={{ mt: 2, p: 3, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 2 }}>
             <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
               {viz.title}
             </Typography>
@@ -1043,7 +1012,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
               {/* FICO Score */}
-              <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, textAlign: 'center' }}>
+              <Box sx={{ p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="h4" sx={{ color: '#4CAF50', fontWeight: 'bold' }}>
                   {viz.data.fico_score}
                 </Typography>
@@ -1053,7 +1022,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
               </Box>
               
               {/* Credit Limit */}
-              <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, textAlign: 'center' }}>
+              <Box sx={{ p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="h4" sx={{ color: '#2196F3', fontWeight: 'bold' }}>
                   ${(viz.data.credit_limit / 1000).toFixed(0)}k
                 </Typography>
@@ -1063,7 +1032,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
               </Box>
               
               {/* Utilization */}
-              <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, textAlign: 'center' }}>
+              <Box sx={{ p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="h4" sx={{ color: '#FF9800', fontWeight: 'bold' }}>
                   {viz.data.utilization.toFixed(1)}%
                 </Typography>
@@ -1073,7 +1042,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
               </Box>
               
               {/* Payment History */}
-              <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, textAlign: 'center' }}>
+              <Box sx={{ p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="h4" sx={{ color: '#4CAF50', fontWeight: 'bold' }}>
                   {viz.data.payment_percentage.toFixed(0)}%
                 </Typography>
@@ -1083,7 +1052,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
               </Box>
               
               {/* DTI Ratio */}
-              <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, textAlign: 'center' }}>
+              <Box sx={{ p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="h4" sx={{ color: '#9C27B0', fontWeight: 'bold' }}>
                   {viz.data.dti_ratio.toFixed(1)}%
                 </Typography>
@@ -1093,7 +1062,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
               </Box>
               
               {/* Account Age */}
-              <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1, textAlign: 'center' }}>
+              <Box sx={{ p: 2, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 1, textAlign: 'center' }}>
                 <Typography variant="h4" sx={{ color: '#607D8B', fontWeight: 'bold' }}>
                   {viz.data.account_age}m
                 </Typography>
@@ -1107,7 +1076,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
 
       case 'risk_assessment_matrix':
         return (
-          <Box sx={{ mt: 2, p: 3, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+          <Box sx={{ mt: 2, p: 3, backgroundColor: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 2 }}>
             <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
               {viz.title}
             </Typography>
@@ -1128,11 +1097,11 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                     key={risk_type}
                     sx={{
                       p: 2,
-                      backgroundColor: risk_level === 'Low' ? 'rgba(76, 175, 80, 0.1)' :
-                                     risk_level === 'Medium' ? 'rgba(255, 152, 0, 0.1)' :
-                                     'rgba(244, 67, 54, 0.1)',
+                      backgroundColor: risk_level === 'Low' ? theme.colors.surface :
+                                     risk_level === 'Medium' ? theme.colors.surface :
+                                     theme.colors.surface,
                       borderRadius: 2,
-                      border: `1px solid ${
+                      border: `2px solid ${
                         risk_level === 'Low' ? '#4CAF50' :
                         risk_level === 'Medium' ? '#FF9800' : '#F44336'
                       }`,
@@ -1149,8 +1118,8 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                       tooltip.style.position = 'absolute';
                       tooltip.style.left = `${e.clientX + 10}px`;
                       tooltip.style.top = `${e.clientY - 10}px`;
-                      tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-                      tooltip.style.color = 'white';
+                      tooltip.style.backgroundColor = theme.colors.surface;
+                      tooltip.style.color = theme.colors.text;
                       tooltip.style.padding = '10px 12px';
                       tooltip.style.borderRadius = '6px';
                       tooltip.style.fontSize = '12px';
@@ -1158,6 +1127,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                       tooltip.style.pointerEvents = 'none';
                       tooltip.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
                       tooltip.style.maxWidth = '250px';
+                      tooltip.style.border = `1px solid ${theme.colors.border}`;
                       tooltip.innerHTML = `
                         <div style="font-weight: bold; margin-bottom: 4px;">${risk_type.replace('_', ' ').toUpperCase()}</div>
                         <div style="margin-bottom: 4px;"><strong>Risk Level:</strong> ${risk_level}</div>
@@ -1187,11 +1157,6 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                   </Box>
                 );
               })}
-            </Box>
-            <Box sx={{ p: 2, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 1 }}>
-              <Typography variant="body2" sx={{ color: theme.colors.text, textAlign: 'center' }}>
-                <strong>Overall Risk Level:</strong> {viz.data.risk_level} (Score: {viz.data.overall_risk_score})
-              </Typography>
             </Box>
           </Box>
         );
@@ -1296,15 +1261,15 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                             tooltip.style.position = 'fixed';
                             tooltip.style.left = `${e.clientX + 15}px`;
                             tooltip.style.top = `${e.clientY - 15}px`;
-                            tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.95)';
-                            tooltip.style.color = 'white';
+                            tooltip.style.backgroundColor = theme.colors.surface;
+                            tooltip.style.color = theme.colors.text;
                             tooltip.style.padding = '12px 16px';
                             tooltip.style.borderRadius = '8px';
                             tooltip.style.fontSize = '13px';
                             tooltip.style.zIndex = '9999';
                             tooltip.style.pointerEvents = 'none';
                             tooltip.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
-                            tooltip.style.border = '1px solid rgba(255,255,255,0.1)';
+                            tooltip.style.border = `1px solid ${theme.colors.border}`;
                             tooltip.style.minWidth = '180px';
                             tooltip.innerHTML = `
                               <div style="font-weight: bold; margin-bottom: 6px; color: #4CAF50; font-size: 14px;">${item.month}</div>
@@ -2019,106 +1984,120 @@ Banking Team`;
           Customer: {customerName} (ID: {customerId}) | Selected Steps: {selectedSteps.length}
         </Typography>
 
-        {/* Selected Investigation Steps as Rectangular Blocks */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ color: theme.colors.text, mb: 2 }}>
-            Selected Investigation Steps
-          </Typography>
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-            gap: 2 
-          }}>
-            {selectedSteps.map((step, index) => (
-              <Card 
-                key={step.id} 
+        {/* Planning Interface - Only show when no execution is running */}
+        {!execution && (
+          <>
+            {/* Selected Investigation Steps as Rectangular Blocks */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6"
+                sx={{ color: theme.colors.text, mb: 2 }}>
+                Selected Investigation Steps:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {selectedSteps.map((step, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      backgroundColor: theme.colors.surface,
+                      border: `1px solid ${theme.colors.border}`,
+                      color: theme.colors.text,
+                      fontSize: '0.9rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    {step.title || step.id}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            {/* Execution Controls */}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+              <Button
+                variant="contained"
+                startIcon={<PlayIcon />}
+                onClick={handleExecuteInvestigation}
+                disabled={loading}
                 sx={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: 2,
-                  p: 2,
-                  minHeight: 120,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between'
+                  backgroundColor: theme.colors.primary,
+                  minWidth: 200,
+                  height: 48
                 }}
               >
-                <Box>
-                  <Typography variant="h6" sx={{ color: theme.colors.text, mb: 1 }}>
-                    {step.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: theme.colors.textSecondary, mb: 2 }}>
-                    {step.description}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Chip 
-                    label={step.category?.toUpperCase() || 'ANALYSIS'} 
-                    size="small" 
-                    color="primary" 
-                    variant="outlined"
-                  />
-                  <Chip 
-                    label={step.priority?.toUpperCase() || 'MEDIUM'} 
-                    size="small" 
-                    color={step.priority === 'high' ? 'error' : step.priority === 'medium' ? 'warning' : 'success'}
-                    variant="outlined"
-                  />
-                </Box>
-              </Card>
-            ))}
-          </Box>
-        </Box>
+                {loading ? 'Starting...' : 'Execute Investigation'}
+              </Button>
+              
+              <Button
+                variant="outlined"
+                onClick={() => setExecutionMode(executionMode === 'batch' ? 'sequential' : 'batch')}
+                sx={{ 
+                  color: theme.colors.text, 
+                  borderColor: theme.colors.border,
+                  minWidth: 150,
+                  height: 48
+                }}
+              >
+                Mode: {executionMode === 'batch' ? 'Batch' : 'Sequential'}
+              </Button>
 
-        {/* Execution Controls */}
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<PlayIcon />}
-            onClick={handleExecuteInvestigation}
-            disabled={loading || execution?.status === 'running'}
-            sx={{ 
-              backgroundColor: theme.colors.primary,
-              minWidth: 200,
-              height: 48
-            }}
-          >
-            {loading ? 'Starting...' : 'Execute Investigation'}
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => setExecutionMode(executionMode === 'batch' ? 'sequential' : 'batch')}
-            disabled={execution?.status === 'running'}
-            sx={{ 
-              color: theme.colors.text, 
-              borderColor: theme.colors.border,
-              minWidth: 150,
-              height: 48
-            }}
-          >
-            Mode: {executionMode === 'batch' ? 'Batch' : 'Sequential'}
-          </Button>
+              {/* Execution Mode Info */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                p: 1.5,
+                backgroundColor: theme.colors.surface,
+                borderRadius: 1,
+                border: `1px solid ${theme.colors.border}`
+              }}>
+                <InfoIcon sx={{ color: theme.colors.textSecondary, fontSize: 20 }} />
+                <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                  {executionMode === 'batch' 
+                    ? 'Batch mode: Execute all steps in parallel' 
+                    : 'Sequential mode: Execute steps one by one'
+                  }
+                </Typography>
+              </Box>
+            </Box>
+          </>
+        )}
 
-          {/* Execution Mode Info */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 1,
-            p: 1.5,
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: 1,
-            border: '1px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <InfoIcon sx={{ color: theme.colors.textSecondary, fontSize: 20 }} />
-            <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
-              {executionMode === 'batch' 
-                ? 'Batch mode: Execute all steps in parallel' 
-                : 'Sequential mode: Execute steps one by one'
-              }
+        {/* Execution Status - Show when investigation is running or completed */}
+        {execution && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ color: theme.colors.text, mb: 2 }}>
+              Investigation Status: {execution.status.toUpperCase()}
             </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              {getStatusIcon(execution.status)}
+              <Typography variant="body1" sx={{ color: theme.colors.textSecondary }}>
+                Progress: {execution.progress.toFixed(1)}%
+              </Typography>
+              {execution.status === 'running' && execution.currentStep && (
+                <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                  Current Step: {execution.currentStep}
+                </Typography>
+              )}
+            </Box>
+            {execution.status === 'running' && (
+              <LinearProgress 
+                variant="determinate" 
+                value={execution.progress}
+                sx={{ height: 6, borderRadius: 3 }}
+              />
+            )}
+            {execution.errors.length > 0 && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                <Typography variant="body2">Errors:</Typography>
+                {execution.errors.map((error, index) => (
+                  <Typography key={index} variant="body2">• {error}</Typography>
+                ))}
+              </Alert>
+            )}
           </Box>
-        </Box>
+        )}
       </Box>
 
       {/* Content */}
@@ -2127,50 +2106,6 @@ Banking Team`;
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
-        )}
-
-
-
-        {/* Execution Status */}
-        {execution && (
-          <Card sx={{ mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                {getStatusIcon(execution.status)}
-                <Typography variant="h6" sx={{ color: theme.colors.text }}>
-                  Execution Status: {execution.status.toUpperCase()}
-                </Typography>
-                <Chip
-                  label={`${execution.progress.toFixed(1)}%`}
-                  color={getStatusColor(execution.status) as any}
-                />
-              </Box>
-              
-              {execution.status === 'running' && (
-                <Box sx={{ mb: 2 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={execution.progress}
-                    sx={{ height: 8, borderRadius: 4 }}
-                  />
-                  {execution.currentStep && (
-                    <Typography variant="body2" sx={{ color: theme.colors.textSecondary, mt: 1 }}>
-                      Current Step: {execution.currentStep}
-                    </Typography>
-                  )}
-                </Box>
-              )}
-
-              {execution.errors.length > 0 && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  <Typography variant="body2">Errors:</Typography>
-                  {execution.errors.map((error, index) => (
-                    <Typography key={index} variant="body2">• {error}</Typography>
-                  ))}
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
         )}
 
         {/* Results Tabs */}
@@ -2267,7 +2202,7 @@ Banking Team`;
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         {getStepStatusIcon(stepStatus)}
                         <Typography variant="body1" sx={{ color: theme.colors.text }}>
-                          {step.title}
+                          {step.title || step.id}
                         </Typography>
                         {stepStatus === 'running' && (
                           <Typography variant="caption" sx={{ color: '#FF9800', fontStyle: 'italic' }}>
@@ -2694,24 +2629,33 @@ Banking Team`;
                           Customer Email *
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Box
-                            component="input"
+                          <TextField
                             type="email"
                             value={decisionData.customerEmail}
-                            onChange={(e) => setDecisionData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                            onChange={(e) => {
+                              setDecisionData(prev => ({ ...prev, customerEmail: e.target.value }));
+                              setEmailManuallyEdited(true);
+                            }}
                             placeholder="customer@example.com"
+                            fullWidth
                             sx={{
-                              flex: 1,
-                              p: 2,
-                              border: `1px solid ${theme.colors.border}`,
-                              borderRadius: 1,
-                              backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                              color: theme.colors.text,
-                              fontSize: '16px',
-                              '&:focus': {
-                                outline: 'none',
-                                borderColor: theme.colors.primary
-                              }
+                              '& .MuiOutlinedInput-root': {
+                                color: theme.colors.text,
+                                backgroundColor: theme.colors.surface,
+                                borderColor: theme.colors.border,
+                                '& fieldset': {
+                                  borderColor: theme.colors.border,
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: theme.colors.primary,
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: theme.colors.primary,
+                                },
+                              },
+                              '& .MuiInputLabel-root': {
+                                color: theme.colors.textSecondary,
+                              },
                             }}
                           />
                           <Button
@@ -2720,6 +2664,7 @@ Banking Team`;
                             onClick={() => {
                               const defaultEmail = `${customerName.toLowerCase().replace(' ', '.')}@example.com`;
                               setDecisionData(prev => ({ ...prev, customerEmail: defaultEmail }));
+                              setEmailManuallyEdited(false);
                             }}
                             sx={{
                               borderColor: theme.colors.primary,
@@ -2749,23 +2694,29 @@ Banking Team`;
                         <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
                           Email Subject
                         </Typography>
-                        <Box
-                          component="input"
+                        <TextField
                           value={decisionData.emailSubject}
                           onChange={(e) => setDecisionData(prev => ({ ...prev, emailSubject: e.target.value }))}
                           placeholder="Credit Limit Decision - [Customer Name]"
+                          fullWidth
                           sx={{
-                            width: '100%',
-                            p: 2,
-                            border: `1px solid ${theme.colors.border}`,
-                            borderRadius: 1,
-                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                            color: theme.colors.text,
-                            fontSize: '16px',
-                            '&:focus': {
-                              outline: 'none',
-                              borderColor: theme.colors.primary
-                            }
+                            '& .MuiOutlinedInput-root': {
+                              color: theme.colors.text,
+                              backgroundColor: theme.colors.surface,
+                              borderColor: theme.colors.border,
+                              '& fieldset': {
+                                borderColor: theme.colors.border,
+                              },
+                              '&:hover fieldset': {
+                                borderColor: theme.colors.primary,
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: theme.colors.primary,
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              color: theme.colors.textSecondary,
+                            },
                           }}
                         />
                       </Box>
@@ -2775,26 +2726,31 @@ Banking Team`;
                         <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 1 }}>
                           Email Body
                         </Typography>
-                        <Box
-                          component="textarea"
+                        <TextField
                           value={decisionData.emailBody}
                           onChange={(e) => setDecisionData(prev => ({ ...prev, emailBody: e.target.value }))}
                           placeholder="Email content will be generated automatically..."
+                          multiline
                           rows={8}
+                          fullWidth
                           sx={{
-                            width: '100%',
-                            p: 2,
-                            border: `1px solid ${theme.colors.border}`,
-                            borderRadius: 1,
-                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                            color: theme.colors.text,
-                            fontSize: '14px',
-                            fontFamily: 'inherit',
-                            resize: 'vertical',
-                            '&:focus': {
-                              outline: 'none',
-                              borderColor: theme.colors.primary
-                            }
+                            '& .MuiOutlinedInput-root': {
+                              color: theme.colors.text,
+                              backgroundColor: theme.colors.surface,
+                              borderColor: theme.colors.border,
+                              '& fieldset': {
+                                borderColor: theme.colors.border,
+                              },
+                              '&:hover fieldset': {
+                                borderColor: theme.colors.primary,
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: theme.colors.primary,
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              color: theme.colors.textSecondary,
+                            },
                           }}
                         />
                       </Box>
