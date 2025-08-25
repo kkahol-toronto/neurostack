@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-NeuroStack is an enterprise-grade agentic AI platform that provides developers with the building blocks to create intelligent, memory-enabled, and reasoning-capable AI agents. Think of it as a "Lego set" for building sophisticated AI applications.
+NeuroStack is an enterprise-grade agentic AI platform that provides developers with the building blocks to create intelligent, memory-enabled, and reasoning-capable AI agents. Think of it as a "Lego set" for building sophisticated AI applications that can think, remember, and reason like humans.
 
 ### **Current Status**
 - 🚧 **Development Phase**: NeuroStack is currently in active development
@@ -98,378 +98,188 @@ NeuroStack
 │   ├── Tools (Extensible tool system)
 │   └── Protocols (MCP, A2A communication)
 ├── Integrations
-│   ├── Azure (OpenAI, Cognitive Services)
-│   ├── GCP (Vertex AI, Cloud Functions)
-│   └── On-premise (Local deployments)
+│   ├── Azure OpenAI
+│   ├── Azure Cognitive Services
+│   ├── CosmosDB
+│   └── LangGraph
 └── Layers
-    ├── Infrastructure (Deployment & scaling)
-    ├── Application (Business logic)
-    ├── Cognition (AI capabilities)
-    └── Governance (Security & compliance)
+    ├── Infrastructure (Cloud, Storage, Compute)
+    ├── Memory (Vector, Working, Long-term)
+    ├── Cognition (Reasoning, Learning, Planning)
+    ├── Application (Business Logic, APIs)
+    └── Governance (Security, Compliance, Audit)
 ```
 
-## 🔧 Integration Patterns
+## 🧠 Core Components
 
-### **FastAPI Integration (What We Used)**
+### **1. Agents**
+- **Base Agent**: Foundation for all agent types
+- **Orchestrator**: Coordinates multiple agents and workflows
+- **Specialized Agents**: Domain-specific implementations
+
+### **2. Memory Management**
+- **Working Memory**: Short-term context and current task state
+- **Vector Memory**: Semantic search and similarity matching
+- **Long-term Memory**: Persistent storage and knowledge retention
+- **Memory Manager**: Unified interface for all memory operations
+
+### **3. Reasoning Engine**
+- **AI-powered Decision Making**: Uses LLMs for complex reasoning
+- **Pattern Recognition**: Learns from interactions and data
+- **Contextual Understanding**: Maintains conversation context
+- **Multi-step Reasoning**: Breaks complex problems into steps
+
+### **4. Tool Registry**
+- **Extensible Tool System**: Easy to add new capabilities
+- **Tool Discovery**: Automatic tool registration and documentation
+- **Parameter Validation**: Type-safe tool execution
+- **Error Handling**: Robust error recovery and logging
+
+### **5. Protocols**
+- **MCP (Model Context Protocol)**: Standard agent communication
+- **A2A (Agent-to-Agent)**: Multi-agent coordination
+- **REST APIs**: Standard web service integration
+
+## 🔧 Key Features
+
+### **Intelligence & Reasoning**
+- 🤖 **AI-powered Decision Making**: Uses advanced LLMs for complex reasoning
+- 🧠 **Contextual Understanding**: Maintains conversation context across sessions
+- 📊 **Pattern Recognition**: Learns from interactions and data patterns
+- 🔄 **Multi-step Reasoning**: Breaks complex problems into manageable steps
+
+### **Memory & Persistence**
+- 💾 **Multi-layered Memory**: Working, vector, and long-term memory
+- 🔍 **Semantic Search**: Vector embeddings for intelligent retrieval
+- 📈 **Learning & Adaptation**: Improves over time based on interactions
+- 🗄️ **Persistent Storage**: CosmosDB integration for reliable data storage
+
+### **Extensibility & Integration**
+- 🔌 **Plugin Architecture**: Easy to add new capabilities and tools
+- ☁️ **Cloud Integration**: Azure OpenAI, Cognitive Services, CosmosDB
+- 🔗 **API-first Design**: RESTful APIs for easy integration
+- 🛠️ **Developer-friendly**: Comprehensive documentation and examples
+
+### **Enterprise Features**
+- 🔒 **Security & Compliance**: Built-in security and audit trails
+- 📊 **Monitoring & Observability**: Comprehensive logging and metrics
+- 🚀 **Scalability**: Designed for high-performance, distributed systems
+- 🧪 **Testing**: Full test coverage with integration tests
+
+## 🎯 Use Cases
+
+### **Financial Services**
+- **Credit Risk Assessment**: AI-powered credit limit decisions
+- **Fraud Detection**: Pattern recognition and anomaly detection
+- **Customer Service**: Intelligent chatbots with memory
+- **Compliance**: Automated regulatory reporting and monitoring
+
+### **Healthcare**
+- **Diagnostic Assistance**: AI-powered medical reasoning
+- **Patient Management**: Personalized care coordination
+- **Research**: Data analysis and pattern discovery
+- **Compliance**: HIPAA-compliant data handling
+
+### **Manufacturing**
+- **Predictive Maintenance**: Equipment failure prediction
+- **Quality Control**: Automated inspection and defect detection
+- **Supply Chain**: Intelligent inventory and logistics management
+- **Process Optimization**: AI-powered efficiency improvements
+
+### **Education**
+- **Personalized Learning**: Adaptive curriculum and tutoring
+- **Assessment**: Intelligent grading and feedback
+- **Research**: Data analysis and pattern discovery
+- **Administration**: Automated administrative tasks
+
+## 🚀 Getting Started with NeuroStack
+
+### **1. Installation**
+```bash
+git clone https://github.com/kkahol-toronto/neurostack.git
+cd neurostack
+pip install -e .
+```
+
+### **2. Basic Usage**
 ```python
-from fastapi import FastAPI, Depends
-from src.neurostack import Agent, MemoryManager, ReasoningEngine, ToolRegistry
+from src.neurostack import Agent, MemoryManager, ReasoningEngine
 
-app = FastAPI()
-neurostack_agent = None
+# Initialize components
+memory = MemoryManager()
+reasoning = ReasoningEngine(model="gpt-4")
 
-async def get_agent():
-    global neurostack_agent
-    if neurostack_agent is None:
-        memory_manager = MemoryManager()
-        reasoning_engine = ReasoningEngine(model="gpt-4")
-        tool_registry = ToolRegistry()
-        
-        neurostack_agent = Agent(
-            name="api_agent",
-            memory_manager=memory_manager,
-            reasoning_engine=reasoning_engine,
-            tool_registry=tool_registry
-        )
-    return neurostack_agent
+# Create agent
+agent = Agent(
+    name="my_agent",
+    memory_manager=memory,
+    reasoning_engine=reasoning
+)
 
-@app.post("/api/process")
-async def process_request(request: dict, agent: Agent = Depends(get_agent)):
-    return await agent.process(request["query"])
+# Use the agent
+response = await agent.process("Analyze this data and provide insights")
 ```
 
-### **Standalone Application**
+### **3. Advanced Usage**
 ```python
-import asyncio
-from src.neurostack import Agent, MemoryManager, ReasoningEngine, ToolRegistry
+# Custom tool registration
+@agent.tool_registry.register("analyze_data")
+def analyze_data(data: str) -> dict:
+    """Analyze data and return insights"""
+    # Your analysis logic here
+    return {"insights": "..."}
 
-class MyApplication:
-    def __init__(self):
-        self.memory_manager = MemoryManager()
-        self.reasoning_engine = ReasoningEngine(model="gpt-4")
-        self.tool_registry = ToolRegistry()
-        self.agent = None
-    
-    async def initialize(self):
-        self.agent = Agent(
-            name="my_app_agent",
-            memory_manager=self.memory_manager,
-            reasoning_engine=self.reasoning_engine,
-            tool_registry=self.tool_registry
-        )
-    
-    async def process_request(self, request: str):
-        return await self.agent.process(request)
+# Memory operations
+await agent.memory_manager.store("key", "value")
+retrieved = await agent.memory_manager.retrieve("key")
 
-# Usage
-async def main():
-    app = MyApplication()
-    await app.initialize()
-    result = await app.process_request("Process this data")
-    print(result)
-
-asyncio.run(main())
+# Reasoning with context
+context = await agent.memory_manager.get_context()
+response = await agent.reasoning_engine.reason(
+    prompt="What should I do next?",
+    context=context
+)
 ```
 
-## 🛠️ Creating Custom Tools
+## 🔗 Banking Agent Integration
 
-```python
-from src.neurostack.core.tools import Tool, ToolResult
+The banking agent demonstrates the full power of NeuroStack:
 
-class MyCustomTool(Tool):
-    def __init__(self):
-        super().__init__(
-            name="my_tool",
-            description="What this tool does",
-            parameters={
-                "param1": {"type": "string", "required": True},
-                "param2": {"type": "integer", "required": False, "default": 10}
-            }
-        )
-    
-    async def execute(self, parameters: dict) -> ToolResult:
-        try:
-            param1 = parameters["param1"]
-            param2 = parameters.get("param2", 10)
-            
-            # Your logic here
-            result = await self.process_data(param1, param2)
-            
-            return ToolResult(
-                success=True,
-                data=result,
-                metadata={"source": "my_tool"}
-            )
-        except Exception as e:
-            return ToolResult(success=False, error=str(e))
+### **NeuroStack Components Used**
+- **Memory Management**: Customer profiles, transaction history, decision logs
+- **Reasoning Engine**: Credit risk assessment, fraud detection, decision making
+- **Tool Registry**: Data analysis, email generation, report creation
+- **Agent Orchestration**: Multi-step investigation workflows
 
-# Register and use
-tool_registry.register_tool(MyCustomTool())
-tool = tool_registry.get_tool("my_tool")
-result = await tool.execute({"param1": "test"})
-```
+### **Key Features**
+- **Intelligent Credit Decisions**: AI-powered credit limit assessment
+- **Memory-enabled Interactions**: Remembers customer history and preferences
+- **Automated Workflows**: Multi-step investigation and decision processes
+- **Rich Reporting**: Comprehensive decision documentation and audit trails
 
-## 🧠 Memory Patterns
+See **[bank_agent/README.md](bank_agent/README.md)** for detailed documentation.
 
-### **Customer Profile Memory**
-```python
-class CustomerMemory:
-    def __init__(self, memory_manager):
-        self.vector_memory = memory_manager.get_vector_memory()
-        self.long_term_memory = memory_manager.get_long_term_memory()
-    
-    async def store_customer(self, customer_data: dict):
-        # Vector memory for semantic search
-        embedding = await self.create_embedding(customer_data)
-        await self.vector_memory.store_embedding(
-            f"customer_{customer_data['id']}", 
-            embedding,
-            metadata=customer_data
-        )
-        
-        # Long-term memory for persistence
-        await self.long_term_memory.store(
-            f"customer_{customer_data['id']}",
-            customer_data
-        )
-    
-    async def search_customers(self, query: str, limit: int = 5):
-        return await self.vector_memory.search(query, limit=limit)
-```
+## 🤝 Contributing
 
-## 🎯 Common Use Cases
+We welcome contributions! Please see our contributing guidelines:
 
-### **1. Customer Service Agent**
-```python
-class CustomerServiceAgent:
-    def __init__(self):
-        self.agent = Agent(
-            name="customer_service",
-            memory_manager=MemoryManager(),
-            reasoning_engine=ReasoningEngine(model="gpt-4"),
-            tool_registry=ToolRegistry()
-        )
-        
-        # Register customer service tools
-        self.agent.tool_registry.register_tool(CustomerLookupTool())
-        self.agent.tool_registry.register_tool(OrderStatusTool())
-    
-    async def handle_inquiry(self, customer_id: str, inquiry: str):
-        context = f"Customer {customer_id} inquiry: {inquiry}"
-        return await self.agent.process(context)
-```
+1. **Fork the repository**
+2. **Create a feature branch**
+3. **Make your changes**
+4. **Add tests**
+5. **Submit a pull request**
 
-### **2. Data Analysis Agent**
-```python
-class DataAnalysisAgent:
-    def __init__(self):
-        self.agent = Agent(
-            name="data_analyst",
-            memory_manager=MemoryManager(),
-            reasoning_engine=ReasoningEngine(model="gpt-4"),
-            tool_registry=ToolRegistry()
-        )
-        
-        # Register data analysis tools
-        self.agent.tool_registry.register_tool(DataQueryTool())
-        self.agent.tool_registry.register_tool(StatisticalAnalysisTool())
-    
-    async def analyze_data(self, dataset: str, analysis_type: str):
-        context = f"Analyze {dataset} using {analysis_type}"
-        return await self.agent.process(context)
-```
+## 📄 License
 
-## 🧪 Testing
-
-### **Unit Tests**
-```python
-import pytest
-from src.neurostack import Agent, MemoryManager, ReasoningEngine, ToolRegistry
-
-class TestNeuroStack:
-    @pytest.fixture
-    async def agent(self):
-        memory_manager = MemoryManager()
-        reasoning_engine = ReasoningEngine(model="gpt-4")
-        tool_registry = ToolRegistry()
-        
-        return Agent(
-            name="test_agent",
-            memory_manager=memory_manager,
-            reasoning_engine=reasoning_engine,
-            tool_registry=tool_registry
-        )
-    
-    async def test_agent_works(self, agent):
-        result = await agent.process("Hello")
-        assert result is not None
-        assert "response" in result
-```
-
-## 🚀 Deployment
-
-### **Docker**
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### **Kubernetes**
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: neurostack-app
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: neurostack-app
-  template:
-    metadata:
-      labels:
-        app: neurostack-app
-    spec:
-      containers:
-      - name: neurostack-app
-        image: neurostack-app:latest
-        ports:
-        - containerPort: 8000
-        env:
-        - name: AZURE_OPENAI_ENDPOINT
-          valueFrom:
-            secretKeyRef:
-              name: neurostack-secrets
-              key: azure-openai-endpoint
-```
-
-## 🔄 Migration from Simple AI
-
-### **Before: Simple OpenAI**
-```python
-import openai
-
-def simple_ai_response(prompt: str):
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response.choices[0].message.content
-```
-
-### **After: NeuroStack with Memory**
-```python
-from src.neurostack import Agent, MemoryManager, ReasoningEngine, ToolRegistry
-
-class EnhancedAI:
-    def __init__(self):
-        self.agent = Agent(
-            name="enhanced_ai",
-            memory_manager=MemoryManager(),
-            reasoning_engine=ReasoningEngine(model="gpt-4"),
-            tool_registry=ToolRegistry()
-        )
-    
-    async def enhanced_response(self, prompt: str, user_id: str):
-        # Add context from memory
-        user_history = await self.agent.memory_manager.get_user_history(user_id)
-        enhanced_prompt = f"User history: {user_history}\nCurrent request: {prompt}"
-        
-        return await self.agent.process(enhanced_prompt)
-```
-
-## 🎯 Key Benefits
-
-### **For Developers**
-- **Modular Design**: Start simple, add complexity as needed
-- **Extensible**: Easy to add new tools and capabilities
-- **Testable**: Comprehensive testing patterns
-- **Documented**: Clear patterns and examples
-
-### **For Users**
-- **Enhanced Intelligence**: AI-powered reasoning and decision making
-- **Memory**: Context-aware responses based on history
-- **Pattern Learning**: System improves over time
-- **Rich Interactions**: Multi-step reasoning and tool usage
-
-### **For Business**
-- **Scalability**: Enterprise-ready architecture
-- **Compliance**: Complete audit trails and security
-- **Efficiency**: Automated pattern recognition
-- **Intelligence**: AI-powered insights and recommendations
-
-## 📁 Project Structure
-
-```
-neurostack/
-├── src/neurostack/           # Core NeuroStack library
-│   ├── core/                # Core components (agents, memory, reasoning, tools)
-│   ├── integrations/        # Cloud integrations (Azure, GCP)
-│   └── layers/              # Application layers
-├── bank_agent/              # Complete banking agent example
-│   ├── backend/             # FastAPI backend with NeuroStack integration
-│   └── frontend/            # React frontend with authentication
-├── docs/                    # Documentation
-├── examples/                # Example implementations
-└── tests/                   # Test suites
-```
-
-## 🚀 Getting Started
-
-1. **Read the Documentation**: Start with [NEUROSTACK_SUMMARY.md](NEUROSTACK_SUMMARY.md)
-2. **Try the Quick Reference**: Use [NEUROSTACK_QUICK_REFERENCE.md](NEUROSTACK_QUICK_REFERENCE.md) for patterns
-3. **Explore the Banking Agent**: See [bank_agent/README.md](bank_agent/README.md) for a complete example
-4. **Build Your Own**: Follow the patterns in [NEUROSTACK_DEVELOPER_GUIDE.md](NEUROSTACK_DEVELOPER_GUIDE.md)
-
-## 🎉 What We Achieved
-
-### **Complete Banking Agent with NeuroStack**
-- ✅ **Full NeuroStack Integration**: All core components working together
-- ✅ **Enhanced Intelligence**: AI-powered reasoning and pattern learning
-- ✅ **Rich Memory Management**: Vector embeddings, working memory, audit trails
-- ✅ **User Management**: Authentication, roles, individual behavior tracking
-- ✅ **Production Ready**: Error handling, monitoring, deployment patterns
-- ✅ **Comprehensive Testing**: 100% test coverage with integration tests
-- ✅ **Beautiful Frontend**: Modern UI with authentication and user management
-
-### **Developer Experience**
-- ✅ **Clear Patterns**: Well-documented integration patterns
-- ✅ **Easy Setup**: 5-minute setup guide
-- ✅ **Extensible**: Easy to add new tools and capabilities
-- ✅ **Testable**: Comprehensive testing patterns
-- ✅ **Deployable**: Docker and Kubernetes deployment guides
-
-## 🎯 Development Roadmap
-
-### **Current Focus: Stability & Completeness**
-- 🏗️ **Complete Banking Agent**: Finish all features and edge cases
-- 🧪 **Comprehensive Testing**: 100% test coverage and integration tests
-- 📊 **Performance Optimization**: Optimize memory usage and response times
-- 🔒 **Security Hardening**: Complete security audit and best practices
-- 📚 **Documentation**: Complete API documentation and examples
-
-### **Future Goals**
-- 🚀 **Production Deployment**: Deploy to production environments
-- 🔄 **Multi-Agent Systems**: Advanced orchestration and coordination
-- 🌐 **Web Interface**: Admin dashboard and monitoring tools
-- 📦 **Package Publication**: Publish to PyPI when stable
-- 🤝 **Community**: Open source contribution guidelines
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- **Documentation**: Check the documentation files above
-- **Examples**: See the `bank_agent/` directory for a complete implementation
-- **Testing**: Run the test suites to verify your setup
-- **Issues**: Check the GitHub issues for common problems
-- **Repository**: [https://github.com/kkahol-toronto/neurostack.git](https://github.com/kkahol-toronto/neurostack.git)
+- 📚 **Documentation**: Check our comprehensive guides
+- 🐛 **Issues**: Report bugs on GitHub
+- 💬 **Discussions**: Join our community discussions
+- 📧 **Email**: Contact us for enterprise support
 
 ---
 
-**🎯 The Bottom Line**: NeuroStack transforms simple AI into intelligent, memory-enabled, reasoning-capable agents. Start with the quick reference, explore the patterns, and build something amazing!
-
-**💡 Pro Tip**: The banking agent demonstrates the full power of NeuroStack. Use it as a reference implementation for your own projects! 
+**NeuroStack** - Building the future of intelligent AI agents, one component at a time. 🧠✨ 
