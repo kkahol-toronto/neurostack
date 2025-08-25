@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Box,
   Typography,
@@ -46,7 +47,9 @@ import {
   Error as ErrorIcon,
   Warning as WarningIcon,
   Info as InfoIcon,
-  RadioButtonUnchecked as RadioButtonUncheckedIcon
+  RadioButtonUnchecked as RadioButtonUncheckedIcon,
+  Send as SendIcon,
+  Chat as ChatIcon
 } from '@mui/icons-material';
 import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/api';
@@ -92,6 +95,28 @@ interface InvestigationResult {
   metadata: Record<string, any>;
 }
 
+interface ChatMessage {
+  message_id: string;
+  session_id: string;
+  customer_id: number;
+  customer_name: string;
+  message_type: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  metadata?: any;
+}
+
+interface ChatSession {
+  session_id: string;
+  customer_id: number;
+  customer_name: string;
+  execution_id?: string;
+  investigation_results?: any;
+  created_at: string;
+  updated_at?: string;
+  message_count: number;
+}
+
 interface DataSimulationStudioProps {
   customerId: number;
   customerName: string;
@@ -115,6 +140,13 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
   const [activeTab, setActiveTab] = useState(0);
   const [executionMode, setExecutionMode] = useState<'batch' | 'sequential'>('batch');
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [sessionId] = useState(`session_${customerId}_${Date.now()}`);
 
   useEffect(() => {
     return () => {
@@ -1561,6 +1593,174 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
     </Accordion>
   );
 
+  // Chat functions
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    
+    const message = chatInput.trim();
+    setChatInput('');
+    setChatLoading(true);
+    
+    // Add user message to chat immediately
+    const userMessage: ChatMessage = {
+      message_id: `user_${Date.now()}`,
+      session_id: sessionId,
+      customer_id: customerId,
+      customer_name: customerName,
+      message_type: 'user',
+      content: message,
+      timestamp: new Date().toISOString()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    
+    try {
+      const response = await apiService.sendChatMessage({
+        session_id: sessionId,
+        customer_id: customerId,
+        customer_name: customerName,
+        content: message,
+        execution_id: execution?.executionId,
+        investigation_results: {
+          results: results,
+          cumulative_data: results.length > 0 ? results[0].data : {}
+        }
+      });
+      
+      if (response.success && response.message) {
+        setChatMessages(prev => [...prev, response.message]);
+        if (response.session) {
+          setChatSession(response.session);
+        }
+      } else {
+        // Add error message to chat
+        setChatMessages(prev => [...prev, {
+          message_id: `error_${Date.now()}`,
+          session_id: sessionId,
+          customer_id: customerId,
+          customer_name: customerName,
+          message_type: 'assistant',
+          content: `Error: ${response.error || 'Failed to get response'}`,
+          timestamp: new Date().toISOString()
+        }]);
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      setChatMessages(prev => [...prev, {
+        message_id: `error_${Date.now()}`,
+        session_id: sessionId,
+        customer_id: customerId,
+        customer_name: customerName,
+        message_type: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString()
+      }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const renderScenarioAnalysis = (scenarioData: any) => {
+    return (
+      <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+        <Typography variant="h6" sx={{ color: theme.colors.text, mb: 2 }}>
+          {scenarioData.title}
+        </Typography>
+        <Typography variant="body2" sx={{ color: theme.colors.textSecondary, mb: 3 }}>
+          {scenarioData.subtitle}
+        </Typography>
+        
+        {/* Scenarios Table */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 2 }}>
+            Credit Limit Variations
+          </Typography>
+          <TableContainer component={Paper} sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ color: theme.colors.text, fontWeight: 'bold' }}>Variation</TableCell>
+                  <TableCell sx={{ color: theme.colors.text, fontWeight: 'bold' }}>Increase</TableCell>
+                  <TableCell sx={{ color: theme.colors.text, fontWeight: 'bold' }}>New Limit</TableCell>
+                  <TableCell sx={{ color: theme.colors.text, fontWeight: 'bold' }}>Utilization</TableCell>
+                  <TableCell sx={{ color: theme.colors.text, fontWeight: 'bold' }}>Risk</TableCell>
+                  <TableCell sx={{ color: theme.colors.text, fontWeight: 'bold' }}>Recommendation</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {scenarioData.scenarios.map((scenario: any, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell sx={{ color: theme.colors.text }}>
+                      {scenario.variation_percentage}%
+                    </TableCell>
+                    <TableCell sx={{ color: theme.colors.text }}>
+                      ${scenario.increase_amount.toLocaleString()}
+                    </TableCell>
+                    <TableCell sx={{ color: theme.colors.text }}>
+                      ${scenario.new_credit_limit.toLocaleString()}
+                    </TableCell>
+                    <TableCell sx={{ color: theme.colors.text }}>
+                      {scenario.projected_utilization.toFixed(1)}%
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={scenario.risk_level}
+                        size="small"
+                        color={scenario.risk_level === 'Low' ? 'success' : scenario.risk_level === 'Medium' ? 'warning' : 'error'}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ color: theme.colors.text }}>
+                      {scenario.recommendation}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+        
+        {/* Spending Trends */}
+        <Box>
+          <Typography variant="subtitle1" sx={{ color: theme.colors.text, mb: 2 }}>
+            Spending Pattern Analysis
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+            <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: theme.colors.primary }}>
+                  ${scenarioData.spending_trends.monthly_average.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                  Monthly Average
+                </Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: '#4CAF50' }}>
+                  {scenarioData.spending_trends.trend_direction}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                  Trend Direction
+                </Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: '#FF9800' }}>
+                  ${scenarioData.spending_trends.projected_spending.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                  Projected Spending
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
   return (
     <Box sx={{ 
       position: 'fixed', 
@@ -1769,7 +1969,7 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
                 sx={{ color: theme.colors.text }}
               />
               <Tab 
-                label="Summary" 
+                label="Chat with Investigations" 
                 sx={{ color: theme.colors.text }}
               />
               <Tab 
@@ -1895,64 +2095,234 @@ const DataSimulationStudio: React.FC<DataSimulationStudioProps> = ({
             {activeTab === 2 && (
               <Box>
                 <Typography variant="h5" sx={{ color: theme.colors.text, mb: 3 }}>
-                  Execution Summary
+                  Chat with Investigations
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 3 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-                      <CardContent>
-                        <Typography variant="h6" sx={{ color: theme.colors.text, mb: 2 }}>
-                          Execution Details
-                        </Typography>
-                        <List dense>
-                          <ListItem>
-                            <ListItemText
-                              primary="Total Steps"
-                              secondary={results.length}
-                              sx={{ color: theme.colors.text }}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText
-                              primary="Completed Steps"
-                              secondary={results.filter(r => r.status === 'completed').length}
-                              sx={{ color: theme.colors.text }}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText
-                              primary="Total Execution Time"
-                              secondary={`${results.reduce((sum, r) => sum + r.execution_time, 0).toFixed(2)}s`}
-                              sx={{ color: theme.colors.text }}
-                            />
-                          </ListItem>
-                        </List>
-                      </CardContent>
-                    </Card>
-                  </Box>
+                <Typography variant="body2" sx={{ color: theme.colors.textSecondary, mb: 3 }}>
+                  Ask questions about the investigation results and get AI-powered insights. Use /scenario to analyze credit limit variations.
+                </Typography>
+                
+                {/* Chat Messages */}
+                <Box sx={{ 
+                  height: 400, 
+                  overflowY: 'auto', 
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: 2,
+                  p: 2,
+                  mb: 2,
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)'
+                }}>
+                  {chatMessages.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <ChatIcon sx={{ fontSize: 48, color: theme.colors.textSecondary, mb: 2 }} />
+                      <Typography variant="body1" sx={{ color: theme.colors.textSecondary, mb: 1 }}>
+                        Start a conversation about the investigation results
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: theme.colors.textSecondary, opacity: 0.7 }}>
+                        Try asking: "What are the key risk factors?" or "/scenario 8000" for credit limit analysis
+                      </Typography>
+                    </Box>
+                  ) : (
+                    chatMessages.map((message, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: message.message_type === 'user' ? 'flex-end' : 'flex-start',
+                          mb: 2
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            maxWidth: '70%',
+                            p: 2,
+                            borderRadius: 2,
+                            backgroundColor: message.message_type === 'user' 
+                              ? theme.colors.primary 
+                              : 'rgba(255, 255, 255, 0.05)',
+                            border: `1px solid ${message.message_type === 'user' 
+                              ? theme.colors.primary 
+                              : theme.colors.border}`,
+                            color: message.message_type === 'user' ? 'white' : theme.colors.text
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              color: 'inherit',
+                              '& > *:first-of-type': { mt: 0 },
+                              '& > *:last-of-type': { mb: 0 }
+                            }}
+                          >
+                            <ReactMarkdown
+                              components={{
+                                // Style the markdown elements
+                                p: ({ children }) => (
+                                  <Typography variant="body2" sx={{ mb: 1, '&:last-child': { mb: 0 } }}>
+                                    {children}
+                                  </Typography>
+                                ),
+                                h1: ({ children }) => (
+                                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                    {children}
+                                  </Typography>
+                                ),
+                                h2: ({ children }) => (
+                                  <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                    {children}
+                                  </Typography>
+                                ),
+                                h3: ({ children }) => (
+                                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                    {children}
+                                  </Typography>
+                                ),
+                                strong: ({ children }) => (
+                                  <Box component="span" sx={{ fontWeight: 'bold' }}>
+                                    {children}
+                                  </Box>
+                                ),
+                                em: ({ children }) => (
+                                  <Box component="span" sx={{ fontStyle: 'italic' }}>
+                                    {children}
+                                  </Box>
+                                ),
+                                ul: ({ children }) => (
+                                  <Box component="ul" sx={{ pl: 2, mb: 1 }}>
+                                    {children}
+                                  </Box>
+                                ),
+                                ol: ({ children }) => (
+                                  <Box component="ol" sx={{ pl: 2, mb: 1 }}>
+                                    {children}
+                                  </Box>
+                                ),
+                                li: ({ children }) => (
+                                  <Typography variant="body2" component="li" sx={{ mb: 0.5 }}>
+                                    {children}
+                                  </Typography>
+                                ),
+                                code: ({ children }) => (
+                                  <Box
+                                    component="code"
+                                    sx={{
+                                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                      padding: '2px 4px',
+                                      borderRadius: 1,
+                                      fontSize: '0.875em',
+                                      fontFamily: 'monospace'
+                                    }}
+                                  >
+                                    {children}
+                                  </Box>
+                                ),
+                                pre: ({ children }) => (
+                                  <Box
+                                    component="pre"
+                                    sx={{
+                                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                      padding: 1,
+                                      borderRadius: 1,
+                                      overflow: 'auto',
+                                      mb: 1
+                                    }}
+                                  >
+                                    {children}
+                                  </Box>
+                                ),
+                                blockquote: ({ children }) => (
+                                  <Box
+                                    component="blockquote"
+                                    sx={{
+                                      borderLeft: `3px solid ${theme.colors.primary}`,
+                                      pl: 2,
+                                      ml: 0,
+                                      mb: 1,
+                                      fontStyle: 'italic'
+                                    }}
+                                  >
+                                    {children}
+                                  </Box>
+                                )
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </Box>
+                          
+                          {/* Render scenario analysis if present */}
+                          {message.metadata?.scenario_analysis && (
+                            <Box sx={{ mt: 2 }}>
+                              {renderScenarioAnalysis(message.metadata.scenario_analysis)}
+                            </Box>
+                          )}
+                          
+                          <Typography variant="caption" sx={{ 
+                            display: 'block', 
+                            mt: 1, 
+                            opacity: 0.7,
+                            color: message.message_type === 'user' ? 'rgba(255,255,255,0.7)' : theme.colors.textSecondary
+                          }}>
+                            {new Date(message.timestamp).toLocaleTimeString()}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))
+                  )}
                   
-                  <Box sx={{ flex: 1 }}>
-                    <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
-                      <CardContent>
-                        <Typography variant="h6" sx={{ color: theme.colors.text, mb: 2 }}>
-                          Key Insights
-                        </Typography>
-                        <List dense>
-                          {results.flatMap(r => r.insights).slice(0, 5).map((insight, index) => (
-                            <ListItem key={index}>
-                              <ListItemIcon>
-                                <InfoIcon sx={{ color: theme.colors.primary }} />
-                              </ListItemIcon>
-                              <ListItemText
-                                primary={insight}
-                                sx={{ color: theme.colors.text }}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </CardContent>
-                    </Card>
-                  </Box>
+                  {chatLoading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+                      <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CircularProgress size={16} />
+                          <Typography variant="body2" sx={{ color: theme.colors.textSecondary }}>
+                            Analyzing...
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+                
+                {/* Chat Input */}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box
+                    component="input"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Ask about the investigation results... (use /scenario for credit limit analysis)"
+                    sx={{
+                      flex: 1,
+                      p: 2,
+                      border: `1px solid ${theme.colors.border}`,
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: theme.colors.text,
+                      fontSize: '14px',
+                      '&::placeholder': {
+                        color: theme.colors.textSecondary,
+                        opacity: 0.7
+                      },
+                      '&:focus': {
+                        outline: 'none',
+                        borderColor: theme.colors.primary
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!chatInput.trim() || chatLoading}
+                    variant="contained"
+                    sx={{
+                      backgroundColor: theme.colors.primary,
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: theme.colors.primary,
+                        opacity: 0.9
+                      }
+                    }}
+                  >
+                    <SendIcon />
+                  </Button>
                 </Box>
               </Box>
             )}

@@ -37,10 +37,12 @@ from models import (
     ReportsListResponse, ReportStatus, CreditInquiryType,
     InvestigationStrategy, CreateStrategyRequest, UpdateStrategyRequest, 
     StrategyResponse, StrategiesListResponse,
-    ExecuteInvestigationRequest, InvestigationExecutionResponse, DataSourcesResponse, InvestigationResultsResponse
+    ExecuteInvestigationRequest, InvestigationExecutionResponse, DataSourcesResponse, InvestigationResultsResponse,
+    ChatMessageRequest, ChatResponse, ChatHistoryResponse, ScenarioAnalysisResponse
 )
 from report_service import report_service
 from investigation_service import investigation_service
+from chat_service import ChatService
 
 # Load environment variables from root directory
 load_dotenv(dotenv_path="/Users/kanavkahol/work/neurostack/.env")
@@ -1624,6 +1626,9 @@ async def delete_strategy(
         logger.error(f"Error deleting strategy: {str(e)}")
         return {"success": False, "error": str(e)}
 
+# Initialize chat service
+chat_service = ChatService()
+
 # Investigation Execution Endpoints
 @app.post("/api/investigations/execute", response_model=InvestigationExecutionResponse)
 async def execute_investigation(
@@ -1688,6 +1693,55 @@ async def get_data_sources(
     except Exception as e:
         logger.error(f"Error getting data sources: {str(e)}")
         return DataSourcesResponse(success=False, error=str(e))
+
+# Chat with Investigations Endpoints
+@app.post("/api/chat/send", response_model=ChatResponse)
+async def send_chat_message(
+    request: ChatMessageRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Send a chat message and get AI response with investigation context."""
+    try:
+        logger.info(f"💬 Received chat message: {request.content[:100]}...")
+        response = await chat_service.process_message(request)
+        return ChatResponse(**response)
+    except Exception as e:
+        logger.error(f"Error processing chat message: {str(e)}")
+        return ChatResponse(success=False, error=str(e))
+
+@app.get("/api/chat/history/{session_id}", response_model=ChatHistoryResponse)
+async def get_chat_history(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get chat history for a session."""
+    try:
+        messages = chat_service.get_chat_history(session_id)
+        session = chat_service.get_session(session_id)
+        return ChatHistoryResponse(
+            success=True,
+            messages=messages,
+            session=session
+        )
+    except Exception as e:
+        logger.error(f"Error getting chat history: {str(e)}")
+        return ChatHistoryResponse(success=False, error=str(e))
+
+@app.get("/api/chat/sessions", response_model=ChatHistoryResponse)
+async def get_all_chat_sessions(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all chat sessions for the current user."""
+    try:
+        # For now, return empty list - in production, filter by user
+        return ChatHistoryResponse(
+            success=True,
+            messages=[],
+            session=None
+        )
+    except Exception as e:
+        logger.error(f"Error getting chat sessions: {str(e)}")
+        return ChatHistoryResponse(success=False, error=str(e))
 
 if __name__ == "__main__":
     import uvicorn

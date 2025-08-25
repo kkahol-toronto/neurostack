@@ -98,6 +98,62 @@ class InvestigationStrategy(BaseModel):
     risk_profile: str
     steps: List[Dict[str, Any]]
     created_by: str
+
+class ChatMessage(BaseModel):
+    message_id: Optional[str] = None
+    session_id: str
+    customer_id: int
+    customer_name: str
+    message_type: str = "user"  # "user" or "assistant"
+    content: str
+    timestamp: datetime
+    metadata: Optional[Dict[str, Any]] = None  # For storing scenario data, graphs, etc.
+
+class ChatSession(BaseModel):
+    session_id: Optional[str] = None
+    customer_id: int
+    customer_name: str
+    execution_id: Optional[str] = None
+    investigation_results: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    message_count: int = 0
+
+class ScenarioAnalysis(BaseModel):
+    scenario_id: Optional[str] = None
+    session_id: str
+    customer_id: int
+    base_increase: float
+    scenarios: List[Dict[str, Any]]  # 40%, 60%, 80%, 100%, 120% variations
+    utilization_projections: List[Dict[str, Any]]
+    risk_assessments: List[Dict[str, Any]]
+    spending_trends: Dict[str, Any]
+    created_at: datetime
+
+class ChatMessageRequest(BaseModel):
+    session_id: str
+    customer_id: int
+    customer_name: str
+    content: str
+    execution_id: Optional[str] = None
+    investigation_results: Optional[Dict[str, Any]] = None
+
+class ChatResponse(BaseModel):
+    success: bool
+    message: Optional[ChatMessage] = None
+    session: Optional[ChatSession] = None
+    error: Optional[str] = None
+
+class ChatHistoryResponse(BaseModel):
+    success: bool
+    messages: List[ChatMessage] = []
+    session: Optional[ChatSession] = None
+    error: Optional[str] = None
+
+class ScenarioAnalysisResponse(BaseModel):
+    success: bool
+    scenario: Optional[ScenarioAnalysis] = None
+    error: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     is_template: bool = False

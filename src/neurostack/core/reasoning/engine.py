@@ -311,7 +311,7 @@ class AzureOpenAIClient(LLMClient):
             # For APIM endpoints, use the same approach as main.py
             base_endpoint = self.endpoint.rstrip('/')
             # Get API version from environment
-            api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
+            api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
             
             # Use direct HTTP request for APIM like main.py does
             import httpx

@@ -632,6 +632,50 @@ Only return the SQL query, no explanations or markdown formatting.
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }
+
+  // Chat with Investigations Methods
+  async sendChatMessage(request: {
+    session_id: string;
+    customer_id: number;
+    customer_name: string;
+    content: string;
+    execution_id?: string;
+    investigation_results?: any;
+  }): Promise<any> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/chat/send`, request, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error sending chat message:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getChatHistory(sessionId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/chat/history/${sessionId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting chat history:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async getChatSessions(): Promise<any> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/chat/sessions`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ API Service: Error getting chat sessions:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
 }
 
 export default ApiService.getInstance();

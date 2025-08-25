@@ -455,6 +455,24 @@ Format with proper Markdown headers (##), bullet points (-), and bold text (**te
     def get_customer_by_id_direct(self, customer_id: int) -> Optional[Dict[str, Any]]:
         """Get customer by ID directly (fallback method)."""
         return self.customer_data.get_customer_by_id(customer_id)
+    
+    async def generate_response(self, prompt: str) -> str:
+        """
+        Generate a response using the reasoning engine.
+        
+        Args:
+            prompt: The prompt to send to the LLM
+            
+        Returns:
+            The generated response
+        """
+        try:
+            self.logger.info("Generating response using reasoning engine")
+            response = await self.reasoning_engine.process(prompt)
+            return response
+        except Exception as e:
+            self.logger.error(f"Error generating response: {str(e)}")
+            return f"I apologize, but I encountered an error while processing your request: {str(e)}"
 
 
 # Global instance for FastAPI integration

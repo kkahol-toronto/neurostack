@@ -581,74 +581,95 @@ class EnhancedCustomerData:
         self.customers = self._generate_enhanced_customers()
     
     def _generate_enhanced_customers(self) -> List[Dict[str, Any]]:
-        """Generate enhanced customer data with additional fields."""
-        from faker import Faker
-        fake = Faker()
+        """Generate enhanced customer data with actual database values."""
+        from main import MOCK_DATABASES
         
         customers = []
         for i in range(1, 11):
-            # Basic demographic data
-            first_name = fake.first_name()
-            last_name = fake.last_name()
-            state = fake.state_abbr()
-            annual_income = fake.random_int(min=30000, max=200000, step=5000)
+            # Get actual data from all database sources
+            demographics = next((c for c in MOCK_DATABASES["customer_demographics"] if c["customer_id"] == i), None)
+            banking_data = next((c for c in MOCK_DATABASES["internal_banking_data"] if c["customer_id"] == i), None)
+            credit_bureau = next((c for c in MOCK_DATABASES["credit_bureau_data"] if c["customer_id"] == i), None)
+            income_data = next((c for c in MOCK_DATABASES["income_ability_to_pay"] if c["customer_id"] == i), None)
+            fraud_data = next((c for c in MOCK_DATABASES["fraud_kyc_compliance"] if c["customer_id"] == i), None)
             
-            # Enhanced data for better embeddings
+            # Build comprehensive customer profile from actual database data
             customer = {
                 "customer_id": i,
-                "first_name": first_name,
-                "last_name": last_name,
-                "date_of_birth": fake.date_of_birth(minimum_age=18, maximum_age=80).strftime("%Y-%m-%d"),
-                "annual_income": annual_income,
-                "state": state,
-                "employment_status": fake.random_element(["Full-time", "Part-time", "Self-employed", "Retired"]),
-                "customer_segment": fake.random_element(["Premium", "Standard", "Basic", "VIP"]),
-                "address": fake.address(),
-                "phone": fake.phone_number(),
-                "email": fake.email(),
-                "ssn": fake.ssn(),
+                # Demographics data
+                "first_name": demographics.get("first_name") if demographics else f"Customer{i}",
+                "last_name": demographics.get("last_name") if demographics else "Unknown",
+                "date_of_birth": demographics.get("date_of_birth") if demographics else "1990-01-01",
+                "annual_income": demographics.get("annual_income") if demographics else 50000,
+                "state": demographics.get("state") if demographics else "CA",
+                "employment_status": demographics.get("employment_status") if demographics else "Full-time",
+                "customer_segment": demographics.get("customer_segment") if demographics else "Standard",
+                "address": demographics.get("address_line1") if demographics else "Unknown Address",
+                "phone": demographics.get("phone") if demographics else "Unknown",
+                "email": demographics.get("email") if demographics else f"customer{i}@example.com",
+                "ssn": demographics.get("ssn") if demographics else "***-**-0000",
+                "city": demographics.get("city") if demographics else "Unknown City",
+                "zip_code": demographics.get("zip_code") if demographics else "00000",
+                "customer_since": demographics.get("customer_since") if demographics else "2020-01-01",
+                "employer_name": demographics.get("employer_name") if demographics else "Unknown",
+                "job_title": demographics.get("job_title") if demographics else "Unknown",
+                "household_size": demographics.get("household_size") if demographics else 1,
                 
-                # Additional fields for rich embeddings
-                "occupation": fake.job(),
-                "education_level": fake.random_element(["High School", "Bachelor's", "Master's", "PhD"]),
-                "marital_status": fake.random_element(["Single", "Married", "Divorced", "Widowed"]),
-                "number_of_dependents": fake.random_int(min=0, max=5),
-                "home_ownership": fake.random_element(["Own", "Rent", "Mortgage"]),
-                "credit_score": fake.random_int(min=300, max=850),
-                "account_age_months": fake.random_int(min=1, max=120),
-                "total_accounts": fake.random_int(min=1, max=10),
-                "average_monthly_balance": fake.random_int(min=1000, max=50000),
-                "transaction_frequency": fake.random_element(["Low", "Medium", "High"]),
-                "preferred_contact_method": fake.random_element(["Email", "Phone", "SMS", "Mail"]),
-                "loyalty_program_member": fake.boolean(),
-                "online_banking_user": fake.boolean(),
-                "mobile_app_user": fake.boolean(),
-                "preferred_language": fake.random_element(["English", "Spanish", "French", "German"]),
-                "timezone": fake.timezone(),
-                "last_login_date": fake.date_time_this_year().isoformat(),
-                "risk_profile": fake.random_element(["Conservative", "Moderate", "Aggressive"]),
-                "investment_preferences": fake.random_elements(
-                    ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Real Estate", "Cryptocurrency"], 
-                    unique=True, 
-                    length=fake.random_int(min=1, max=4)
-                ),
-                "banking_goals": fake.random_elements(
-                    ["Save for retirement", "Buy a home", "Start a business", "Travel", "Education"], 
-                    unique=True, 
-                    length=fake.random_int(min=1, max=3)
-                ),
-                "life_events": fake.random_elements(
-                    ["Graduation", "Marriage", "Birth of child", "Job change", "Relocation"], 
-                    unique=True, 
-                    length=fake.random_int(min=0, max=3)
-                ),
-                "customer_satisfaction_score": fake.random_int(min=1, max=10),
-                "support_tickets_last_year": fake.random_int(min=0, max=5),
-                "product_holdings": fake.random_elements(
-                    ["Checking Account", "Savings Account", "Credit Card", "Mortgage", "Personal Loan", "Investment Account"], 
-                    unique=True, 
-                    length=fake.random_int(min=2, max=5)
-                )
+                # Banking data
+                "credit_limit": banking_data.get("current_credit_limit") if banking_data else 25000,
+                "current_balance": banking_data.get("current_balance") if banking_data else 10000,
+                "credit_utilization": banking_data.get("utilization_rate") if banking_data else 40.0,
+                "on_time_payments_12m": banking_data.get("on_time_payments_12m") if banking_data else 12,
+                "late_payments_12m": banking_data.get("late_payments_12m") if banking_data else 0,
+                "tenure_months": banking_data.get("tenure_months") if banking_data else 24,
+                
+                # Credit bureau data
+                "fico_score": credit_bureau.get("fico_score_8") if credit_bureau else 700,
+                "fico_score_9": credit_bureau.get("fico_score_9") if credit_bureau else 700,
+                "total_accounts_bureau": credit_bureau.get("total_accounts_bureau") if credit_bureau else 5,
+                "delinquencies_30_plus_12m": credit_bureau.get("delinquencies_30_plus_12m") if credit_bureau else 0,
+                
+                # Income and ability to pay data
+                "verified_annual_income": income_data.get("verified_annual_income") if income_data else 50000,
+                "debt_to_income_ratio": income_data.get("debt_to_income_ratio") if income_data else 0.3,
+                "total_monthly_debt_payments": income_data.get("total_monthly_debt_payments") if income_data else 1500,
+                "income_stability_score": income_data.get("income_stability_score") if income_data else 75.0,
+                
+                # Fraud/KYC data
+                "fraud_risk_score": fraud_data.get("overall_fraud_risk_score") if fraud_data else 5.0,
+                "fraud_risk_level": fraud_data.get("risk_level") if fraud_data else "Medium",
+                "kyc_score": fraud_data.get("kyc_score") if fraud_data else 8.0,
+                "identity_verification_status": fraud_data.get("identity_verification_status") if fraud_data else "Verified",
+                
+                # Derived fields
+                "payment_history": "Excellent" if (banking_data and banking_data.get("late_payments_12m", 0) == 0) else "Good" if (banking_data and banking_data.get("late_payments_12m", 0) <= 1) else "Fair",
+                "income": income_data.get("verified_annual_income") if income_data else demographics.get("annual_income") if demographics else 50000,
+                "dti_ratio": (income_data.get("debt_to_income_ratio", 0) * 100) if income_data else 30.0,
+                
+                # Additional fields for rich embeddings (using actual data where possible)
+                "occupation": demographics.get("job_title") if demographics else "Unknown",
+                "education_level": "Bachelor's",  # Default since not in demographics
+                "marital_status": "Single",  # Default since not in demographics
+                "number_of_dependents": demographics.get("household_size", 1) - 1 if demographics else 0,
+                "home_ownership": "Rent",  # Default since not in demographics
+                "account_age_months": banking_data.get("tenure_months") if banking_data else 24,
+                "total_accounts": credit_bureau.get("total_accounts_bureau") if credit_bureau else 5,
+                "average_monthly_balance": banking_data.get("current_balance") if banking_data else 10000,
+                "transaction_frequency": "Medium",  # Default since not in banking data
+                "preferred_contact_method": "Email",  # Default
+                "loyalty_program_member": True,  # Default
+                "online_banking_user": True,  # Default
+                "mobile_app_user": True,  # Default
+                "preferred_language": "English",  # Default
+                "timezone": "America/New_York",  # Default
+                "last_login_date": "2024-01-15T10:30:00",  # Default
+                "risk_profile": "Moderate",  # Default
+                "investment_preferences": ["Stocks", "Mutual Funds"],  # Default
+                "banking_goals": ["Save for retirement", "Buy a home"],  # Default
+                "life_events": ["Job change"],  # Default
+                "customer_satisfaction_score": 8,  # Default
+                "support_tickets_last_year": 1,  # Default
+                "product_holdings": ["Checking Account", "Credit Card", "Savings Account"]  # Default
             }
             customers.append(customer)
         
